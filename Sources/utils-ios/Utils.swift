@@ -12,5 +12,5 @@ import RxCocoa
 public struct Utils {
     private init() { }
     
-    public static let greetings = "Hello"
+    public static let greetings = "Hello 2"
 }

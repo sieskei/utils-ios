@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Utils {
+public struct Utils {
     private init() { }
     
     static let greetings = "Hello"

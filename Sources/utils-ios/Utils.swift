@@ -10,5 +10,5 @@ import Foundation
 public struct Utils {
     private init() { }
     
-    static let greetings = "Hello"
+    public static let greetings = "Hello"
 }

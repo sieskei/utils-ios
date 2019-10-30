@@ -46,7 +46,7 @@ public protocol AssociatedObjectCompatible: Synchronized {
 public extension AssociatedObjectCompatible {
     func get<T>(for key: String, default value: T) -> T {
         return synchronized {
-            if let current = objc_getAssociatedObject(self, key) as? T {
+            if let current = objc_getAssociatedObject(self, AssociatedKey.pointer(for: key)) as? T {
                 return current
             }
             

@@ -8,7 +8,7 @@
 import Foundation
 
 fileprivate struct AssociatedKey {
-    private static var currentCode: UInt = 0
+    private static var currentCode: UInt = 1
     private static var nextCode: UInt {
         defer { currentCode += 1 }
         return currentCode

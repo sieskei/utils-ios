@@ -25,7 +25,7 @@ open class RxMultipleTimesDecodable: MultipleTimesDecodable {
         decode = .instance
     }
     
-    public func decode(from decoder: Decoder) throws {
+    open func decode(from decoder: Decoder) throws {
         decode.next()
     }
 }

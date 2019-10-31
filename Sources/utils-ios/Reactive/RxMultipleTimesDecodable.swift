@@ -14,7 +14,7 @@ fileprivate extension Value where Element == Void {
     func next() { value = () }
 }
 
-public class RxMultipleTimesDecodable: MultipleTimesDecodable {
+open class RxMultipleTimesDecodable: MultipleTimesDecodable {
     fileprivate let decode: Value<Void>
     
     public init() {

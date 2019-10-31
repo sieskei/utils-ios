@@ -59,8 +59,8 @@ final class utils_iosTests: XCTestCase {
         view2.model = .value(model2)
         
         
-        model1.testDecode()
-        model2.testDecode()
+        model1.simulateDecode()
+        model2.simulateDecode()
         
         
         

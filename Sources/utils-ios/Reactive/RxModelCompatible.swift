@@ -18,12 +18,14 @@ internal extension RxModelCompatible {
     }
 }
 
+// MARK: Default implementation.
 public extension RxModelCompatible {
     var model: Model<M> {
         get { return valueModel.value }
         set { valueModel.value = newValue }
     }
 }
+
 
 // MARK: Reactive compatible.
 public extension Reactive where Base: RxModelCompatible {
@@ -35,6 +37,7 @@ public extension Reactive where Base: RxModelCompatible {
         return .init(values: origin, valueSink: bindingObserver)
     }
 }
+
 
 // MARK: Reactive compatible for RxMultipleTimesDecodable models.
 public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimesDecodable {

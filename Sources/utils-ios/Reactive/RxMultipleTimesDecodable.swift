@@ -9,13 +9,9 @@ import Foundation
 import RxSwift
 
 fileprivate extension Value where Element == Void {
-    static var instance: Value<Element> {
-        return .init(())
-    }
+    static var instance: Value<Element> { return .init(()) }
     
-    func next() {
-        value = ()
-    }
+    func next() { value = () }
 }
 
 public class RxMultipleTimesDecodable: MultipleTimesDecodable {
@@ -32,8 +28,12 @@ public class RxMultipleTimesDecodable: MultipleTimesDecodable {
     public func decode(from decoder: Decoder) throws {
         decode.next()
     }
-    
-    public func testDecode() {
+}
+
+
+// MARK: Only for testing.
+internal extension RxMultipleTimesDecodable {
+    func simulateDecode() {
         decode.next()
     }
 }

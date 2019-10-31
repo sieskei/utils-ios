@@ -44,130 +44,130 @@ public class BaseView: UIView, BaseViewType {
     }
 }
 
-class BaseTableView: UITableView, BaseViewType {
+public class BaseTableView: UITableView, BaseViewType {
     private var initialized: Bool = false
-    let isFromNib: Bool
+    public let isFromNib: Bool
     
-    convenience init() {
+    public convenience init() {
         self.init(frame: .zero, style: .plain)
     }
     
-    convenience init(frame: CGRect) {
+    public convenience init(frame: CGRect) {
         self.init(frame: frame, style: .plain)
     }
     
-    override init(frame: CGRect, style: UITableView.Style) {
+    public override init(frame: CGRect, style: UITableView.Style) {
         self.isFromNib = false
         super.init(frame: frame, style: style)
         self.initialize()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         self.isFromNib = true
         super.init(coder: aDecoder)
     }
     
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         if isFromNib, !initialized {
             initialize()
         }
     }
     
-    func initialize() {
+    public func initialize() {
         initialized = true
     }
 }
 
-class BaseCollectionView: UICollectionView, BaseViewType {
+public class BaseCollectionView: UICollectionView, BaseViewType {
     private var initialized: Bool = false
-    let isFromNib: Bool
+    public let isFromNib: Bool
     
-    override init(frame: CGRect, collectionViewLayout layout: UICollectionViewLayout) {
+    public override init(frame: CGRect, collectionViewLayout layout: UICollectionViewLayout) {
         self.isFromNib = false
         super.init(frame: frame, collectionViewLayout: layout)
         self.initialize()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         self.isFromNib = true
         super.init(coder: aDecoder)
     }
     
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         if isFromNib, !initialized {
             initialize()
         }
     }
     
-    func initialize() {
+    public func initialize() {
         initialized = true
     }
 }
 
-class BaseTableViewCell: UITableViewCell, BaseViewType {
+public class BaseTableViewCell: UITableViewCell, BaseViewType {
     private var initialized: Bool = false
-    let isFromNib: Bool
+    public let isFromNib: Bool
     
-    override var backgroundColor: UIColor? {
+    public override var backgroundColor: UIColor? {
         didSet {
             contentView.backgroundColor = backgroundColor
         }
     }
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+    public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         self.isFromNib = false
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.initialize()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         self.isFromNib = true
         super.init(coder: aDecoder)
     }
     
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         if isFromNib, !initialized {
             initialize()
         }
     }
     
-    func initialize() {
+    public func initialize() {
         initialized = true
     }
 }
 
-class BaseColllectionViewCell: UICollectionViewCell, BaseViewType {
+public class BaseColllectionViewCell: UICollectionViewCell, BaseViewType {
     private var initialized: Bool = false
-    let isFromNib: Bool
+    public let isFromNib: Bool
     
-    override var backgroundColor: UIColor? {
+    public override var backgroundColor: UIColor? {
         didSet {
             contentView.backgroundColor = backgroundColor
         }
     }
     
-    override init(frame: CGRect) {
+    public override init(frame: CGRect) {
         self.isFromNib = false
         super.init(frame: frame)
         self.initialize()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         self.isFromNib = true
         super.init(coder: aDecoder)
     }
     
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         if isFromNib, !initialized {
             initialize()
         }
     }
     
-    func initialize() {
+    public func initialize() {
         initialized = true
     }
 }

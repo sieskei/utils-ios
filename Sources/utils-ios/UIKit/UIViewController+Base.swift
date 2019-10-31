@@ -8,71 +8,71 @@
 
 import UIKit
 
-protocol BaseViewControllerType where Self: UIViewController {
+public protocol BaseViewControllerType where Self: UIViewController {
     var isFromNib: Bool { get }
     func initialize()
 }
 
-class BaseViewController: UIViewController, BaseViewControllerType {
+public class BaseViewController: UIViewController, BaseViewControllerType {
     private var initialized: Bool = false
-    let isFromNib: Bool
+    public let isFromNib: Bool
     
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         self.isFromNib = true
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         self.isFromNib = true
         super.init(coder: aDecoder)
     }
     
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         if isFromNib, !initialized {
             initialize()
         }
     }
     
-    func initialize() {
+    public func initialize() {
         self.initialized = true
     }
 }
 
-class BaseNavigationConroller: UINavigationController, BaseViewControllerType {
+public class BaseNavigationConroller: UINavigationController, BaseViewControllerType {
     private var initialized: Bool = false
-    let isFromNib: Bool
+    public let isFromNib: Bool
     
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         self.isFromNib = true
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         self.isFromNib = true
         super.init(coder: aDecoder)
     }
     
-    override init(rootViewController: UIViewController) {
+    public override init(rootViewController: UIViewController) {
         self.isFromNib = false
         super.init(rootViewController: rootViewController)
         self.initialize()
     }
     
-    override init(navigationBarClass: AnyClass?, toolbarClass: AnyClass?) {
+    public override init(navigationBarClass: AnyClass?, toolbarClass: AnyClass?) {
         self.isFromNib = false
         super.init(navigationBarClass: navigationBarClass, toolbarClass: toolbarClass)
         self.initialize()
     }
     
-    override func awakeFromNib() {
+    public override func awakeFromNib() {
         super.awakeFromNib()
         if isFromNib, !initialized {
             initialize()
         }
     }
     
-    func initialize() {
+    public func initialize() {
         self.initialized = true
     }
 }

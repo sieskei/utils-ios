@@ -12,14 +12,14 @@ import RxCocoa
 public struct Utils {
     private init() { }
     
-    static func unwrapOrFatalError<T>(_ value: T?) -> T {
+    public static func unwrapOrFatalError<T>(_ value: T?) -> T {
         guard let result = value else {
             fatalError("Failure unwrap to \(T.self)")
         }
         return result
     }
     
-    static func castOrFatalError<T>(_ value: Any) -> T {
+    public static func castOrFatalError<T>(_ value: Any) -> T {
         let maybeResult: T? = value as? T
         guard let result = maybeResult else {
             fatalError("Failure converting from \(String(describing: value)) to \(T.self)")

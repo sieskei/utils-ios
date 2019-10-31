@@ -10,11 +10,9 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-public protocol RxViewType where Self: UIView {
-    associatedtype M: AnyObject
-}
+public protocol RxViewType: ModelCompatible where Self: UIView { }
 
-public class RxView<M: AnyObject>: BaseView, RxViewType, ModelCompatible {
+public class RxView<M: AnyObject>: BaseView, RxViewType {
     fileprivate let valueModel: EquatableValue<Model<M>> = .init(.empty)
     
     public var model: Model<M> {
@@ -23,9 +21,13 @@ public class RxView<M: AnyObject>: BaseView, RxViewType, ModelCompatible {
     }
 }
 
+// MARK: Reactive compatible.
 public extension Reactive where Base: RxViewType {
-    var model: Observable<Model<Base.M>> {
+    var model: ControlProperty<Model<Base.M>>? {
         let view: RxView<Base.M> = Utils.castOrFatalError(base)
-        return view.valueModel.asObservable()
+        let bindingObserver: Binder<Model<Base.M>> = .init(view, binding: {
+            $0.model = $1
+        })
+        return .init(values: view.valueModel.asObservable(), valueSink: bindingObserver)
     }
 }

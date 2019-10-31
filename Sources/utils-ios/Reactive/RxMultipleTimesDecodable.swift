@@ -9,17 +9,31 @@ import Foundation
 import RxSwift
 
 fileprivate extension Value where Element == Void {
+    static var instance: Value<Element> {
+        return .init(())
+    }
+    
     func next() {
         value = ()
     }
 }
 
 public class RxMultipleTimesDecodable: MultipleTimesDecodable {
-    fileprivate lazy var decode: Value<Void> = {
-        return .init(())
-    }()
+    fileprivate let decode: Value<Void>
+    
+    public init() {
+        decode = .instance
+    }
+    
+    public required init(from decoder: Decoder) throws {
+        decode = .instance
+    }
     
     public func decode(from decoder: Decoder) throws {
+        decode.next()
+    }
+    
+    public func testDecode() {
         decode.next()
     }
 }

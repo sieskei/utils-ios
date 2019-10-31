@@ -7,12 +7,6 @@
 
 import Foundation
 
-public protocol MultipleTimesDecodable: Decodable, Synchronized {
+public protocol MultipleTimesDecodable: class, Decodable, Synchronized {
     func decode(from decoder: Decoder) throws
 }
-
-
-
-
-
-

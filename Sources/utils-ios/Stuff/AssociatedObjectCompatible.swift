@@ -45,18 +45,25 @@ public protocol AssociatedObjectCompatible: Synchronized {
 }
 public extension AssociatedObjectCompatible {
     func get<T>(for key: String, default value: T) -> T {
+        return get(for: key) { return value }
+    }
+    
+    func get<T>(for key: String, default value: () -> T) -> T {
         return synchronized {
+            let key = "\(type(of: self)).\(key)"
             if let current = objc_getAssociatedObject(self, AssociatedKey.pointer(for: key)) as? T {
                 return current
             }
             
-            objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            return value
+            let `default` = value()
+            objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), `default`, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            return `default`
         }
     }
     
     func set<T>(value: T, for key: String) {
         synchronized {
+            let key = "\(type(of: self)).\(key)"
             objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }

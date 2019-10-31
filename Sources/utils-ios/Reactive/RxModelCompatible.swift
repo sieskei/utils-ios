@@ -29,7 +29,7 @@ public extension RxModelCompatible {
 
 // MARK: Reactive compatible.
 public extension Reactive where Base: RxModelCompatible {
-    var model: ControlProperty<Model<Base.M>>? {
+    var model: ControlProperty<Model<Base.M>> {
         let origin = base.valueModel.asObservable()
         let bindingObserver: Binder<Model<Base.M>> = .init(base, binding: {
             $0.model = $1

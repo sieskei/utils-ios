@@ -13,7 +13,7 @@ import Foundation
 
 public protocol ModelType {
     associatedtype M: AnyObject
-    init(model: M?)
+    init(_ model: M?)
 }
 
 // --------------- //
@@ -24,7 +24,7 @@ public enum Model<M: AnyObject>: ModelType {
     case empty
     case value(M)
     
-    public init(model: M?) {
+    public init(_ model: M?) {
         if let model = model {
             self = .value(model)
         } else {

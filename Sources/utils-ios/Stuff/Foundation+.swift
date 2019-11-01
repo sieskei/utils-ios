@@ -7,36 +7,30 @@
 
 import Foundation
 
-public protocol StringParsable {
-    init(from text: String)
-}
-
-extension Int: StringParsable {
-    public init(from text: String) {
-        self = (text as NSString).integerValue
+extension Array {
+    mutating func tryRemoveFirst() -> Element? {
+        guard count > 0 else {
+            return nil
+        }
+        return removeFirst()
     }
 }
 
-extension Int64: StringParsable {
-    public init(from text: String) {
-        self = (text as NSString).longLongValue
+extension Dictionary {
+    func insert(value: Value, forKey key: Key) -> Dictionary<Key, Value> {
+        var map = Dictionary<Key, Value>()
+        map[key] = value
+        forEach {
+            map[$0] = $1
+        }
+        return map
     }
 }
 
-extension Bool: StringParsable {
-    public init(from text: String) {
-        self = (text as NSString).boolValue
-    }
+extension Locale {
+    static let Bulgaria: Locale? = Locale(identifier: "bg_BG")
 }
 
-extension Float: StringParsable {
-    public init(from text: String) {
-        self = (text as NSString).floatValue
-    }
-}
-
-extension Double: StringParsable {
-    public init(from text: String) {
-        self = (text as NSString).doubleValue
-    }
+extension TimeZone {
+    static var GMT: TimeZone? = TimeZone(secondsFromGMT: 0)
 }

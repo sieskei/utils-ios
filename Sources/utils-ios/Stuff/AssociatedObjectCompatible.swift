@@ -8,6 +8,8 @@
 import Foundation
 
 fileprivate struct AssociatedKey {
+    private static let lock: NSLock = .init(name: "AssociatedKey.lock")
+    
     private static var currentCode: UInt = 1
     private static var keys: [String: UnsafeRawPointer] = [:]
     
@@ -17,6 +19,8 @@ fileprivate struct AssociatedKey {
     }
     
     static func pointer(for key: String) -> UnsafeRawPointer {
+        lock.lock(); defer { lock.unlock() }
+        
         if let exist = keys[key] {
             return exist
         } else {

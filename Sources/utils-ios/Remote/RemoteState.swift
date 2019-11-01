@@ -7,14 +7,10 @@
 
 import Foundation
 
-public protocol Stoppable {
-    func stop()
-}
-
 public indirect enum RemoteState {
     public enum `Type` {
         case reinit
-        case other(Stoppable)
+        case other(Interruptible)
     }
     
     case not

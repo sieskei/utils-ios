@@ -16,11 +16,51 @@ class TestModel: RxMultipleTimesDecodable {
         self.name = "ivan"
         try super.init(from: decoder)
     }
+    
+    override func decode(from decoder: Decoder) throws {
+        try super.decode(from: decoder)
+    }
+    
+    deinit {
+        print("deinit \(name)")
+    }
 }
+
+extension URL: Endpoint {
+    public func asURLRequest() throws -> URLRequest {
+        return URLRequest(url: self)
+    }
+}
+
+extension TestModel: RemoteCompatible {
+    var remoteEndpoint: Endpoint {
+        return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
+    }
+}
+
+extension TestModel: RemotePagableCompatible {
+    var remoteHasNextPage: Bool {
+        return true
+    }
+    
+    var remoteNextPageEndpoint: Endpoint {
+        return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
+    }
+}
+
+
+
+
 
 class TestView: UIView, RxModelCompatible {
     typealias M = TestModel
 }
+
+let view1 = TestView(frame: .zero)
+let view2 = TestView(frame: .zero)
+
+var model1: TestModel? = .init("miroslav")
+var model2: TestModel? = .init("yozov")
 
 final class utils_iosTests: XCTestCase {
     private let disposeBag = DisposeBag()
@@ -31,40 +71,35 @@ final class utils_iosTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
         
-        let view1 = TestView(frame: .zero)
+       
         view1.rx.decode.subscribe(onNext: { model in
             print("decode...")
             model.onValue { print($0.name) }
         }).disposed(by: disposeBag)
         
-        let view2 = TestView(frame: .zero)
+        
         view2.rx.decode.subscribe(onNext: { model in
             print("decode...")
             model.onValue { print($0.name) }
         }).disposed(by: disposeBag)
         
         
+//        view1.model = .init(model1)
+//        view2.model = .init(model2)
         
+        for index in 1 ..< 1000 {
+            model1?.reinit()
+            model1?.nextPage()
+        }
         
-
+        model1?.rx.remoteState.subscribe(onNext: {
+            print($0)
+        }).disposed(by: disposeBag)
         
+        model1 = nil
+        model2 = nil
         
-        
-        
-        
-        let model1: TestModel = .init("miroslav")
-        view1.model = .value(model1)
-        
-        let model2: TestModel = .init("yozov")
-        view2.model = .value(model2)
-        
-        
-        model1.simulateDecode()
-        model2.simulateDecode()
-        
-        
-        
-        
+        sleep(10)
         
         XCTAssertEqual(true, true)
     }

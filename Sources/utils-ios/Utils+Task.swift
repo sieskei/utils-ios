@@ -7,6 +7,13 @@
 
 import Foundation
 
+public extension NSLock {
+    convenience init(name: String) {
+        self.init()
+        self.name = name
+    }
+}
+
 public extension NSLocking {
     @discardableResult
     func `guard`<T>(_ block: () throws -> T) rethrows -> T {

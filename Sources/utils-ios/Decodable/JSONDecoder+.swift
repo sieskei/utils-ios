@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension CodingUserInfoKey {
+public extension CodingUserInfoKey {
     struct Decoder {
         static let rootKey = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.rootKey")!
         static let object = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.object")!

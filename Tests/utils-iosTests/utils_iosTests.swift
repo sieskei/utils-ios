@@ -32,13 +32,13 @@ extension URL: Endpoint {
     }
 }
 
-extension TestModel: RemoteCompatible {
+extension TestModel: RxRemoteCompatible {
     var remoteEndpoint: Endpoint {
         return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
     }
 }
 
-extension TestModel: RemotePagableCompatible {
+extension TestModel: RxRemotePagableCompatible {
     var remoteHasNextPage: Bool {
         return true
     }
@@ -84,12 +84,12 @@ final class utils_iosTests: XCTestCase {
         }).disposed(by: disposeBag)
         
         
-//        view1.model = .init(model1)
-//        view2.model = .init(model2)
+        view1.model = .init(model1)
+        view2.model = .init(model2)
         
-        for index in 1 ..< 1000 {
+        for _ in 1 ..< 2 {
             model1?.reinit()
-            model1?.nextPage()
+            model2?.nextPage()
         }
         
         model1?.rx.remoteState.subscribe(onNext: {

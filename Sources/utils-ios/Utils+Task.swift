@@ -1,0 +1,73 @@
+//
+//  Utils+Task.swift
+//  
+//
+//  Created by Miroslav Yozov on 1.11.19.
+//
+
+import Foundation
+
+public extension NSLocking {
+    @discardableResult
+    func `guard`<T>(_ block: () throws -> T) rethrows -> T {
+        self.lock(); defer { self.unlock() }
+        return try block()
+    }
+    
+    @discardableResult
+    func unguard<T>(_ block: () throws -> T) rethrows -> T {
+        unlock(); defer { lock() }
+        return try block()
+    }
+}
+
+public extension DispatchQueue {
+    func async(guard: NSLocking, block: @escaping () -> Void) {
+        async {
+            `guard`.guard(block)
+        }
+    }
+}
+
+public extension Utils {
+    struct Task {
+        typealias Lock = NSLocking
+        
+        static var queue: DispatchQueue = {
+            return DispatchQueue(label: "bg.netinfo.Task.dispatchQueue.stuff", qos: .background, attributes: .concurrent)
+        }()
+        
+        private static var operationQueue: OperationQueue = {
+            let queue = OperationQueue()
+            queue.name = "bg.netinfo.Task.operationQueue.stuff"
+            queue.qualityOfService = .background
+            return queue
+        }()
+        
+        static func async(guard: Synchronized, block: @escaping () -> Void) {
+            operationQueue.addOperation {
+                `guard`.synchronized(block)
+            }
+        }
+        
+        static func async(guard: Lock, block: @escaping () -> Void) {
+            operationQueue.addOperation {
+                `guard`.guard(block)
+            }
+        }
+        
+        static func async(block: @escaping () -> Void) {
+            operationQueue.addOperation(block)
+        }
+        
+        static func async(operation: Operation) {
+            operationQueue.addOperation(operation)
+        }
+        
+        static func batchSync(operations: () -> Void ...) {
+            operationQueue.addOperations(operations.map {
+                return BlockOperation(block: $0)
+            }, waitUntilFinished: true)
+        }
+    }
+}

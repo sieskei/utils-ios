@@ -164,7 +164,7 @@ public extension RxRemotePagableCompatible {
 }
 
 // MARK: Reactive compatible.
-extension Reactive where Base: RxRemoteCompatible {
+public extension Reactive where Base: RxRemoteCompatible {
     var remoteState: Observable<RemoteState> {
         return base.valueRemoteState.asObservable()
     }

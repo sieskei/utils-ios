@@ -8,48 +8,48 @@
 import Foundation
 
 /// Describes a arror with message and more data.
-class Fault: Error, CustomStringConvertible {
+public class Fault: Error, CustomStringConvertible {
     private enum CodingKeys: String, CodingKey {
         case error
     }
     
-    static var domain: String {
+    public static var domain: String {
         return "bg.netinfo.fault"
     }
     
     /// Full fault code: Fault.codePrefix + "." + 'code'
-    static func code(for code: String) -> String {
+    public static func code(for code: String) -> String {
         return "\(Fault.domain).\(code)"
     }
     
-    var domain: String {
+    public var domain: String {
         return Fault.domain
     }
     
-    var identifier: String {
+    public var identifier: String {
         return Fault.code(for: code)
     }
     
-    let code: String
-    let message: String
-    let info: [AnyHashable: Any]
-    let parent: Error?
+    public let code: String
+    public let message: String
+    public let info: [AnyHashable: Any]
+    public let parent: Error?
     
-    init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
+    public init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
         self.code = code
         self.message = message
         self.info = info
         self.parent = parent
     }
     
-    var description: String {
+    public var description: String {
         return "Fault { identifier: \(identifier), message: \(message), parent: \(String(describing: parent)) }"
     }
 }
 
 
 // MARK: Basic `Fault` instances.
-extension Fault {
+public extension Fault {
     static var cancelledCode = "cancelled"
     static var cancelled: Fault {
         return Fault(code: cancelledCode, message: "Спряна операция.")
@@ -67,7 +67,7 @@ extension Fault {
 }
 
 // MARK: NSError help properties.
-extension NSError {
+public extension NSError {
     var isCancelledURLRequest: Bool {
         return domain == NSURLErrorDomain && code == NSURLErrorCancelled
     }
@@ -78,7 +78,7 @@ extension NSError {
 }
 
 // MARK: Error help properties.
-extension Error {
+public extension Error {
     var nsError: NSError {
         return self as NSError
     }
@@ -93,7 +93,7 @@ extension Error {
 }
 
 // MARK: Convert `Error` to `Fault`.
-extension Error {
+public extension Error {
     var fault: Fault {
         if let fault = self as? Fault {
             return fault

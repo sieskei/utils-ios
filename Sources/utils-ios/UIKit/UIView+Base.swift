@@ -139,7 +139,7 @@ public class BaseTableViewCell: UITableViewCell, BaseViewType {
     }
 }
 
-public class BaseColllectionViewCell: UICollectionViewCell, BaseViewType {
+public class BaseCollectionViewCell: UICollectionViewCell, BaseViewType {
     private var initialized: Bool = false
     public let isFromNib: Bool
     

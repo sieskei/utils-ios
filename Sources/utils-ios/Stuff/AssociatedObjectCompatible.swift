@@ -9,12 +9,12 @@ import Foundation
 
 fileprivate struct AssociatedKey {
     private static var currentCode: UInt = 1
-    private static var nextCode: UInt {
+    private static var keys: [String: UnsafeRawPointer] = [:]
+    
+    static var nextCode: UInt {
         defer { currentCode += 1 }
         return currentCode
     }
-    
-    private static var keys: [String: UnsafeRawPointer] = [:]
     
     static func pointer(for key: String) -> UnsafeRawPointer {
         if let exist = keys[key] {
@@ -28,21 +28,11 @@ fileprivate struct AssociatedKey {
     }
 }
 
-public protocol Synchronized { }
-extension Synchronized {
-    func synchronized<T>(_ action: () throws -> T) rethrows -> T {
-        objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
-        }
-        return try action()
-    }
-}
-
 public protocol AssociatedObjectCompatible: Synchronized {
     func get<T>(for key: String, default value: T) -> T
     func set<T>(value: T, for key: String)
 }
+
 public extension AssociatedObjectCompatible {
     func get<T>(for key: String, default value: T) -> T {
         return get(for: key) { return value }

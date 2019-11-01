@@ -34,7 +34,7 @@ public extension Reactive where Base: BaseTableViewCell {
     }
 }
 
-public extension Reactive where Base: BaseColllectionViewCell {
+public extension Reactive where Base: BaseCollectionViewCell {
     var initialize: ControlEvent<Void> {
         return .init(events: methodInvoked(#selector(Base.initialize)).map { _ in })
     }

@@ -9,6 +9,10 @@ import Foundation
 import RxSwift
 import RxCocoa
 
+public extension Fault {
+    struct Utils { }
+}
+
 public struct Utils {
     private init() { }
     

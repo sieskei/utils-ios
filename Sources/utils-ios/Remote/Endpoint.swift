@@ -10,6 +10,15 @@ import Foundation
 import RxSwift
 import Alamofire
 
+public extension Fault {
+    struct Endpoint {
+        static var endpointMissingCode = "endpoint.missing"
+        static var endpointMissing: Fault {
+            return Fault(code: endpointMissingCode, message: "Не е наличен `Еndpoint`.")
+        }
+    }
+}
+
 public extension CodingUserInfoKey.Decoder {
     static let endpoint = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.endpoint")!
 }
@@ -17,7 +26,7 @@ public extension CodingUserInfoKey.Decoder {
 public extension Decoder {
     func endpoint() throws -> Endpoint {
         guard let router = userInfo[CodingUserInfoKey.Decoder.endpoint] as? Endpoint else {
-            throw Fault.unknown()
+            throw Fault.Endpoint.endpointMissing
         }
         
         return router

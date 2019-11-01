@@ -44,31 +44,31 @@ internal extension DataRequest {
 
 public extension Fault.Utils {
     struct Network {
-        struct Key {
+        public struct Key {
             static let HTTPStatusCode = "HTTPStatusCode"
         }
         
-        static let resposeErrorCode = "Tools.Network.resposeError"
-        static func resposeError(with message: String) -> Fault {
+        public static let resposeErrorCode = "Tools.Network.resposeError"
+        public static func resposeError(with message: String) -> Fault {
             return Fault(code: resposeErrorCode, message: message)
         }
         
-        static let responseUnknownCode = "Tools.Network.responseUnkwnon"
-        static func responseUnknown(with httpCode: Int, parent: Error? = nil) -> Fault {
+        public static let responseUnknownCode = "Tools.Network.responseUnkwnon"
+        public static func responseUnknown(with httpCode: Int, parent: Error? = nil) -> Fault {
             return Fault(code: resposeErrorCode, message: "Неуспешна заявка.", info: [Key.HTTPStatusCode: httpCode], parent: parent)
         }
     }
 }
 
-extension Utils {
+public extension Utils {
     struct Network {
         private init() { }
         
-        typealias ParametersEncodingType = ParameterEncoding
+        public typealias ParametersEncodingType = ParameterEncoding
         
-        typealias Method = HTTPMethod
-        typealias Parameters = [String: Any]
-        typealias Map = [AnyHashable: Any]
+        public typealias Method = HTTPMethod
+        public typealias Parameters = [String: Any]
+        public typealias Map = [AnyHashable: Any]
         
         private (set) static var manager: SessionManager = {
             let configuration = URLSessionConfiguration.default
@@ -104,7 +104,7 @@ extension Utils {
         }
         
         @discardableResult
-        static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        public static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
             return Single.create { single in
                 let request = manager.request(url)
                 request

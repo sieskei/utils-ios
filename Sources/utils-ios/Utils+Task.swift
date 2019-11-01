@@ -31,9 +31,9 @@ public extension DispatchQueue {
 
 public extension Utils {
     struct Task {
-        typealias Lock = NSLocking
+        public typealias Lock = NSLocking
         
-        static var queue: DispatchQueue = {
+        public static var queue: DispatchQueue = {
             return DispatchQueue(label: "bg.netinfo.Task.dispatchQueue.stuff", qos: .background, attributes: .concurrent)
         }()
         
@@ -44,27 +44,27 @@ public extension Utils {
             return queue
         }()
         
-        static func async(guard: Synchronized, block: @escaping () -> Void) {
+        public static func async(guard: Synchronized, block: @escaping () -> Void) {
             operationQueue.addOperation {
                 `guard`.synchronized(block)
             }
         }
         
-        static func async(guard: Lock, block: @escaping () -> Void) {
+        public static func async(guard: Lock, block: @escaping () -> Void) {
             operationQueue.addOperation {
                 `guard`.guard(block)
             }
         }
         
-        static func async(block: @escaping () -> Void) {
+        public static func async(block: @escaping () -> Void) {
             operationQueue.addOperation(block)
         }
         
-        static func async(operation: Operation) {
+        public static func async(operation: Operation) {
             operationQueue.addOperation(operation)
         }
         
-        static func batchSync(operations: () -> Void ...) {
+        public static func batchSync(operations: () -> Void ...) {
             operationQueue.addOperations(operations.map {
                 return BlockOperation(block: $0)
             }, waitUntilFinished: true)

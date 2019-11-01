@@ -55,7 +55,7 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
             }
         }
 
-        let values = Observable.merge(origin, decode).observeOn(MainScheduler.instance)
+        let values = Observable.merge(origin, decode)
         let bindingObserver: Binder<Model<Base.M>> = .init(base, binding: {
             $0.model = $1
         })

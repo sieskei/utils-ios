@@ -17,7 +17,6 @@ fileprivate extension Value where Element == Void {
 
 public protocol RxMultipleTimesDecodable:
     MultipleTimesDecodable,
-    Synchronized,
     AssociatedObjectCompatible,
     ReactiveCompatible { }
 

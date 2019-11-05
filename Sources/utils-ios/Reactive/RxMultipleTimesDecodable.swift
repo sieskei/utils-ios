@@ -27,6 +27,13 @@ internal extension RxMultipleTimesDecodable {
     }
 }
 
+// MARK: Only for testing.
+internal extension RxMultipleTimesDecodable {
+    func simulateDecode() {
+        valueDecode.next()
+    }
+}
+
 public extension RxMultipleTimesDecodable {
     func runDecode(from decoder: Decoder) throws {
         defer {
@@ -36,14 +43,6 @@ public extension RxMultipleTimesDecodable {
         try synchronized {
             try decode(from: decoder)
         }
-    }
-}
-
-
-// MARK: Only for testing.
-internal extension RxMultipleTimesDecodable {
-    func simulateDecode() {
-        valueDecode.next()
     }
 }
 

@@ -15,19 +15,27 @@ fileprivate extension Value where Element == Void {
     func next() { value = () }
 }
 
-open class RxMultipleTimesDecodable: MultipleTimesDecodable {
-    fileprivate let decode: Value<Void>
-    
-    public init() {
-        decode = .instance
+public protocol RxMultipleTimesDecodable:
+    MultipleTimesDecodable,
+    Synchronized,
+    AssociatedObjectCompatible,
+    ReactiveCompatible { }
+
+internal extension RxMultipleTimesDecodable {
+    var valueDecode: Value<Void> {
+        return get(for: "valueDecode") { .instance }
     }
-    
-    public required init(from decoder: Decoder) throws {
-        decode = .instance
-    }
-    
-    open func decode(from decoder: Decoder) throws {
-        decode.next()
+}
+
+public extension RxMultipleTimesDecodable {
+    func runDecode(from decoder: Decoder) throws {
+        defer {
+            valueDecode.next()
+        }
+        
+        try synchronized {
+            try decode(from: decoder)
+        }
     }
 }
 
@@ -35,17 +43,13 @@ open class RxMultipleTimesDecodable: MultipleTimesDecodable {
 // MARK: Only for testing.
 internal extension RxMultipleTimesDecodable {
     func simulateDecode() {
-        decode.next()
+        valueDecode.next()
     }
 }
 
-
-// MARK: Reactive compatible.
-extension RxMultipleTimesDecodable: ReactiveCompatible { }
-
 public extension Reactive where Base: RxMultipleTimesDecodable {
     var decode: Observable<Base> {
-        return base.decode.skip(1).map { [unowned base] _ in
+        return base.valueDecode.skip(1).map { [unowned base] _ in
             return base
         }
     }

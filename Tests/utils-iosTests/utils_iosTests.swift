@@ -9,16 +9,13 @@ class TestModel: RxMultipleTimesDecodable {
     
     init(_ name: String) {
         self.name = name
-        super.init()
     }
     
     required init(from decoder: Decoder) throws {
         self.name = "ivan"
-        try super.init(from: decoder)
     }
     
-    override func decode(from decoder: Decoder) throws {
-        try super.decode(from: decoder)
+    func decode(from decoder: Decoder) throws {
     }
     
     deinit {
@@ -48,10 +45,6 @@ extension TestModel: RxRemotePagableCompatible {
     }
 }
 
-
-
-
-
 class TestView: UIView, RxModelCompatible {
     typealias M = TestModel
 }
@@ -61,6 +54,8 @@ let view2 = TestView(frame: .zero)
 
 var model1: TestModel? = .init("miroslav")
 var model2: TestModel? = .init("yozov")
+
+
 
 final class utils_iosTests: XCTestCase {
     private let disposeBag = DisposeBag()
@@ -76,30 +71,33 @@ final class utils_iosTests: XCTestCase {
             print("decode...")
             model.onValue { print($0.name) }
         }).disposed(by: disposeBag)
-        
-        
+
+
         view2.rx.decode.subscribe(onNext: { model in
             print("decode...")
             model.onValue { print($0.name) }
         }).disposed(by: disposeBag)
-        
-        
-        view1.model = .init(model1)
-        view2.model = .init(model2)
-        
+
+
+//        view1.model = .init(model1)
+//        view2.model = .init(model2)
+
         for _ in 1 ..< 2 {
             model1?.reinit()
             model2?.nextPage()
         }
-        
+
         model1?.rx.remoteState.subscribe(onNext: {
             print($0)
         }).disposed(by: disposeBag)
-        
+
         model1 = nil
         model2 = nil
-        
+
         sleep(10)
+        
+        
+        
         
         XCTAssertEqual(true, true)
     }

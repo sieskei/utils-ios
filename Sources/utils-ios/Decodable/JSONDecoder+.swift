@@ -46,7 +46,7 @@ extension JSONDecoder {
         init(from decoder: Decoder) throws {
             do {
                 if let object: T = decoder.object() {
-                    try object.decode(from: decoder)
+                    try object.runDecode(from: decoder)
                     self = .success(object)
                 } else {
                     self = .success(try T.init(from: decoder))

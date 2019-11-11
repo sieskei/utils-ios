@@ -24,8 +24,8 @@ public extension CodingUserInfoKey.Decoder {
 }
 
 public extension Decoder {
-    func endpoint() throws -> Endpoint {
-        guard let router = userInfo[CodingUserInfoKey.Decoder.endpoint] as? Endpoint else {
+    func endpoint<T: Endpoint>() throws -> T {
+        guard let router = userInfo[CodingUserInfoKey.Decoder.endpoint] as? T else {
             throw Fault.Endpoint.endpointMissing
         }
         
@@ -35,9 +35,14 @@ public extension Decoder {
 
 public protocol Endpoint: URLRequestConvertible {
     var rootKey: String { get }
+    var decodeType: DecodeType { get }
     
     @discardableResult
     func serialize<T: MultipleTimesDecodable>(to object: T?, userInfo: [CodingUserInfoKey: Any]) -> Single<T>
+}
+
+public protocol EndpointPageble: Endpoint {
+    var nextPage: Self { get }
 }
 
 public extension Endpoint {
@@ -45,10 +50,15 @@ public extension Endpoint {
         return ""
     }
     
+    var decodeType: DecodeType {
+        return .replace
+    }
+    
     @discardableResult
     func serialize<T: MultipleTimesDecodable>(to object: T? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         return Utils.Network.serialize(url: self, to: object,
-                                       userInfo: userInfo.insert(value: self,    forKey: CodingUserInfoKey.Decoder.endpoint)
-                                                         .insert(value: rootKey, forKey: CodingUserInfoKey.Decoder.rootKey))
+                                       userInfo: userInfo.insert(value: self,       forKey: CodingUserInfoKey.Decoder.endpoint)
+                                                         .insert(value: rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
+                                                         .insert(value: decodeType, forKey: CodingUserInfoKey.Decoder.decodeType))
     }
 }

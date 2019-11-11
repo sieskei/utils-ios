@@ -7,23 +7,16 @@
 
 import Foundation
 
-internal enum RemotePermission {
-    case already
-    case allowed
-    case notAllowed
-    case interrupt(Interruptible)
-}
-
-public protocol RemoteCompatible {
+public protocol RemoteCompatible: Initable {
+    associatedtype EndpointType: Endpoint
+    
     var remoteState: RemoteState { get }
-    var remoteEndpoint: Endpoint { get }
-    
-    func reinit()
+    var remoteEndpoint: EndpointType { get }
 }
 
-public protocol RemotePagableCompatible: RemoteCompatible {
+public protocol RemotePageCompatible: RemoteCompatible, Pageable where EndpointType: EndpointPageble {
     var remoteHasNextPage: Bool { get }
-    var remoteNextPageEndpoint: Endpoint { get }
-    
-    func nextPage()
+
 }
+
+

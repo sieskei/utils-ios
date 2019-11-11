@@ -23,25 +23,27 @@ class TestModel: RxMultipleTimesDecodable {
     }
 }
 
-extension URL: Endpoint {
+extension URL: EndpointPageble {
+    public var nextPage: URL {
+        return self
+    }
+    
     public func asURLRequest() throws -> URLRequest {
         return URLRequest(url: self)
     }
 }
 
 extension TestModel: RxRemoteCompatible {
-    var remoteEndpoint: Endpoint {
+    var remoteEndpoint: TestModel.EndpointType {
         return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
-    }
-}
-
-extension TestModel: RxRemotePagableCompatible {
-    var remoteHasNextPage: Bool {
-        return true
     }
     
-    var remoteNextPageEndpoint: Endpoint {
-        return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
+    typealias EndpointType = URL
+}
+
+extension TestModel: RxRemotePageCompatible {
+    var remoteHasNextPage: Bool {
+        return true
     }
 }
 
@@ -84,7 +86,7 @@ final class utils_iosTests: XCTestCase {
 
         for _ in 1 ..< 2 {
             model1?.reinit()
-            model2?.nextPage()
+            model2?.next()
         }
 
         model1?.rx.remoteState.subscribe(onNext: {

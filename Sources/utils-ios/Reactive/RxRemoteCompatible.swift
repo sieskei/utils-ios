@@ -14,35 +14,51 @@ public protocol RxRemoteCompatible:
     RemoteCompatible,
     MultipleTimesDecodable,
     AssociatedObjectCompatible,
-    ReactiveCompatible { }
+    ReactiveCompatible {
+    
+    /// Default remote state aka when constructed.
+    var defaultRemoteState: RemoteState { get }
+}
 
-public protocol RxRemotePagableCompatible:
+// MARK: Default implementation.
+public extension RxRemoteCompatible {
+    fileprivate (set) var remoteState: RemoteState {
+        get { return valueRemoteState.value }
+        set { valueRemoteState.value = newValue }
+    }
+    
+    var defaultRemoteState: RemoteState {
+        return .not
+    }
+    
+    func reinit() {
+        Utils.Task.async(guard: self) {
+            self.runReinit()
+        }
+    }
+}
+
+public protocol RxRemotePageCompatible:
     RxRemoteCompatible,
-    RemotePagableCompatible { }
+    RemotePageCompatible {
+}
+
+// MARK: Default implementation.
+public extension RxRemotePageCompatible {
+    func next() {
+        Utils.Task.async(guard: self) {
+            self.runNext()
+        }
+    }
+}
 
 fileprivate extension RxRemoteCompatible {
     var valueRemoteState: EquatableValue<RemoteState> {
-        return get(for: "valueRemoteState") { .init(.not) }
+        return get(for: "valueRemoteState") { .init(defaultRemoteState) }
     }
     
     var disposeBag: DisposeBag {
         return get(for: "disposeBag") { .init() }
-    }
-    
-    private func permission(for state: RemoteState) -> RemotePermission {
-        switch state {
-        case .not, .done:
-            return .allowed
-        case .ongoing(let type):
-            switch type {
-            case .reinit:
-                return .already
-            case .other(let interruptible):
-                return .interrupt(interruptible)
-            }
-        case .error(_, let last):
-            return permission(for: last)
-        }
     }
     
     func execute(endpoint: Endpoint, for type: (Disposable) -> RemoteState.`Type`) {
@@ -64,6 +80,24 @@ fileprivate extension RxRemoteCompatible {
         remoteState = .ongoing(type(disposable))
         disposable.disposed(by: disposeBag)
     }
+}
+
+internal extension RxRemoteCompatible {
+    private func permission(for state: RemoteState) -> RemotePermission {
+        switch state {
+        case .not, .done:
+            return .allowed
+        case .ongoing(let type):
+            switch type {
+            case .reinit:
+                return .already
+            case .other(let interruptible):
+                return .interrupt(interruptible)
+            }
+        case .error(_, let last):
+            return permission(for: last)
+        }
+    }
     
     func runReinit() {
         let access = permission(for: remoteState)
@@ -81,6 +115,7 @@ fileprivate extension RxRemoteCompatible {
     }
 }
 
+
 internal struct RemoteNextPageAction: Interruptible {
     let disposable: Disposable
     func interrupt() {
@@ -88,7 +123,7 @@ internal struct RemoteNextPageAction: Interruptible {
     }
 }
 
-internal extension RxRemotePagableCompatible {
+internal extension RxRemotePageCompatible {
     private func isNeedReinit(for state: RemoteState) -> Bool {
         switch state {
         case .not:
@@ -116,7 +151,7 @@ internal extension RxRemotePagableCompatible {
         }
     }
     
-    func runNextPage() {
+    func runNext() {
         guard !isNeedReinit(for: remoteState) else {
             return runReinit()
         }
@@ -133,32 +168,9 @@ internal extension RxRemotePagableCompatible {
         case .allowed:
             guard remoteHasNextPage else { return }
             
-            execute(endpoint: remoteNextPageEndpoint) {
+            execute(endpoint: remoteEndpoint.nextPage) {
                 .other(RemoteNextPageAction(disposable: $0))
             }
-        }
-    }
-}
-
-// MARK: Default implementation.
-public extension RxRemoteCompatible {
-    fileprivate (set) var remoteState: RemoteState {
-        get { return valueRemoteState.value }
-        set { valueRemoteState.value = newValue }
-    }
-    
-    func reinit() {
-        Utils.Task.async(guard: self) {
-            self.runReinit()
-        }
-    }
-}
-
-// MARK: Default implementation.
-public extension RxRemotePagableCompatible {
-    func nextPage() {
-        Utils.Task.async(guard: self) {
-            self.runNextPage()
         }
     }
 }

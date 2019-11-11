@@ -7,6 +7,21 @@
 
 import Foundation
 
+public enum DecodeType: Int {
+    case replace
+    case append
+}
+
+public extension CodingUserInfoKey.Decoder {
+    static let decodeType = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.decodeType")!
+}
+
+public extension Decoder {
+    var decodeType: DecodeType {
+        return userInfo[CodingUserInfoKey.Decoder.decodeType] as? DecodeType ?? .replace
+    }
+}
+
 public protocol MultipleTimesDecodable:
     class,
     Decodable,
@@ -16,7 +31,7 @@ public protocol MultipleTimesDecodable:
 }
 
 extension MultipleTimesDecodable {
-    func runDecode(from decoder: Decoder) throws {
+    public func runDecode(from decoder: Decoder) throws {
         try synchronized {
             try decode(from: decoder)
         }

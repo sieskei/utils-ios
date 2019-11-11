@@ -14,7 +14,7 @@ public class Container<Element: Decodable>: MultipleTimesDecodable {
     
     public private (set) var elements: [Element]
     
-    var count: Int {
+    public var count: Int {
         return elements.count
     }
     

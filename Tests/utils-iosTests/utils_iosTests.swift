@@ -2,7 +2,8 @@ import XCTest
 @testable import utils_ios
 
 
-import RxSwift
+@testable import RxSwift
+@testable import RxCocoa
 
 class TestModel: RxMultipleTimesDecodable {
     let name: String
@@ -37,7 +38,7 @@ extension TestModel: RxRemoteCompatible {
     var remoteEndpoint: TestModel.EndpointType {
         return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
     }
-    
+
     typealias EndpointType = URL
 }
 
@@ -58,7 +59,6 @@ var model1: TestModel? = .init("miroslav")
 var model2: TestModel? = .init("yozov")
 
 
-
 final class utils_iosTests: XCTestCase {
     private let disposeBag = DisposeBag()
     
@@ -69,34 +69,43 @@ final class utils_iosTests: XCTestCase {
         // results.
         
        
-        view1.rx.decode.subscribe(onNext: { model in
+        view1.rx.decode.subscribeOn(MainScheduler.instance).observeOn(MainScheduler.instance).subscribe(onNext: { model in
             print("decode...")
             model.onValue { print($0.name) }
         }).disposed(by: disposeBag)
 
 
-        view2.rx.decode.subscribe(onNext: { model in
-            print("decode...")
-            model.onValue { print($0.name) }
-        }).disposed(by: disposeBag)
+//        view2.rx.decode.subscribe(onNext: { model in
+//            print("decode...")
+//            model.onValue { print($0.name) }
+//        }).disposed(by: disposeBag)
+//
+//
+////        view1.model = .init(model1)
+////        view2.model = .init(model2)
+//
+////        for _ in 1 ..< 2 {
+////            model1?.reinit()
+////            model2?.next()
+////        }
+//
+//        model1?.rx.remoteState.subscribe(onNext: {
+//            print($0)
+//        }).disposed(by: disposeBag)
+//
+//        model1 = nil
+//        model2 = nil
 
-
-//        view1.model = .init(model1)
-//        view2.model = .init(model2)
-
-        for _ in 1 ..< 2 {
-            model1?.reinit()
-            model2?.next()
-        }
-
-        model1?.rx.remoteState.subscribe(onNext: {
-            print($0)
-        }).disposed(by: disposeBag)
-
-        model1 = nil
-        model2 = nil
-
-        sleep(10)
+        
+//        let aaa = AAAAAAA<TestModel, URL>(flag: false)
+//
+//         let container = RemoteContainer<TestModel, URL>(endpoint: URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!)
+//
+        
+        
+//        print(container.elements)
+        
+        // sleep(10)
         
         
         

@@ -168,7 +168,7 @@ internal extension RxRemotePageCompatible {
         case .allowed:
             guard remoteHasNextPage else { return }
             
-            execute(endpoint: remoteEndpoint.nextPage) {
+            execute(endpoint: remoteEndpoint.next) {
                 .other(RemoteNextPageAction(disposable: $0))
             }
         }

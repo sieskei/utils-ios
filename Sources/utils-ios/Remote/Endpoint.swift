@@ -42,7 +42,7 @@ public protocol Endpoint: URLRequestConvertible {
 }
 
 public protocol EndpointPageble: Endpoint {
-    var nextPage: Self { get }
+    var next: Self { get }
 }
 
 public extension Endpoint {

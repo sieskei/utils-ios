@@ -24,7 +24,7 @@ class TestModel: RxMultipleTimesDecodable {
 }
 
 extension URL: EndpointPageble {
-    public var nextPage: URL {
+    public var next: URL {
         return self
     }
     

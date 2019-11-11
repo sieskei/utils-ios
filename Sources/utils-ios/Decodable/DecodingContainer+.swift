@@ -43,7 +43,7 @@ public extension SingleValueDecodingContainer {
     }
 }
 
-extension KeyedDecodingContainer {
+public extension KeyedDecodingContainer {
     func superDecoder(forKey key: KeyedDecodingContainer.Key, default decoder: Decoder) -> Decoder {
         do {
             return try superDecoder(forKey: key)

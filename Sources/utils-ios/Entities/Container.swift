@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class Container<Element: Decodable>: MultipleTimesDecodable {
+public class Container<Element: Decodable> {
     class var factory: Factory.Type {
         return Factory.self
     }

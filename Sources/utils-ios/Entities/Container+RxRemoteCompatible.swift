@@ -14,8 +14,8 @@ public class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
     
     // MAK: RxRemoteCompatible, RxRemotePageCompatible
     public let remoteEndpoint: EndpointType
-    public internal (set) var defaultRemoteState: RemoteState
-    public internal (set) var remoteHasNextPage = true
+    public private (set) var defaultRemoteState: RemoteState
+    public private (set) var remoteHasNextPage = true
     
     public required init(from decoder: Decoder) throws {
         self.remoteEndpoint = try decoder.endpoint()

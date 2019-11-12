@@ -5,18 +5,18 @@ import XCTest
 @testable import RxSwift
 @testable import RxCocoa
 
-class TestModel: RxMultipleTimesDecodable {
+public class TestModel: RxMultipleTimesDecodable {
     let name: String
     
     init(_ name: String) {
         self.name = name
     }
     
-    required init(from decoder: Decoder) throws {
+    required public init(from decoder: Decoder) throws {
         self.name = "ivan"
     }
     
-    func decode(from decoder: Decoder) throws {
+    public func decode(from decoder: Decoder) throws {
     }
     
     deinit {
@@ -34,22 +34,22 @@ extension URL: EndpointPageble {
     }
 }
 
-extension TestModel: RxRemoteCompatible {
-    var remoteEndpoint: TestModel.EndpointType {
-        return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
-    }
+//public extension TestModel: RxRemoteCompatible {
+//    var remoteEndpoint: TestModel.EndpointType {
+//        return URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!
+//    }
+//
+//    typealias EndpointType = URL
+//}
+//
+//public extension TestModel: RxRemotePageCompatible {
+//    var remoteHasNextPage: Bool {
+//        return true
+//    }
+//}
 
-    typealias EndpointType = URL
-}
-
-extension TestModel: RxRemotePageCompatible {
-    var remoteHasNextPage: Bool {
-        return true
-    }
-}
-
-class TestView: UIView, RxModelCompatible {
-    typealias M = TestModel
+public class TestView: UIView, RxModelCompatible {
+    public typealias M = TestModel
 }
 
 let view1 = TestView(frame: .zero)
@@ -58,21 +58,21 @@ let view2 = TestView(frame: .zero)
 var model1: TestModel? = .init("miroslav")
 var model2: TestModel? = .init("yozov")
 
+let disposeBag = DisposeBag()
 
 final class utils_iosTests: XCTestCase {
-    private let disposeBag = DisposeBag()
+    
     
     
     func testExample() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        
        
-        view1.rx.decode.subscribeOn(MainScheduler.instance).observeOn(MainScheduler.instance).subscribe(onNext: { model in
-            print("decode...")
-            model.onValue { print($0.name) }
-        }).disposed(by: disposeBag)
+//        view1.rx.decode.subscribe(onNext: { model in
+//            print("decode...")
+//            model.onValue { print($0.name) }
+//        }).disposed(by: disposeBag)
 
 
 //        view2.rx.decode.subscribe(onNext: { model in
@@ -99,13 +99,13 @@ final class utils_iosTests: XCTestCase {
         
 //        let aaa = AAAAAAA<TestModel, URL>(flag: false)
 //
-//         let container = RemoteContainer<TestModel, URL>(endpoint: URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!)
+         let container = RemoteContainer<TestModel, URL>(endpoint: URL(string: "https://www.mocky.io/v2/5185415ba171ea3a00704eed")!)
 //
         
         
-//        print(container.elements)
+        print(container.elements)
         
-        // sleep(10)
+         sleep(10)
         
         
         

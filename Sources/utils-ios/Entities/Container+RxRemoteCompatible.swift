@@ -8,7 +8,9 @@
 import Foundation
 
 public class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
-    Container<Element>, RxMultipleTimesDecodable, RxRemoteCompatible, RxRemotePageCompatible {
+    Container<Element>,
+    RxRemoteCompatible,
+    RxRemotePageCompatible {
     
     // MAK: RxRemoteCompatible, RxRemotePageCompatible
     public let remoteEndpoint: EndpointType
@@ -40,3 +42,5 @@ public class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
         print(self, "deinit ...")
     }
 }
+
+public extension RemoteContainer: RxMultipleTimesDecodable { }

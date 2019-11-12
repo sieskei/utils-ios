@@ -33,8 +33,8 @@ internal extension RxMultipleTimesDecodable {
     }
 }
 
-public extension RxMultipleTimesDecodable {
-    func runDecode(from decoder: Decoder) throws {
+extension RxMultipleTimesDecodable {
+    public func runDecode(from decoder: Decoder) throws {
         defer {
             valueDecode.next()
         }

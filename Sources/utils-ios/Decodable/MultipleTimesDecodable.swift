@@ -22,15 +22,20 @@ public extension Decoder {
     }
 }
 
-public protocol MultipleTimesDecodable:
-    class,
-    Decodable,
-    Synchronized {
+public protocol MultipleTimesDecodable: class, Decodable, Synchronized {
+    static func runDecode(_ object: Self, from decoder: Decoder) throws
+    
+    
     func runDecode(from decoder: Decoder) throws
     func decode(from decoder: Decoder) throws
 }
 
 extension MultipleTimesDecodable {
+    public static func runDecode(_ object: Self, from decoder: Decoder) throws {
+        let objectType = type(of: object)
+        try objectType.runDecode(object)(from: decoder)
+    }
+    
     public func runDecode(from decoder: Decoder) throws {
         try synchronized {
             try decode(from: decoder)

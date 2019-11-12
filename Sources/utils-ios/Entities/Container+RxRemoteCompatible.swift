@@ -43,4 +43,4 @@ public class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
     }
 }
 
-public extension RemoteContainer: RxMultipleTimesDecodable { }
+extension RemoteContainer: RxMultipleTimesDecodable { }

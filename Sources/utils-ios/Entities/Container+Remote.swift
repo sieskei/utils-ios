@@ -13,7 +13,7 @@ open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
     RxRemotePageCompatible {
     
     // MAK: RxRemoteCompatible, RxRemotePageCompatible
-    public let remoteEndpoint: EndpointType
+    public private (set) var remoteEndpoint: EndpointType
     public private (set) var defaultRemoteState: RemoteState
     public private (set) var remoteHasNextPage = true
     

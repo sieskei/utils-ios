@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
+open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
     Container<Element>,
     RxRemoteCompatible,
     RxRemotePageCompatible {

@@ -25,9 +25,10 @@ public class TestModel: RxMultipleTimesDecodable {
 }
 
 extension URL: EndpointPageble {
-    public var next: URL {
+    public func next<T>(for object: T) -> URL where T : MultipleTimesDecodable {
         return self
     }
+    
     
     public func asURLRequest() throws -> URLRequest {
         return URLRequest(url: self)

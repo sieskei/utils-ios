@@ -16,7 +16,6 @@ public protocol RemoteCompatible: Initable {
 
 public protocol RemotePageCompatible: RemoteCompatible, Pageable where EndpointType: EndpointPageble {
     var remoteHasNextPage: Bool { get }
-
 }
 
 

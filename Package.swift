@@ -19,14 +19,15 @@ let package = Package(
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "5.0.0"),
         .package(url: "https://github.com/RxSwiftCommunity/RxDataSources.git", from: "4.0.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "4.9.0"),
-        .package(url: "https://github.com/CosmicMind/Material.git", .upToNextMajor(from: "3.1.0"))
+        .package(url: "https://github.com/CosmicMind/Material.git", .branch("development")),
+        .package(url: "https://github.com/CosmicMind/Motion.git", .branch("development"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "Alamofire", "Material"]),
+            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "Alamofire", "Material", "Motion"]),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),

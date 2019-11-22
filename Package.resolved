@@ -12,16 +12,16 @@
       },
       {
         "package": "Material",
-        "repositoryURL": "https://github.com/CosmicMind/Material.git",
+        "repositoryURL": "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git",
         "state": {
           "branch": "development",
-          "revision": "ea59f7c4d72a4c3a3694042b05d4276e2ffd4e26",
+          "revision": "d6940e8ab353be3ad4c29cf7b6c8db31bdda9a42",
           "version": null
         }
       },
       {
         "package": "Motion",
-        "repositoryURL": "https://github.com/CosmicMind/Motion.git",
+        "repositoryURL": "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git",
         "state": {
           "branch": "development",
           "revision": "808ac0cf1b67c5e4163ee867dd6c056836fcbc58",

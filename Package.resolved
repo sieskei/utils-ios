@@ -11,11 +11,20 @@
         }
       },
       {
+        "package": "AlamofireImage",
+        "repositoryURL": "https://github.com/Alamofire/AlamofireImage.git",
+        "state": {
+          "branch": null,
+          "revision": "c31e617c582102d4b51c714211071f2260e24fdd",
+          "version": "3.6.0"
+        }
+      },
+      {
         "package": "Material",
         "repositoryURL": "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git",
         "state": {
           "branch": "development",
-          "revision": "d6940e8ab353be3ad4c29cf7b6c8db31bdda9a42",
+          "revision": "19d25250d1669fcbb86d5ccf87b0926e0e0591be",
           "version": null
         }
       },

@@ -1,5 +1,5 @@
 //
-//  UIKit+Gradient.swift
+//  UIView+Gradient.swift
 //  
 //
 //  Created by Miroslav Yozov on 26.11.19.

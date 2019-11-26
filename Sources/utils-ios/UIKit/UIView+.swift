@@ -1,0 +1,74 @@
+//
+//  UIView+.swift
+//  
+//
+//  Created by Miroslav Yozov on 26.11.19.
+//
+
+import UIKit
+
+extension UIView {
+    class var nibName: String {
+        return String(describing: self)
+    }
+    
+    class var nib: UINib? {
+        return UINib(nibName: nibName, bundle: Bundle.main)
+    }
+    
+    class func fromNib(nibNameOrNil: String? = nil) -> Self {
+        return fromNib(nibNameOrNil: nibNameOrNil, type: self)
+    }
+    
+    class func fromNib<T : UIView>(nibNameOrNil: String? = nil, type: T.Type) -> T {
+        let v: T? = fromNib(nibNameOrNil:nibNameOrNil, type: T.self)
+        return v!
+    }
+    
+    class func fromNib<T : UIView>(nibNameOrNil: String? = nil, type: T.Type) -> T? {
+        var view: T?
+        let name: String
+        if let nibName = nibNameOrNil {
+            name = nibName
+        } else {
+            // Most nibs are demangled by practice, if not, just declare string explicitly
+            name = nibName
+        }
+        let nibViews = Bundle.main.loadNibNamed(name, owner: nil, options: nil)
+        for v in nibViews! {
+            if let tog = v as? T {
+                view = tog
+            }
+        }
+        return view
+    }
+    
+    @discardableResult
+    func forceUpdateConstraints(ifThereAreDifferences diff: Bool) -> Bool {
+        guard diff else { return false }
+        
+        setNeedsUpdateConstraints()
+        updateConstraintsIfNeeded()
+        
+        return true
+    }
+    
+    @discardableResult
+    func forceLayout(ifThereAreDifferences diff: Bool) -> Bool {
+        guard diff else { return false }
+        
+        setNeedsLayout()
+        layoutIfNeeded()
+        
+        return true
+    }
+    
+    func roundCornersWithLayerMask(cornerRadii: CGFloat, corners: UIRectCorner) {
+        let path = UIBezierPath(roundedRect: bounds,
+                                byRoundingCorners: corners,
+                                cornerRadii: CGSize(width: cornerRadii, height: cornerRadii))
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = path.cgPath
+        layer.mask = maskLayer
+    }
+}

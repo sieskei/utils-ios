@@ -7,7 +7,7 @@
 
 import UIKit
 
-extension UIView {
+public extension UIView {
     class var nibName: String {
         return String(describing: self)
     }

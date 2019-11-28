@@ -48,7 +48,7 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
     var decode: ControlProperty<Model<Base.M>> {
         // let origin: Observable<Model<Base.M>> = base.valueModel.asObservable()
         let decode: Observable<Model<Base.M>> = base.valueModel.flatMapLatest {
-            return $0.map(.just(.empty)) {
+            return $0.map(.never()) {
                 $0.rx.decode.map {
                     .value($0)
                 }

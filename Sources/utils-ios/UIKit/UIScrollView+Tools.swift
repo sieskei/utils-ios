@@ -19,8 +19,8 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
         static let height    : CGFloat = 44
         static let lineWidth : CGFloat = 1
         
-        static let color      : UIColor = .init(hex: 0xF8CE1A)
-        static let arrowColor : UIColor = .white
+        static let color      : UIColor = .blue
+        static let arrowColor : UIColor = .black
         
         static let layerSize     : CGFloat = 28
         static var layerHalfSize : CGFloat {

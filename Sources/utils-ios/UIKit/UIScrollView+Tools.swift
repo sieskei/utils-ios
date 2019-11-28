@@ -310,14 +310,14 @@ public extension UIScrollView {
     }
     
     struct Tools {
-        var pullToRefresh: UIScrollViewPullToRefreshTool? {
+        public var pullToRefresh: UIScrollViewPullToRefreshTool? {
             return scrollView.refresherView
         }
         
-        let scrollView: UIScrollView
+        public let scrollView: UIScrollView
         
         @discardableResult
-        func pullToRefresh(with action: @escaping () -> Void) -> UIScrollViewPullToRefreshTool {
+        public func pullToRefresh(with action: @escaping () -> Void) -> UIScrollViewPullToRefreshTool {
             if let view = scrollView.refresherView {
                 view.handler = action
                 return view
@@ -336,7 +336,7 @@ public extension UIScrollView {
             return view
         }
         
-        func removePullToRefresh() { }
+        public func removePullToRefresh() { }
     }
 }
 

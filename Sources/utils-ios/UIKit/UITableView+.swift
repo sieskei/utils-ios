@@ -15,4 +15,8 @@ public extension UITableView {
     func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for indexPath: IndexPath) -> T {
         return dequeueReusableCell(withIdentifier: cellClass.nibName, for: indexPath) as! T
     }
+    
+    func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for row: Int) -> T {
+        return dequeueReusableCell(for: .init(row: row, section: 1))
+    }
 }

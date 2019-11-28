@@ -46,8 +46,8 @@ public extension Reactive where Base: RxModelCompatible {
 // MARK: Reactive compatible for RxMultipleTimesDecodable models.
 public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimesDecodable {
     var decode: ControlProperty<Model<Base.M>> {
-        let origin: Observable<Model<Base.M>> = base.valueModel.asObservable()
-        let decode: Observable<Model<Base.M>> = origin.skip(1).flatMapLatest {
+        // let origin: Observable<Model<Base.M>> = base.valueModel.asObservable()
+        let decode: Observable<Model<Base.M>> = base.valueModel.flatMapLatest {
             return $0.map(.just(.empty)) {
                 $0.rx.decode.map {
                     .value($0)
@@ -55,11 +55,11 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
             }
         }
 
-        let values = Observable.merge(origin, decode)
+        // let values = Observable.merge(origin, decode)
         let bindingObserver: Binder<Model<Base.M>> = .init(base, binding: {
             $0.model = $1
         })
-        return .init(values: values, valueSink: bindingObserver)
+        return .init(values: decode, valueSink: bindingObserver)
     }
 }
 

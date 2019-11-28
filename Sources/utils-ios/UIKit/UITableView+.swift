@@ -9,7 +9,7 @@ import UIKit
 
 public extension UITableView {
     func register<T: UITableViewCell>(_ cellClass: T.Type) {
-        register(cellClass.nib, forCellReuseIdentifier: cellClass.nibName)
+        register(cellClass, forCellReuseIdentifier: cellClass.nibName)
     }
 
     func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for indexPath: IndexPath) -> T {

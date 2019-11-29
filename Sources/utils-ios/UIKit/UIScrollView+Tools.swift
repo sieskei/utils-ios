@@ -18,8 +18,8 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
         static let height    : CGFloat = 44
         static let lineWidth : CGFloat = 1
         
-        static let color      : UIColor = .blue
-        static let arrowColor : UIColor = .black
+        static var color      : UIColor = .blue
+        static var arrowColor : UIColor = .black
         
         static let layerSize     : CGFloat = 28
         static var layerHalfSize : CGFloat {
@@ -309,6 +309,18 @@ public extension UIScrollView {
     }
     
     struct Tools {
+        public var pullToRefreshColors: (base: UIColor, arrow: UIColor) {
+            get {
+                return (UIScrollViewPullToRefreshToolView.Constants.color,
+                        UIScrollViewPullToRefreshToolView.Constants.arrowColor)
+            }
+            
+            set {
+                UIScrollViewPullToRefreshToolView.Constants.color = newValue.base
+                UIScrollViewPullToRefreshToolView.Constants.arrowColor = newValue.arrow
+            }
+        }
+        
         public var pullToRefresh: UIScrollViewPullToRefreshTool? {
             return scrollView.refresherView
         }

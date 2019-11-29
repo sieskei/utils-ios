@@ -15,6 +15,10 @@ public extension UIColor {
                        alpha: 1.0)
     }
     
+    convenience init(rgb: (CGFloat, CGFloat, CGFloat), alpha: CGFloat = 1.00) {
+        self.init(red: rgb.0, green: rgb.1, blue: rgb.2, alpha: alpha)
+    }
+    
     /*
      Define UIColor from hex value
      

@@ -1,6 +1,5 @@
 //
 //  UIScrollView+Tools.swift
-//  vbox7-ios
 //
 //  Created by Miroslav Yozov on 14.05.18.
 //  Copyright © 2018 Net Info.BG EAD. All rights reserved.
@@ -126,8 +125,8 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
         stopObserving = true
         
         if !programmatically {
-            fastLayer.arrow?.startAnimation().animationEnd = { [weak self] in
-                self?.fastLayer.circle?.startAnimation()
+            fastLayer.arrow.startAnimation().animationEnd = { [weak self] in
+                self?.fastLayer.circle.startAnimation()
             }
         }
         
@@ -148,8 +147,8 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
             }
             
             if programmatically {
-                self.fastLayer.arrow?.startAnimation().animationEnd = { [weak self] in
-                    self?.fastLayer.circle?.startAnimation()
+                self.fastLayer.arrow.startAnimation().animationEnd = { [weak self] in
+                    self?.fastLayer.circle.startAnimation()
                 }
             }
             
@@ -164,7 +163,7 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
             return
         }
         
-        guard let scrollView = scrollView, let circle = fastLayer.circle, let check = circle.check else {
+        guard let scrollView = scrollView else {
             isRefreshing = false
             return
         }
@@ -172,10 +171,10 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
         isRefreshStopping = true
         stopObserving = true
         
-        check.animationEnd = { [weak self, weak scrollView] in
+        fastLayer.circle.check.animationEnd = { [weak self, weak scrollView] in
             guard let this = self else { return }
             
-            this.fastLayer.circle?.endAnimation(finish: false)
+            this.fastLayer.circle.endAnimation(finish: false)
             
             let completion: (Bool) -> Void = { _ in
                 defer {
@@ -185,8 +184,8 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
                     this.isRefreshStopping = false
                 }
                 
-                this.fastLayer.arrow?.endAnimation()
-                this.fastLayer.circle?.endAnimation(finish: true)
+                this.fastLayer.arrow.endAnimation()
+                this.fastLayer.circle.endAnimation(finish: true)
             }
             
             guard let scrollView = scrollView else {
@@ -204,7 +203,7 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
             }, completion: completion)
         }
         
-        circle.endAnimation(finish: false)
+        fastLayer.circle.endAnimation(finish: false)
     }
     
     func start() {

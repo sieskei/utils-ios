@@ -1,53 +1,72 @@
 //
 //  FastCircleLayer.swift
-//  FastAnimator
 //
-// **************************************************
-// *                                  _____         *
-// *         __  _  __     ___        \   /         *
-// *         \ \/ \/ /    / __\       /  /          *
-// *          \  _  /    | (__       /  /           *
-// *           \/ \/      \___/     /  /__          *
-// *                               /_____/          *
-// *                                                *
-// **************************************************
-//  Github  :https://github.com/imwcl
-//  HomePage:https://imwcl.com
-//  CSDN    :http://blog.csdn.net/wang631106979
-//
-//  Created by 王崇磊 on 16/9/14.
-//  Copyright © 2016年 王崇磊. All rights reserved.
-//
-// @class FastCircleLayer
-// @abstract 外层圆环的layer
-// @discussion 外层圆环的layer
+//  Created by Miroslav Yozov on 14.05.18.
+//  Copyright © 2018 Net Info.BG EAD. All rights reserved.
 //
 
 import UIKit
 
 class FastCircleLayer: CALayer {
-    
     let color: UIColor
-    
     let pointColor: UIColor
-    
     let lineWidth: CGFloat
     
-    let circle = CAShapeLayer()
-    
-    let point  = CAShapeLayer()
+    private (set) lazy var circle: CAShapeLayer = {
+        let width  = frame.size.width
+        let height = frame.size.height
         
-    private let pointBack = CALayer()
+        let path = UIBezierPath()
+        path.addArc(withCenter: .init(x: width/2, y: height/2), radius: (height - (lineWidth * 2)) / 2, startAngle: 0, endAngle: CGFloat(Double.pi * 2.0), clockwise: false)
+        
+        let layer = CAShapeLayer()
+        
+        layer.lineWidth   = lineWidth
+        layer.strokeColor = color.cgColor
+        layer.fillColor   = UIColor.clear.cgColor
+        layer.path        = path.cgPath
+        layer.isHidden    = true
+        
+        return layer
+    }()
+    
+    private (set) lazy var pointBack: CALayer = {
+        let layer = CALayer()
+        layer.frame = CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height)
+        layer.backgroundColor = UIColor.clear.cgColor
+        return layer
+    }()
+    
+    private (set) lazy var point: CAShapeLayer = {
+        let layer = CAShapeLayer()
+        
+        let width  = frame.size.width
+        let path = UIBezierPath()
+        path.addArc(withCenter: .init(x: width/2, y: width/2), radius: (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.1), clockwise: false)
+        
+        layer.lineCap     = CAShapeLayerLineCap.round
+        layer.lineWidth   = lineWidth * 2
+        layer.fillColor   = UIColor.clear.cgColor
+        layer.strokeColor = pointColor.cgColor
+        layer.path        = path.cgPath
+        
+        // pointBack.addSublayer(point)
+        
+        layer.isHidden = true
+        
+        return layer
+    }()
+    
     
     private var rotated: CGFloat = 0
-    
     private var rotatedSpeed: CGFloat = 0
-    
     private var speedInterval: CGFloat = 0
     
     private var stop: Bool = false
     
-    private(set) var check: FastCheckLayer?
+    private (set) lazy var check: FastCheckLayer = {
+        return .init(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height), color: pointColor, lineWidth: lineWidth)
+    }()
     
     var codeTimer: DispatchSourceTimer? {
         didSet {
@@ -64,15 +83,18 @@ class FastCircleLayer: CALayer {
         self.color      = color
         self.lineWidth  = lineWidth
         self.pointColor = pointColor
-        pointBack.frame = CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height)
+        
         super.init()
-        self.frame      = frame
-        backgroundColor = UIColor.clear.cgColor
-        pointBack.backgroundColor = UIColor.clear.cgColor
-        drawCircle()
+        
+        self.frame = frame
+        self.backgroundColor = UIColor.clear.cgColor
+        
+        addSublayer(circle)
+        
+        pointBack.addSublayer(point)
         addSublayer(pointBack)
-        drawPoint()
-        addCheckLayer()
+        
+        addSublayer(check)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -98,7 +120,7 @@ class FastCircleLayer: CALayer {
                     DispatchQueue.main.async {
                         this.pointBack.setAffineTransform(transform)
                         this.point.isHidden = true
-                        this.check?.startAnimation()
+                        this.check.startAnimation()
                     }
                     
                     this.codeTimer = nil
@@ -138,39 +160,12 @@ class FastCircleLayer: CALayer {
             circle.isHidden = true
             point.isHidden  = true
             codeTimer?.cancel()
-            check?.endAnimation()
+            check.endAnimation()
         } else {
             DispatchQueue.global().async {
                 self.stop = true
             }
         }
-    }
-    
-    //MARK: Privater Methods
-    private func drawCircle() {
-        let width  = frame.size.width
-        let height = frame.size.height
-        let path = UIBezierPath()
-        path.addArc(withCenter: .init(x: width/2, y: height/2), radius: (height - (lineWidth * 2)) / 2, startAngle: 0, endAngle: CGFloat(Double.pi * 2.0), clockwise: false)
-        circle.lineWidth   = lineWidth
-        circle.strokeColor = color.cgColor
-        circle.fillColor   = UIColor.clear.cgColor
-        circle.path        = path.cgPath
-        addSublayer(circle)
-        circle.isHidden = true
-    }
-
-    private func drawPoint() {
-        let width  = frame.size.width
-        let path = UIBezierPath()
-        path.addArc(withCenter: .init(x: width/2, y: width/2), radius: (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.1), clockwise: false)
-        point.lineCap     = CAShapeLayerLineCap.round
-        point.lineWidth   = lineWidth*2
-        point.fillColor   = UIColor.clear.cgColor
-        point.strokeColor = pointColor.cgColor
-        point.path        = path.cgPath
-        pointBack.addSublayer(point)
-        point.isHidden = true
     }
     
     private func addPointAnimation() {
@@ -186,10 +181,5 @@ class FastCircleLayer: CALayer {
         path.isRemovedOnCompletion = false
         path.fillMode = CAMediaTimingFillMode.forwards
         point.add(path, forKey: "path")
-    }
-    
-    private func addCheckLayer() {
-        check = FastCheckLayer(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height), color: pointColor, lineWidth: lineWidth)
-        addSublayer(check!)
     }
 }

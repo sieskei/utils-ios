@@ -309,7 +309,7 @@ public extension UIScrollView {
     }
     
     struct Tools {
-        public var pullToRefreshColors: (base: UIColor, arrow: UIColor) {
+        public static var pullToRefreshColors: (base: UIColor, arrow: UIColor) {
             get {
                 return (UIScrollViewPullToRefreshToolView.Constants.color,
                         UIScrollViewPullToRefreshToolView.Constants.arrowColor)

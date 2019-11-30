@@ -50,8 +50,6 @@ class FastCircleLayer: CALayer {
         layer.strokeColor = pointColor.cgColor
         layer.path        = path.cgPath
         
-        // pointBack.addSublayer(point)
-        
         layer.isHidden = true
         
         return layer
@@ -68,7 +66,7 @@ class FastCircleLayer: CALayer {
         return .init(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height), color: pointColor, lineWidth: lineWidth)
     }()
     
-    var codeTimer: DispatchSourceTimer? {
+    private var codeTimer: DispatchSourceTimer? {
         didSet {
             oldValue?.cancel()
             if let timer = codeTimer {

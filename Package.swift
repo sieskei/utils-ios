@@ -18,6 +18,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "5.0.0"),
         .package(url: "https://github.com/RxSwiftCommunity/RxDataSources.git", from: "4.0.0"),
+        .package(url: "https://github.com/RxSwiftCommunity/RxSwiftExt.git", from: "5.0.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "4.9.0"),
         .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "3.5.0"),
         .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .branch("development")),
@@ -28,7 +29,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "Alamofire", "AlamofireImage", "Material", "Motion"]),
+            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "RxSwiftExt", "Alamofire", "AlamofireImage", "Material", "Motion"]),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),

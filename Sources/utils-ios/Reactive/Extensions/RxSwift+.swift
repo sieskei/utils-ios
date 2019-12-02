@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 
 public extension ObservableType {
-    func subscribeNextWeakly<A: AnyObject>(weak obj: A, _ onNext: @escaping (A, Element) -> Void) -> Disposable {
+    func subscribeNextWeakly<A: AnyObject>(weak obj: A?, _ onNext: @escaping (A, Element) -> Void) -> Disposable {
         return subscribe(onNext: { [weak obj] element in
             guard let obj = obj else { return }
             onNext(obj, element)

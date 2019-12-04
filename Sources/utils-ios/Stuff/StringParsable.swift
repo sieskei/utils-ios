@@ -23,6 +23,12 @@ extension Int64: StringParsable {
     }
 }
 
+extension UInt: StringParsable {
+    public init(from text: String) {
+        self = UInt(Int(from: text))
+    }
+}
+
 extension Bool: StringParsable {
     public init(from text: String) {
         self = (text as NSString).boolValue
@@ -40,3 +46,5 @@ extension Double: StringParsable {
         self = (text as NSString).doubleValue
     }
 }
+
+

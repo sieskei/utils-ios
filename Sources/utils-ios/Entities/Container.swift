@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Container.swift
 //  
 //
 //  Created by Miroslav Yozov on 5.11.19.
@@ -55,8 +55,14 @@ public extension Container {
         }
         
         public class func elements(from decoder: Decoder, current: [Element]) throws -> [Element] {
-            guard var container = try? unkeyedContainer(from: decoder) else {
-                return []
+            var container: UnkeyedDecodingContainer
+            do {
+                container = try unkeyedContainer(from: decoder)
+            } catch (let error) {
+                print("Container.Factory: missing 'Unkeyed Container'.")
+                print(error)
+                
+                throw error
             }
             
             var elements = [Element]()
@@ -64,9 +70,11 @@ public extension Container {
                 do {
                     let element = try container.decode(Element.self)
                     elements.append(element)
-                } catch { }
+                } catch (let error) {
+                    print("Container.Factory: unable to decode element.")
+                    print(error)
+                }
             }
-            
             return elements
         }
     }

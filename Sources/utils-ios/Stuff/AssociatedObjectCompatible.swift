@@ -32,17 +32,27 @@ fileprivate struct AssociatedKey {
     }
 }
 
+public enum AssociationPolicy: Int {
+    case strong
+    case weak
+    
+    fileprivate var objc_value: objc_AssociationPolicy {
+        switch self {
+        case .strong:
+            return .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        case .weak:
+            return .OBJC_ASSOCIATION_ASSIGN
+        }
+    }
+}
+
 public protocol AssociatedObjectCompatible: Synchronized {
-    func get<T>(for key: String, default value: T) -> T
-    func set<T>(value: T, for key: String)
+    func get<T>(for key: String, policy: AssociationPolicy, default value: () -> T) -> T
+    func set<T>(value: T, for key: String, policy: AssociationPolicy)
 }
 
 public extension AssociatedObjectCompatible {
-    func get<T>(for key: String, default value: T) -> T {
-        return get(for: key) { return value }
-    }
-    
-    func get<T>(for key: String, default value: () -> T) -> T {
+    func get<T>(for key: String, policy: AssociationPolicy = .strong, default value: () -> T) -> T {
         return synchronized {
             let key = "\(type(of: self)).\(key)"
             if let current = objc_getAssociatedObject(self, AssociatedKey.pointer(for: key)) as? T {
@@ -50,15 +60,15 @@ public extension AssociatedObjectCompatible {
             }
             
             let `default` = value()
-            objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), `default`, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), `default`, policy.objc_value)
             return `default`
         }
     }
     
-    func set<T>(value: T, for key: String) {
+    func set<T>(value: T, for key: String, policy: AssociationPolicy = .strong) {
         synchronized {
             let key = "\(type(of: self)).\(key)"
-            objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, AssociatedKey.pointer(for: key), value, policy.objc_value)
         }
     }
 }

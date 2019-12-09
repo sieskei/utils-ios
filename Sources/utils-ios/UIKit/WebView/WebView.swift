@@ -37,6 +37,9 @@ open class WebView: WKWebView {
     }
     
     open func prepare() {
+        let handler = ContentHeightMessageHandler(webView: self)
+        configuration.userContentController.add(handler, name: ContentHeightMessageHandler.name)
+        
         // Load its contents to a String variable.
         let resizeSensorScript = WKUserScript(source: ResizeSensor.source, injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: true)
         configuration.userContentController.addUserScript(resizeSensorScript)

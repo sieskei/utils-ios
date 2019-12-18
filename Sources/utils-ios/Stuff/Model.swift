@@ -12,7 +12,7 @@ import Foundation
 // --------------- //
 
 public protocol ModelType {
-    associatedtype M: AnyObject
+    associatedtype M: Equatable
     init(_ model: M?)
 }
 
@@ -20,7 +20,7 @@ public protocol ModelType {
 // MARK: ViewModel //
 // --------------- //
 
-public enum Model<M: AnyObject>: ModelType {
+public enum Model<M: Equatable>: ModelType {
     case empty
     case value(M)
     
@@ -114,7 +114,7 @@ extension Model: Equatable {
         case .value(let lhsValue):
             switch rhs {
             case .empty: return false
-            case .value(let rhsValue): return lhsValue === rhsValue
+            case .value(let rhsValue): return lhsValue == rhsValue
             }
         }
     }
@@ -122,14 +122,14 @@ extension Model: Equatable {
     public static func == (lhs: Model<M>, rhs: M?) -> Bool {
         switch lhs {
         case .empty:
-            return rhs === nil
+            return rhs == nil
         case .value(let lhsValue):
-            return lhsValue === rhs
+            return lhsValue == rhs
         }
     }
 }
 
 public protocol ModelCompatible {
-    associatedtype M: AnyObject
+    associatedtype M: Equatable
     var model: Model<M> { get set }
 }

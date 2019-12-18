@@ -26,7 +26,7 @@ open class WebView: WKWebView {
         }
     }
     
-    var headerView: UIView? {
+    public var headerView: UIView? {
         didSet {
             guard headerView != oldValue else { return }
         

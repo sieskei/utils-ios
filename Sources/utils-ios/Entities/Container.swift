@@ -79,3 +79,6 @@ public extension Container {
         }
     }
 }
+
+// MARK: Default equal implementation by identity.
+extension Container: IdentityEquitable { }

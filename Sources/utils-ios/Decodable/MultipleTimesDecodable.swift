@@ -22,7 +22,7 @@ public extension Decoder {
     }
 }
 
-public protocol MultipleTimesDecodable: class, Decodable, Synchronized {
+public protocol MultipleTimesDecodable: Decodable, Synchronized, IdentityEquitable {
     func runDecode(from decoder: Decoder) throws
     func decode(from decoder: Decoder) throws
 }

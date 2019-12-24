@@ -10,6 +10,18 @@ import Foundation
 import RxSwift
 
 public extension ObservableType {
+    func map<A: AnyObject, Result>(unowned obj: A, _ transform: @escaping (A, Element) -> Result) -> Observable<Result> {
+        return map { [unowned obj = obj] element in
+            return transform(obj, element)
+        }
+    }
+    
+    func map<A: AnyObject, B: AnyObject, Result>(unowned obj1: A, _ obj2: B, _ transform: @escaping (A, B, Element) -> Result) -> Observable<Result> {
+        return map { [unowned obj1 = obj1, unowned obj2 = obj2] element in
+            return transform(obj1, obj2, element)
+        }
+    }
+    
     func subscribeNextWeakly<A: AnyObject>(weak obj: A?, _ onNext: @escaping (A, Element) -> Void) -> Disposable {
         return subscribe(onNext: { [weak obj] element in
             guard let obj = obj else { return }

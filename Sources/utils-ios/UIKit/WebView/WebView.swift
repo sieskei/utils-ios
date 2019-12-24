@@ -2,81 +2,33 @@
 //  WebView.swift
 //  
 //
-//  Created by Miroslav Yozov on 9.12.19.
+//  Created by Miroslav Yozov on 24.12.19.
 //
 
 import UIKit
 import WebKit
 
 import RxSwift
+import RxSwiftExt
 import RxCocoa
 
-import Material
-
-public protocol WebViewUIDelegate: WKUIDelegate {
-    func webView(_ webView: WebView, didUpdate contentSize: CGSize)
-}
-
 open class WebView: WKWebView {
+    public enum NavigationState: Equatable {
+        case not
+        case ongoing(WKNavigation)
+        case done
+        case fail
+    }
+    
     private let disposeBag = DisposeBag()
-    private var headerViewBoundsDisposable: Disposable? {
-        didSet {
-            oldValue?.dispose()
-            headerViewBoundsDisposable?.disposed(by: disposeBag)
-        }
-    }
     
-    public var headerView: UIView? {
-        didSet {
-            guard headerView != oldValue else { return }
-        
-            if let view = oldValue {
-                headerViewBoundsDisposable = nil
-                scrollView.contentInset.top -= view.bounds.height
-            }
-            
-            if let view = headerView {
-                defer {
-                    layoutHeader()
-                }
-                
-                headerViewBoundsDisposable = view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
-                    .map { $0?.height ?? 0 }
-                    .distinctUntilChanged()
-                    .subscribeNextWeakly(weak: scrollView) { scrollView, height in
-                        guard scrollView.contentOffset.y + scrollView.contentInset.top >= 0 else {
-                             return
-                        }
-
-                        let diff = height - scrollView.contentInset.top
-                        scrollView.contentInset.top += diff
-                    }
-            }
-        }
-    }
+    public let loadingState: EquatableValue<NavigationState> = .init(.not)
+    public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
     
-    public private (set) lazy var scrollPositionMarkers: (top: UIView, bottom: UIView) = {
-        let source = scrollView.rx.contentOffset.map { $0.y }.distinctUntilChanged()
-        
-        // top
-        let topView = UIView()
-        topView.backgroundColor = .clear
-        source.subscribeNextWeakly(weak: topView) {
-            if $0.superview != nil {
-                $0.layout.top(-$1)
-            }
-        }.disposed(by: disposeBag)
-        
-        // bottom
-        let bottomView = UIView()
-        bottomView.backgroundColor = .clear
-        source.subscribeNextWeakly(weaks: bottomView, scrollView) {
-            if $0.superview != nil {
-                $0.layout.top($1.contentSize.height - $2)
-            }
-        }.disposed(by: disposeBag)
-        
-        return (topView, bottomView)
+    public private (set) lazy var headerContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
     }()
     
     public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
@@ -101,31 +53,9 @@ open class WebView: WKWebView {
     }
     
     open func prepare() {
+        isOpaque = false
+        backgroundColor = .clear
         scrollView.backgroundColor = .clear
-        
-        let handler = ContentHeightMessageHandler(webView: self)
-        configuration.userContentController.add(handler, name: ContentHeightMessageHandler.name)
-        
-        // Load its contents to a String variable.
-        let resizeSensorScript = WKUserScript(source: ResizeSensor.source, injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: true)
-        configuration.userContentController.addUserScript(resizeSensorScript)
-        
-        let heightListenerSource =
-        """
-            notify = function() {
-                var rect = document.body.getBoundingClientRect();
-                window.webkit.messageHandlers.contentSize.postMessage({ width: rect.width, height: rect.height });
-            }
-
-            new ResizeSensor(document.body, function() {
-                notify();
-            });
-
-            notify();
-        """
-        
-        let heightListenerScript = WKUserScript(source: heightListenerSource, injectionTime: WKUserScriptInjectionTime.atDocumentEnd, forMainFrameOnly: true)
-        configuration.userContentController.addUserScript(heightListenerScript)
     }
     
     override open func didMoveToSuperview() {
@@ -133,10 +63,12 @@ open class WebView: WKWebView {
         layoutHeader()
     }
     
-    private func prepareForLayout(_ view: UIView, _ layouter: (Layout) -> Void) {
+    private func layoutHeader() {
         guard let superview = superview else  {
             return
         }
+        
+        let view = headerContainerView
         
         if view.superview != superview {
             view.removeFromSuperview()
@@ -145,66 +77,74 @@ open class WebView: WKWebView {
             superview.insertSubview(view, belowSubview: self)
         }
         
-        layouter(view.layout)
+        // leading & trailing
+        view.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
+        view.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
+        
+        // top + move over until bottom bounce
+        let top = view.topAnchor.constraint(equalTo: topAnchor)
+        top.isActive = true
+        
+        var topBegin: CGFloat?
+        scrollView.rx.contentOffset
+            .map(unowned: scrollView) {
+                let bounceOffsetRaw = $0.bounceBottomOffsetRaw
+                guard bounceOffsetRaw >= 0 && $0.contentFillsVerticalScrollEdges else {
+                    topBegin = nil
+                    return -max(0, $1.y / 4)
+                }
+                
+                if topBegin == nil {
+                    topBegin = -top.constant
+                }
+                
+                return -max(0, topBegin! + bounceOffsetRaw)
+            }
+            .distinctUntilChanged()
+            .bind(to: top.rx.constant)
+            .disposed(by: disposeBag)
+        
+        // maximum height
+        view.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor).isActive = true
+        
+        // bounds observe + pause until load and custom pauser
+        view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
+            .pausableBuffered(loadingState.map {
+                switch $0 {
+                case .not, .ongoing:
+                    return false
+                case .done, .fail:
+                    return true
+                }
+            })
+            .pausable(headerBoundsPauser)
+            .map { $0?.height ?? 0 }
+            .distinctUntilChanged()
+            .subscribeNextWeakly(weak: self) { this, height in
+                this.set(marginTop: height)
+        }.disposed(by: disposeBag)
     }
     
-    private func layoutHeader() {
-        guard let view = headerView else {
-            return
-        }
-        
-        layoutMarkers()
-        
-        prepareForLayout(view) {
-            $0.left(self)
-                .right(self)
-                .top(self, 0, <=)
-                .bottom(scrollPositionMarkers.top.anchor.top)
-        }
-    }
-    
-    private func layoutMarkers() {
-        prepareForLayout(scrollPositionMarkers.top) {
-            $0.left(self)
-                .right(self)
-                .top(-scrollView.contentOffset.y)
-                .height(0)
-        }
-        
-        prepareForLayout(scrollPositionMarkers.bottom) {
-            $0.left(self)
-                .right(self)
-                .top(-scrollView.contentSize.height)
-                .height(0)
-        }
+    private func set(marginTop margin: CGFloat) {
+        evaluateJavaScript("document.body.style.marginTop = \"\(margin)px\"")
+        scrollView.scrollIndicatorInsets.top = margin
     }
 }
 
-// ---------------------------- //
-// MARK: WKScriptMessageHandler //
-// ---------------------------- //
-fileprivate extension WebView {
-    class ContentHeightMessageHandler: NSObject, WKScriptMessageHandler {
-        static let name = "contentSize"
-        
-        struct Size: Decodable {
-            let width: CGFloat
-            let height: CGFloat
+
+// ---------------------
+// MARK: Reactive tools.
+// ---------------------
+public extension Reactive where Base: WebView {
+    var isHeaderBoundsPaused: Binder<Bool> {
+        return Binder(self.base) { view, pause in
+            view.headerBoundsPauser.value = !pause
         }
-        
-        weak var webView: WebView?
-        
-        init(webView: WebView) {
-            self.webView = webView
-        }
-        
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard message.name == ContentHeightMessageHandler.name, let webView = webView, let delegate = webView.uiDelegate as? WebViewUIDelegate,
-                let sizeMap = message.body as? [String: CGFloat], let width = sizeMap["width"], let height = sizeMap["height"] else {
-                    return
-            }
-            
-            delegate.webView(webView, didUpdate: CGSize(width: width, height: height))
+    }
+    
+    var loadingState: Binder<Base.NavigationState> {
+        return Binder(self.base) { view, state in
+            view.loadingState.value = state
         }
     }
 }

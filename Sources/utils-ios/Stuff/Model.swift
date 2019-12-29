@@ -88,12 +88,12 @@ public enum Model<M: Equatable>: ModelType {
         }
     }
     
-    public func map<R>(_ default: R, _ transform: (M) -> R) -> R {
+    public func map<R>(_ default: R, _ if: (M) -> Bool = { _ in return true }, transform: (M) -> R) -> R {
         switch self {
         case .empty:
             return `default`
         case .value(let model):
-            return transform(model)
+            return `if`(model) ? transform(model) : `default`
         }
     }
 }

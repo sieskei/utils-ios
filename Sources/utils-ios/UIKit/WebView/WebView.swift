@@ -111,9 +111,9 @@ open class WebView: WKWebView {
         view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
             .pausableBuffered(loadingState.map {
                 switch $0 {
-                case .not, .ongoing:
+                case .ongoing:
                     return false
-                case .done, .fail:
+                default:
                     return true
                 }
             })

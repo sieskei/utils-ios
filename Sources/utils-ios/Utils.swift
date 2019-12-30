@@ -31,4 +31,14 @@ public struct Utils {
         
         return result
     }
+    
+    public static let swizzling: (AnyClass, Selector, Selector) -> Bool = { forClass, originalSelector, swizzledSelector in
+        guard let originalMethod = class_getInstanceMethod(forClass, originalSelector),
+            let swizzledMethod = class_getInstanceMethod(forClass, swizzledSelector) else {
+                return false
+        }
+        
+        method_exchangeImplementations(originalMethod, swizzledMethod)
+        return true
+    }
 }

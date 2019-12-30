@@ -26,7 +26,7 @@ open class WebView: WKWebView {
     public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
     
     public private (set) lazy var headerContainerView: UIView = {
-        let view = UIView()
+        let view = PassthroughView()
         view.backgroundColor = .clear
         return view
     }()
@@ -61,6 +61,10 @@ open class WebView: WKWebView {
     override open func didMoveToSuperview() {
         super.didMoveToSuperview()
         layoutHeader()
+    }
+    
+    open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        return headerContainerView.hitTest(point, with: event) ?? super.hitTest(point, with: event)
     }
     
     private func layoutHeader() {

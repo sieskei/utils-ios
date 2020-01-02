@@ -103,7 +103,7 @@ fileprivate extension WebView {
                 let bounceOffsetRaw = $0.bounceBottomOffsetRaw
                 guard bounceOffsetRaw >= 0 && $0.contentFillsVerticalScrollEdges else {
                     topConstraintConstantBegan = nil
-                    return -max(0, $1.y / 4)
+                    return -max(0, ($1.y / 4).rounded())
                 }
                 
                 if topConstraintConstantBegan == nil {

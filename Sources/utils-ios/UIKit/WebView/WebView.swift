@@ -26,7 +26,7 @@ open class WebView: WKWebView {
     public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
     
     public private (set) lazy var headerContainerView: UIView = {
-        let view = PassthroughView()
+        let view = UIView()
         view.backgroundColor = .clear
         return view
     }()
@@ -56,60 +56,65 @@ open class WebView: WKWebView {
         isOpaque = false
         backgroundColor = .clear
         scrollView.backgroundColor = .clear
-    }
-    
-    override open func didMoveToSuperview() {
-        super.didMoveToSuperview()
-        layoutHeader()
+        
+        prepareHeaderContainerView()
     }
     
     open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        return headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ?? super.hitTest(point, with: event)
+        let sY = max(0, scrollView.contentOffset.y)
+        let hY = max(0, -convert(CGPoint.zero, from: headerContainerView).y)
+        let hSize = headerContainerView.frame.size
+        let hPoint = convert(point, to: headerContainerView)
+        
+        let visibleRect: CGRect = .init(origin: .init(x: 0, y: hY), size: .init(width: hSize.width, height: hSize.height - (hY + (sY - hY))))
+        if visibleRect.contains(hPoint) {
+            return headerContainerView.hitTest(hPoint, with: event) ?? super.hitTest(point, with: event)
+        } else {
+            return super.hitTest(point, with: event)
+        }
     }
     
-    private func layoutHeader() {
-        guard let superview = superview else  {
-            return
-        }
-        
+    private func set(marginTop margin: CGFloat) {
+        evaluateJavaScript("document.body.style.marginTop = \"\(margin)px\"")
+    }
+}
+
+fileprivate extension WebView {
+    func prepareHeaderContainerView() {
         let view = headerContainerView
         
-        if view.superview != superview {
-            view.removeFromSuperview()
-            
-            view.translatesAutoresizingMaskIntoConstraints = false
-            superview.insertSubview(view, belowSubview: self)
-        }
+        view.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.insertSubview(view, at: 0)
         
-        // leading & trailing
-        view.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        view.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
+        // static constraints
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: trailingAnchor),
+            view.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor)
+        ])
+
+        // dynamic top constraint
+        let topConstraint = view.topAnchor.constraint(equalTo: topAnchor)
+        topConstraint.isActive = true
         
-        // top + move over until bottom bounce
-        let top = view.topAnchor.constraint(equalTo: topAnchor)
-        top.isActive = true
-        
-        var topBegin: CGFloat?
+        var topConstraintConstantBegan: CGFloat?
         scrollView.rx.contentOffset
             .map(unowned: scrollView) {
                 let bounceOffsetRaw = $0.bounceBottomOffsetRaw
                 guard bounceOffsetRaw >= 0 && $0.contentFillsVerticalScrollEdges else {
-                    topBegin = nil
+                    topConstraintConstantBegan = nil
                     return -max(0, $1.y / 4)
                 }
                 
-                if topBegin == nil {
-                    topBegin = -top.constant
+                if topConstraintConstantBegan == nil {
+                    topConstraintConstantBegan = -topConstraint.constant
                 }
                 
-                return -max(0, topBegin! + bounceOffsetRaw)
+                return -max(0, topConstraintConstantBegan! + bounceOffsetRaw)
             }
             .distinctUntilChanged()
-            .bind(to: top.rx.constant)
+            .bind(to: topConstraint.rx.constant)
             .disposed(by: disposeBag)
-        
-        // maximum height
-        view.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor).isActive = true
         
         // bounds observe + pause until load and custom pauser
         view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
@@ -127,11 +132,6 @@ open class WebView: WKWebView {
             .subscribeNextWeakly(weak: self) { this, height in
                 this.set(marginTop: height)
         }.disposed(by: disposeBag)
-    }
-    
-    private func set(marginTop margin: CGFloat) {
-        evaluateJavaScript("document.body.style.marginTop = \"\(margin)px\"")
-        scrollView.scrollIndicatorInsets.top = margin
     }
 }
 

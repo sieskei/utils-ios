@@ -8,12 +8,12 @@
 import UIKit
 
 public extension UIView {
-    class var nibName: String {
+    class var className: String {
         return String(describing: self)
     }
     
     class var nib: UINib? {
-        return UINib(nibName: nibName, bundle: Bundle.main)
+        return UINib(nibName: className, bundle: Bundle.main)
     }
     
     class func fromNib(nibNameOrNil: String? = nil) -> Self {
@@ -32,7 +32,7 @@ public extension UIView {
             name = nibName
         } else {
             // Most nibs are demangled by practice, if not, just declare string explicitly
-            name = nibName
+            name = className
         }
         let nibViews = Bundle.main.loadNibNamed(name, owner: nil, options: nil)
         for v in nibViews! {

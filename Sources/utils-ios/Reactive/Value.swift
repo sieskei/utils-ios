@@ -7,6 +7,7 @@
 
 import Foundation
 import RxSwift
+import RxCocoa
 
 /// Value is a wrapper for `BehaviorSubject`.
 ///
@@ -19,6 +20,10 @@ public class Value<Element>: ObservableType {
         // this try! is ok because subject can't error out or be disposed
         get { return try! subject.value() }
         set { subject.onNext(newValue) }
+    }
+    
+    public var binder: Binder<Element> {
+        return .init(self) { $0.value = $1 }
     }
 
     /// Initializes behavior relay with initial value.

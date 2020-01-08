@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  RxRemoteCompatible.swift
 //  
 //
 //  Created by Miroslav Yozov on 1.11.19.

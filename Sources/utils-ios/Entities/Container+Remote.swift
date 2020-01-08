@@ -23,9 +23,9 @@ open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>:
         try super.init(from: decoder)
     }
     
-    public init(endpoint: EndpointType, elements: [Element] = []) {
+    public init(endpoint: EndpointType, remoteState: RemoteState = .done, elements: [Element] = []) {
         self.remoteEndpoint = endpoint
-        self.defaultRemoteState = .done
+        self.defaultRemoteState = remoteState
         super.init(elements: elements)
     }
     

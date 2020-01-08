@@ -18,6 +18,15 @@ open class WebView: WKWebView {
         case ongoing(WKNavigation)
         case done
         case fail
+        
+        var isOngoing: Bool {
+            switch self {
+            case .ongoing:
+                return true
+            default:
+                return false
+            }
+        }
     }
     
     private let disposeBag = DisposeBag()
@@ -118,14 +127,7 @@ fileprivate extension WebView {
         
         // bounds observe + pause until load and custom pauser
         view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
-            .pausableBuffered(loadingState.map {
-                switch $0 {
-                case .ongoing:
-                    return false
-                default:
-                    return true
-                }
-            })
+            .pausableBuffered(loadingState.map { !$0.isOngoing })
             .pausable(headerBoundsPauser)
             .map { $0?.height ?? 0 }
             .distinctUntilChanged()

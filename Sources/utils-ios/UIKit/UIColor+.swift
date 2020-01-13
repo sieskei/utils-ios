@@ -96,21 +96,21 @@ public extension UIColor {
         let ai = toI(a)
         
         switch format {
-        case .RGB:       return String(format: "#%X%X%X", ri, gi, bi)
-        case .ARGB:      return String(format: "#%X%X%X%X", ai, ri, gi, bi)
-        case .RGBA:      return String(format: "#%X%X%X%X", ri, gi, bi, ai)
-        case .RRGGBB:    return String(format: "#%02X%02X%02X", ri, gi, bi)
-        case .AARRGGBB:  return String(format: "#%02X%02X%02X%02X", ai, ri, gi, bi)
-        case .RRGGBBAA:  return String(format: "#%02X%02X%02X%02X", ri, gi, bi, ai)
+            case .RGB:       return String(format: "#%X%X%X", ri, gi, bi)
+            case .ARGB:      return String(format: "#%X%X%X%X", ai, ri, gi, bi)
+            case .RGBA:      return String(format: "#%X%X%X%X", ri, gi, bi, ai)
+            case .RRGGBB:    return String(format: "#%02X%02X%02X", ri, gi, bi)
+            case .AARRGGBB:  return String(format: "#%02X%02X%02X%02X", ai, ri, gi, bi)
+            case .RRGGBBAA:  return String(format: "#%02X%02X%02X%02X", ri, gi, bi, ai)
         }
     }
     
     func hexString(_ digits: HexDigits) -> String {
         switch digits {
-        case .d3: return hexString(.RGB)
-        case .d4: return hexString(.RGBA)
-        case .d6: return hexString(.RRGGBB)
-        case .d8: return hexString(.RRGGBBAA)
+            case .d3: return hexString(.RGB)
+            case .d4: return hexString(.RGBA)
+            case .d6: return hexString(.RRGGBB)
+            case .d8: return hexString(.RRGGBBAA)
         }
     }
 

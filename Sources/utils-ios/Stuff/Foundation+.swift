@@ -7,14 +7,19 @@
 
 import Foundation
 
-public extension String {
-    var fromHTML: NSMutableAttributedString {
-        guard let data = data(using: String.Encoding.utf16, allowLossyConversion: true) else {
-            return NSMutableAttributedString()
+public extension NSMutableAttributedString {
+    var trimmed: NSAttributedString {
+        let invertedSet = CharacterSet.whitespacesAndNewlines.inverted
+        let startRange = string.rangeOfCharacter(from: invertedSet)
+        let endRange = string.rangeOfCharacter(from: invertedSet, options: .backwards)
+        guard let startLocation = startRange?.upperBound, let endLocation = endRange?.lowerBound else {
+            return NSAttributedString(string: string)
         }
+        let location = string.distance(from: string.startIndex, to: startLocation) - 1
+        let length = string.distance(from: startLocation, to: endLocation) + 2
+        let range = NSRange(location: location, length: length)
         
-        let opts = [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html]
-        return (try? NSMutableAttributedString(data: data, options: opts, documentAttributes: nil)) ?? NSMutableAttributedString()
+        return attributedSubstring(from: range)
     }
 }
 

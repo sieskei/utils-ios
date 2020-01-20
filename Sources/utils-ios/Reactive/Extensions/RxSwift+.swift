@@ -35,4 +35,11 @@ public extension ObservableType {
             onNext(obj1, obj2, element)
         })
     }
+    
+    func subscribeWeakly<A: AnyObject>(weak obj: A?, _ on: @escaping (A, Event<Element>) -> Void) -> Disposable {
+        return subscribe { [weak obj] event in
+            guard let obj = obj else { return }
+            on(obj, event)
+        }
+    }
 }

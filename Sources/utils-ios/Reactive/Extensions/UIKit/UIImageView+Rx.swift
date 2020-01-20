@@ -23,4 +23,14 @@ public extension Reactive where Base: UIImageView {
             }
         }
     }
+    
+    var transitionImageURL: Binder<(URL?, UIImageView.ImageTransition)> {
+        return Binder(self.base) { view, pair in
+            if let url = pair.0 {
+                view.af_setImage(withURL: url, imageTransition: pair.1)
+            } else {
+                view.image = nil
+            }
+        }
+    }
 }

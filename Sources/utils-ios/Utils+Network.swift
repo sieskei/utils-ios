@@ -114,7 +114,7 @@ public extension Utils {
                         case .success(let object):
                             single(.success(object))
                         case .failure(let error):
-                            print("Utils.Network: unable to serialize object: \(String(describing: object))  from url: \(url).")
+                            print("Utils.Network: unable to serialize object: \(String(describing: object)) from url: \(url).")
                             print(error)
                             
                             single(.error(error))

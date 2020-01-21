@@ -14,13 +14,13 @@ public enum ErrorDismissSource {
         case suggestive
     }
 
-    public typealias Action = (key: String, title: String, icon: UIImage, style: Style)
+    public typealias Action = (key: Int, title: String, icon: UIImage, style: Style)
 
     case action(Action)
     case close
 }
 
-public typealias ErrorPresentEvent = (Fault, animated: Bool, completion: (() -> Void)?,
+public typealias ErrorPresentEvent = (Fault, animated: Bool, completion: (() -> Void)?, autoDismiss: Bool,
     dismissActions: [ErrorDismissSource.Action], dismissCompletion: ((ErrorDismissSource) -> Void)?)
 
 extension Fault: ReactiveCompatible {
@@ -38,8 +38,9 @@ public extension Reactive where Base: Fault {
 
 public extension Error {
     func present(animated flag: Bool = true, completion: (() -> Void)? = nil,
+                 autoDismiss: Bool = true,
                  dismissActions: [ErrorDismissSource.Action] = [],
                  dismissCompletion: ((ErrorDismissSource) -> Void)? = nil) {
-        Fault.present.onNext((self.fault, flag, completion, dismissActions, dismissCompletion))
+        Fault.present.onNext((self.fault, flag, completion, autoDismiss, dismissActions, dismissCompletion))
     }
 }

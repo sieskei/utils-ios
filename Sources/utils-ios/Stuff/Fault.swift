@@ -60,9 +60,9 @@ public extension Fault {
         return Fault(code: notConnectedToInternetCode, message: "Няма връзка с интернет.")
     }
     
-    static var unknownCode = "unknown"
-    static func unknown(parent: Error? = nil) -> Fault {
-        return Fault(code: unknownCode, message: "Непозната грешка.", parent: parent)
+    static var errorCode = "error"
+    static func error(_ error: Error? = nil) -> Fault {
+        return Fault(code: errorCode, message: "Непозната грешка.", parent: error)
     }
 }
 
@@ -103,7 +103,7 @@ public extension Error {
             } else if isCancelledURLRequest {
                 return .cancelled
             } else {
-                return .unknown(parent: self)
+                return .error(self)
             }
         }
     }

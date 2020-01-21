@@ -5,7 +5,7 @@
 //  Created by Miroslav Yozov on 21.01.20.
 //
 
-import Foundation
+import UIKit
 import RxSwift
 
 public enum ErrorDismissSource {
@@ -14,7 +14,7 @@ public enum ErrorDismissSource {
         case suggestive
     }
 
-    public typealias Action = (key: String, name: String, style: Style)
+    public typealias Action = (key: String, title: String, icon: UIImage, style: Style)
 
     case action(Action)
     case close

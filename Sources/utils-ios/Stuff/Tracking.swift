@@ -31,13 +31,13 @@ public struct TrackSystems {
         return []
     }()
     
-    static func initialize() {
+    public static func initialize() {
         instances.forEach {
             $0.initialize()
         }
     }
     
-    static func track(meta: TrackCompatibleEvent) {
+    public static func track(meta: TrackCompatibleEvent) {
         var params = meta.params
         params["event"] = meta.eventName
         

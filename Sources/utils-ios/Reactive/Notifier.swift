@@ -13,7 +13,12 @@ import RxSwift
 ///
 /// Unlike `PublishSubject` it can't terminate with error or completed.
 public class Notifier<Event>: ObservableType {
-    private let subject: PublishSubject<Event> = .init()
+    private let subject: PublishSubject<Event>
+    
+    /// Public constructor.
+    public init() {
+        self.subject = .init()
+    }
     
     /// Publish event.
     public func notify(_ element: Event) {

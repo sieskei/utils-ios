@@ -27,7 +27,7 @@ public protocol TrackCompatible {
 }
 
 public struct TrackSystems {
-    private static var instances: [TrackCompatible] = {
+    public static var instances: [TrackCompatible] = {
         return []
     }()
     

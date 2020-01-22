@@ -46,3 +46,33 @@ extension UITextField: FontSetter {
         self.textColor = color
     }
 }
+
+extension UIButton: FontStateSetter {
+    public func set(font: UIFont) {
+        self.titleLabel?.font = font
+    }
+
+    public func set(fontSize size: CGFloat) {
+        guard let title = titleLabel, let font = title.font else {
+            return
+        }
+        title.font = font.withSize(size)
+    }
+
+    public func set(fontColor color: UIColor) {
+        setTitleColor(color, for: .normal)
+        setTitleColor(color, for: .highlighted)
+        setTitleColor(color, for: .disabled)
+        setTitleColor(color, for: .selected)
+
+        if #available(iOS 9, *) {
+          setTitleColor(color, for: .application)
+          setTitleColor(color, for: .focused)
+          setTitleColor(color, for: .reserved)
+        }
+    }
+
+    public func set(fontColor color: UIColor, for state: UIControl.State) {
+        self.setTitleColor(color, for: state)
+    }
+}

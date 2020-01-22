@@ -24,15 +24,12 @@ public typealias ErrorPresentEvent = (Fault, animated: Bool, completion: (() -> 
     dismissActions: [ErrorDismissSource.Action], dismissCompletion: ((ErrorDismissSource) -> Void)?)
 
 extension Fault: ReactiveCompatible {
-    fileprivate static let present: PublishSubject<ErrorPresentEvent> = {
-        let subject: PublishSubject<ErrorPresentEvent> = .init()
-        return subject
-    }()
+    fileprivate static let notifier: Notifier<ErrorPresentEvent> = .init()
 }
 
 public extension Reactive where Base: Fault {
     static var present: Observable<ErrorPresentEvent> {
-        return Fault.present.asObservable()
+        return Fault.notifier.asObservable()
     }
 }
 
@@ -41,6 +38,6 @@ public extension Error {
                  autoDismiss: Bool = true,
                  dismissActions: [ErrorDismissSource.Action] = [],
                  dismissCompletion: ((ErrorDismissSource) -> Void)? = nil) {
-        Fault.present.onNext((self.fault, flag, completion, autoDismiss, dismissActions, dismissCompletion))
+        Fault.notifier.notify((self.fault, flag, completion, autoDismiss, dismissActions, dismissCompletion))
     }
 }

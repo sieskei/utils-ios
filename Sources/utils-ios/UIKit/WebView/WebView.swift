@@ -87,7 +87,7 @@ fileprivate extension WebView {
         
         // bounds observe + pause until loading and custom pauser
         view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
-            .pausableBuffered(loadingSource.map { !$0 }, limit: nil)
+            // .pausableBuffered(loadingSource.map { !$0 }, limit: nil)
             .pausable(headerBoundsPauser)
             .map { $0?.height ?? 0 }
             .distinctUntilChanged()

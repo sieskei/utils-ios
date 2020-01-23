@@ -23,7 +23,7 @@ public class Value<Element>: ObservableType {
     }
     
     public var binder: Binder<Element> {
-        return .init(self) { $0.value = $1 }
+        return .init(self, scheduler: CurrentThreadScheduler.instance) { $0.value = $1 }
     }
 
     /// Initializes behavior relay with initial value.

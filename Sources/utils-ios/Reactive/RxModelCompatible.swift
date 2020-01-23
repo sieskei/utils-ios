@@ -35,9 +35,9 @@ public extension RxModelCompatible {
 public extension Reactive where Base: RxModelCompatible {
     var model: ControlProperty<Model<Base.M>> {
         let origin = base.valueModel.asObservable()
-        let bindingObserver: Binder<Model<Base.M>> = .init(base, binding: {
+        let bindingObserver: Binder<Model<Base.M>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
             $0.model = $1
-        })
+        }
         return .init(values: origin, valueSink: bindingObserver)
     }
 }
@@ -53,9 +53,9 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
                 })
             }
         }
-        let bindingObserver: Binder<Model<Base.M>> = .init(base, binding: {
+        let bindingObserver: Binder<Model<Base.M>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
             $0.model = $1
-        })
+        }
         return .init(values: values, valueSink: bindingObserver)
     }
 }

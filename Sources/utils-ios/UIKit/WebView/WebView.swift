@@ -79,21 +79,24 @@ fileprivate extension WebView {
             view.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
         
-        // allways set margin when loading finished
-        let loadingSource = rx.observeWeakly(Bool.self, #keyPath(WKWebView.isLoading)).map { $0 ?? false }
-        loadingSource.filter { !$0 }.subscribeNextWeakly(weak: self) { this, flag in
-            this.set(bodyMarginTop: view.bounds.height)
-        }.disposed(by: disposeBag)
+        // isLoading
+        rx.observeWeakly(Bool.self, #keyPath(WKWebView.isLoading), options: [.new])
+            .map { $0 ?? false }
+            .filter { !$0 }
+            .pausableBuffered(headerBoundsPauser, limit: nil)
+            .subscribeNextWeakly(weak: self) { this, flag in
+                this.set(bodyMarginTop: view.bounds.height)
+            }
+            .disposed(by: disposeBag)
         
-        // bounds observe + pause until loading and custom pauser
+        // bounds
         view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
-            // .pausableBuffered(loadingSource.map { !$0 }, limit: nil)
             .pausable(headerBoundsPauser)
             .map { $0?.height ?? 0 }
             .distinctUntilChanged()
             .subscribeNextWeakly(weak: self) { this, height in
                 this.set(bodyMarginTop: height)
-        }.disposed(by: disposeBag)
+            }.disposed(by: disposeBag)
     }
 }
 

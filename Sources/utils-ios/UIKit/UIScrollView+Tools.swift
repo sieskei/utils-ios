@@ -130,18 +130,15 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
             }
         }
         
-        scrollView.layoutIfNeeded()
-        UIView.transition(with: scrollView, duration: 0.25, options: [.curveLinear, .beginFromCurrentState, .layoutSubviews],  animations: {
-            defer {
-                self.alpha = 1.0
-                scrollView.layoutIfNeeded()
-            }
-            
+        let animations: () -> Void = {
             scrollView.contentInset.top += Constants.height
             if scrollView.contentOffset.y <= scrollView.contentInset.top {
                 scrollView.contentOffset.y = -scrollView.contentInset.top
             }
-        }) { _ in
+            self.alpha = 1.0
+        }
+        
+        let completion: (Bool) -> Void = { _ in
             defer {
                 self.stopObserving = false
             }
@@ -154,6 +151,22 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
             
             if !programmatically {
                 self.handler?()
+            }
+        }
+        // do not layout / animate if scrollview is not in view hierarchy
+        if scrollView.window != nil {
+            scrollView.layoutIfNeeded()
+            UIView.transition(with: scrollView, duration: 0.25, options: [.curveLinear, .beginFromCurrentState, .layoutSubviews],  animations: {
+                animations()
+                // only if stil in view hierarchy
+                if scrollView.window != nil {
+                    scrollView.layoutIfNeeded()
+                }
+            }, completion: completion)
+        } else {
+            animations()
+            DispatchQueue.main.async {
+                completion(true)
             }
         }
     }
@@ -193,14 +206,27 @@ fileprivate final class UIScrollViewPullToRefreshToolView: UIView {
                 return
             }
             
-            scrollView.layoutIfNeeded()
-            UIView.transition(with: scrollView, duration: 0.25, options: [.curveLinear, .beginFromCurrentState, .layoutSubviews],  animations: {
-                defer {
-                    this.alpha = 0.0
-                    scrollView.layoutIfNeeded()
-                }
+            let animations: () -> Void = {
                 scrollView.contentInset.top -= Constants.height
-            }, completion: completion)
+                this.alpha = 0.0
+            }
+            
+            // do not layout / animate if scrollview is not in view hierarchy
+            if scrollView.window != nil {
+                scrollView.layoutIfNeeded()
+                UIView.transition(with: scrollView, duration: 0.25, options: [.curveLinear, .beginFromCurrentState, .layoutSubviews],  animations: {
+                    animations()
+                    // only if stil in view hierarchy
+                    if scrollView.window != nil {
+                        scrollView.layoutIfNeeded()
+                    }
+                }, completion: completion)
+            } else {
+                animations()
+                DispatchQueue.main.async {
+                    completion(true)
+                }
+            }
         }
         
         fastLayer.circle.endAnimation(finish: false)

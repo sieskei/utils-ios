@@ -18,7 +18,7 @@ open class WebView: WKWebView {
     public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
     
     public private (set) lazy var headerContainerView: UIView = {
-        let view = UIView()
+        let view = UIView(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
         view.backgroundColor = .clear
         return view
     }()

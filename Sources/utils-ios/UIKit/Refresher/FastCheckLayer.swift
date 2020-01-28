@@ -11,8 +11,8 @@ class FastCheckLayer: CALayer, CAAnimationDelegate {
     private (set) lazy var check: CAShapeLayer = {
         let layer = CAShapeLayer()
         
-        layer.lineCap   = CAShapeLayerLineCap.round
-        layer.lineJoin  = CAShapeLayerLineJoin.round
+        layer.lineCap   = .round
+        layer.lineJoin  = .round
         layer.lineWidth = lineWidth
         layer.fillColor = UIColor.clear.cgColor
         layer.strokeColor = color.cgColor
@@ -44,17 +44,17 @@ class FastCheckLayer: CALayer, CAAnimationDelegate {
         let start = CAKeyframeAnimation(keyPath: "strokeStart")
         start.values = [0, 0.4, 0.3]
         start.isRemovedOnCompletion = false
-        start.fillMode = CAMediaTimingFillMode.forwards
+        start.fillMode = .forwards
         start.duration = 0.3125
-        start.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        start.timingFunction = .init(name: .easeInEaseOut)
         
         let end = CAKeyframeAnimation(keyPath: "strokeEnd")
         end.values = [0, 1, 0.9]
 
         end.isRemovedOnCompletion = false
-        end.fillMode = CAMediaTimingFillMode.forwards
+        end.fillMode = .forwards
         end.duration = 0.5
-        end.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        end.timingFunction = .init(name: .easeInEaseOut)
         end.delegate = self
         
         check.add(start, forKey: "start")
@@ -70,7 +70,7 @@ class FastCheckLayer: CALayer, CAAnimationDelegate {
     //MARK: Initial Methods
     init(frame: CGRect, color: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
         self.color      = color
-        self.lineWidth  = lineWidth*2
+        self.lineWidth  = lineWidth * 2
         super.init()
         self.frame      = frame
         backgroundColor = UIColor.clear.cgColor

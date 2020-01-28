@@ -154,7 +154,7 @@ class FastCircleLayer: CALayer {
             rotated       = 0
             rotatedSpeed  = 0
             speedInterval = 0
-            pointBack.setAffineTransform(CGAffineTransform.identity)
+            pointBack.setAffineTransform(.identity)
             circle.isHidden = true
             point.isHidden  = true
             codeTimer?.cancel()
@@ -174,10 +174,10 @@ class FastCircleLayer: CALayer {
         let toPath = UIBezierPath()
         toPath.addArc(withCenter: .init(x: width/2, y: width/2), radius:  (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.3), clockwise: false)
         path.toValue = toPath.cgPath
-        path.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
+        path.timingFunction = .init(name: .easeOut)
         path.duration = 2
         path.isRemovedOnCompletion = false
-        path.fillMode = CAMediaTimingFillMode.forwards
+        path.fillMode = .forwards
         point.add(path, forKey: "path")
     }
 }

@@ -85,17 +85,17 @@ class FastArrowLayer: CALayer, CAAnimationDelegate {
         start.fromValue = 0
         start.toValue   = 0.5
         start.isRemovedOnCompletion = false
-        start.fillMode  = CAMediaTimingFillMode.forwards
+        start.fillMode  = .forwards
         start.delegate  = self
-        start.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        start.timingFunction = .init(name: .easeInEaseOut)
         
         let end = CABasicAnimation(keyPath: "strokeEnd")
         end.duration  = animationDuration
         end.fromValue = 1
         end.toValue   = 0.5
         end.isRemovedOnCompletion = false
-        end.fillMode  = CAMediaTimingFillMode.forwards
-        end.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        end.fillMode  = .forwards
+        end.timingFunction = .init(name: .easeInEaseOut)
         
         arrowLayer.add(start, forKey: "strokeStart")
         arrowLayer.add(end, forKey: "strokeEnd")
@@ -116,20 +116,20 @@ class FastArrowLayer: CALayer, CAAnimationDelegate {
         start.fromValue = 0.5
         start.toValue = 0
         start.isRemovedOnCompletion = false
-        start.fillMode  = CAMediaTimingFillMode.forwards
-        start.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        start.fillMode  = .forwards
+        start.timingFunction = .init(name: .easeInEaseOut)
         start.duration  = animationDuration / 2
         lineLayer.add(start, forKey: "strokeStart")
         
         let end = CABasicAnimation(keyPath: "strokeEnd")
-        end.beginTime = CACurrentMediaTime() + animationDuration/3
+        // end.beginTime = CACurrentMediaTime() + (animationDuration / 3)
         end.duration  = animationDuration / 2
         end.fromValue = 1
         end.toValue   = 0.03
         end.isRemovedOnCompletion = false
-        end.fillMode  = CAMediaTimingFillMode.forwards
+        end.fillMode  = .forwards
         end.delegate  = self
-        end.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        end.timingFunction = .init(name: .easeInEaseOut)
         lineLayer.add(end, forKey: "strokeEnd")
     }
 }

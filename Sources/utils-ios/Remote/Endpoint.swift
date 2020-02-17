@@ -55,8 +55,16 @@ public extension Endpoint {
     }
     
     @discardableResult
-    func serialize<T: MultipleTimesDecodable>(to object: T? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         return Utils.Network.serialize(url: self, to: object,
+                                       userInfo: userInfo.insert(value: self,       forKey: CodingUserInfoKey.Decoder.endpoint)
+                                                         .insert(value: rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
+                                                         .insert(value: decodeType, forKey: CodingUserInfoKey.Decoder.decodeType))
+    }
+    
+    @discardableResult
+    func serialize<T: Decodable>(userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return Utils.Network.serialize(url: self,
                                        userInfo: userInfo.insert(value: self,       forKey: CodingUserInfoKey.Decoder.endpoint)
                                                          .insert(value: rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
                                                          .insert(value: decodeType, forKey: CodingUserInfoKey.Decoder.decodeType))

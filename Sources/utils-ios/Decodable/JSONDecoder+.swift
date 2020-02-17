@@ -38,8 +38,7 @@ private extension Decoder {
 }
 
 extension JSONDecoder {
-    /// Enum describing the result of decoding an object.
-    enum Result<T: MultipleTimesDecodable>: Decodable {
+    enum MultipleTimesDecodableResult<T: MultipleTimesDecodable>: Decodable {
         case success(T)
         case failure(Error)
         
@@ -57,8 +56,33 @@ extension JSONDecoder {
         }
     }
     
-    func decode<T: MultipleTimesDecodable>(to object: T?, from data: Data?) throws -> Result<T> {
+    enum Result<T: Decodable>: Decodable {
+        case success(T)
+        case failure(Error)
+        
+        init(from decoder: Decoder) throws {
+            do {
+                self = .success(try T.init(from: decoder.rootKeyDecoder() ?? decoder))
+            } catch (let error) {
+                self = .failure(error)
+            }
+        }
+    }
+    
+    func decode<T: MultipleTimesDecodable>(to object: T, from data: Data?) -> MultipleTimesDecodableResult<T> {
         userInfo[CodingUserInfoKey.Decoder.object] = object
-        return try decode(Result<T>.self, from: data ?? Data())
+        do {
+            return try decode(MultipleTimesDecodableResult<T>.self, from: data ?? Data())
+        } catch (let error) {
+            return .failure(error)
+        }
+    }
+    
+    func decode<T: Decodable>(from data: Data?) -> Result<T> {
+        do {
+            return try decode(Result<T>.self, from: data ?? Data())
+        } catch (let error) {
+            return .failure(error)
+        }
     }
 }

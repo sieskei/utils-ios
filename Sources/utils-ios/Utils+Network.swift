@@ -18,7 +18,7 @@ public extension NetworkReachabilityManager.NetworkReachabilityStatus {
 
 internal extension DataRequest {
     @discardableResult
-    func responseJSONObject<T: MultipleTimesDecodable>(to object: T? = nil, userInfo: [CodingUserInfoKey: Any] = [:], queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<T>) -> Void) -> Self {
+    func responseJSONObject<T: MultipleTimesDecodable>(to object: T, userInfo: [CodingUserInfoKey: Any] = [:], queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<T>) -> Void) -> Self {
         let responseSerializer = DataResponseSerializer<T> { request, response, data, error in
             if let error = error {
                 return .failure(error)
@@ -26,14 +26,33 @@ internal extension DataRequest {
             
             let decoder = JSONDecoder()
             decoder.userInfo = userInfo
-            do {
-                switch try decoder.decode(to: object, from: data) {
-                case .success(let object):
-                    return .success(object)
-                case .failure(let error):
-                    return .failure(error)
-                }
-            } catch (let error) {
+            
+            switch decoder.decode(to: object, from: data) {
+            case .success(let object):
+                return .success(object)
+            case .failure(let error):
+                return .failure(error)
+            }
+        }
+        
+        return response(queue: queue, responseSerializer: responseSerializer, completionHandler: completionHandler)
+    }
+    
+    @discardableResult
+    func responseJSONObject<T: Decodable>(userInfo: [CodingUserInfoKey: Any] = [:], queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<T>) -> Void) -> Self {
+        let responseSerializer = DataResponseSerializer<T> { request, response, data, error in
+            if let error = error {
+                return .failure(error)
+            }
+            
+            let decoder = JSONDecoder()
+            decoder.userInfo = userInfo
+            
+            let result: JSONDecoder.Result<T> = decoder.decode(from: data)
+            switch result {
+            case .success(let object):
+                return .success(object)
+            case .failure(let error):
                 return .failure(error)
             }
         }
@@ -104,7 +123,7 @@ public extension Utils {
         }
         
         @discardableResult
-        public static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        public static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
             return Single.create { single in
                 let request = manager.request(url)
                 request
@@ -120,6 +139,34 @@ public extension Utils {
                             single(.error(error))
                         }
                 }
+                
+                if !manager.startRequestsImmediately {
+                    request.resume()
+                }
+                
+                return Disposables.create {
+                    request.cancel()
+                }
+            }
+        }
+        
+        @discardableResult
+        public static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+            return Single.create { single in
+                let request = manager.request(url)
+                request
+                    .validate(validator)
+                    .responseJSONObject(completionHandler: { (response: DataResponse<T>) in
+                        switch response.result {
+                        case .success(let object):
+                            single(.success(object))
+                        case .failure(let error):
+                            print("Utils.Network: unable to serialize object from url: \(url).")
+                            print(error)
+                            
+                            single(.error(error))
+                        }
+                    })
                 
                 if !manager.startRequestsImmediately {
                     request.resume()

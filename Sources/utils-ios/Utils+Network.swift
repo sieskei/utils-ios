@@ -156,7 +156,7 @@ public extension Utils {
                 let request = manager.request(url)
                 request
                     .validate(validator)
-                    .responseJSONObject(completionHandler: { (response: DataResponse<T>) in
+                    .responseJSONObject(userInfo: userInfo, queue: Task.queue, completionHandler: { (response: DataResponse<T>) in
                         switch response.result {
                         case .success(let object):
                             single(.success(object))

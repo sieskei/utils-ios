@@ -23,6 +23,12 @@ open class WebView: WKWebView {
         return view
     }()
     
+    public private (set) lazy var footerContainerView: UIView = {
+        let view = UIView(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
+        view.backgroundColor = .clear
+        return view
+    }()
+    
     public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
         configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         self.init(frame: .zero, configuration: configuration)

@@ -5,18 +5,13 @@ import XCTest
 @testable import RxSwift
 @testable import RxCocoa
 
-final class utils_iosTests: XCTestCase, WebViewUIDelegate {
-    func webView(_ webView: WebViewTMP, didUpdate contentSize: CGSize) {
-        print(contentSize)
-    }
-    
-    let view = WebViewTMP(frame: .init(origin: .zero, size: .init(width: 100, height: 100)))
-    
-    
+final class utils_iosTests: XCTestCase {
+
     func testExample() {
-        view.uiDelegate = self
+        // Utils.Storage.remove(key: "sieskei")
         
-        view.load(.init(url: .init(fileURLWithPath: "https://abv.bg/")))
+        print(Utils.Storage.get(for: "sieskei", default: 07))
+        print(Utils.Storage.get(for: "sieskei", default: 25))
         
         
         sleep(10)

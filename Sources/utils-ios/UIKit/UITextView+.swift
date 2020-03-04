@@ -1,13 +1,13 @@
 //
-//  UILabel+.swift
+//  UITextView+.swift
 //  
 //
-//  Created by Miroslav Yozov on 13.01.20.
+//  Created by Miroslav Yozov on 4.03.20.
 //
 
 import UIKit
 
-public extension UILabel {
+public extension UITextView {
     func setHTMLFromString(text: String) {
         let source: String
         if let font = font {

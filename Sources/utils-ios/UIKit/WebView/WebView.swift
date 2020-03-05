@@ -56,6 +56,8 @@ open class WebView: WKWebView {
         scrollView.backgroundColor = .clear
         
         prepareHeaderContainerView()
+        prepareFooterContainerView()
+        prepareBodyInsets()
     }
     
     open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -64,8 +66,22 @@ open class WebView: WKWebView {
 }
 
 fileprivate extension WebView {
-    private func set(bodyMarginTop margin: CGFloat) {
-        evaluateJavaScript("document.body.style.marginTop = \"\(margin)px\"")
+    enum Margin: Equatable {
+        case top(CGFloat)
+        case bottom(CGFloat)
+        
+        var script: String {
+            switch self {
+            case .top(let v):
+                return "document.body.style.marginTop = \"\(v)px\""
+            case .bottom(let v):
+                return "document.body.style.marginBottom = \"\(v)px\""
+            }
+        }
+    }
+    
+    private func set(bodyMargin margin: Margin) {
+        evaluateJavaScript(margin.script)
     }
     
     func prepareHeaderContainerView() {
@@ -84,25 +100,53 @@ fileprivate extension WebView {
             view.leadingAnchor.constraint(equalTo: leadingAnchor),
             view.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
+    }
+    
+    func prepareFooterContainerView() {
+        let view = footerContainerView
         
-        // isLoading
-        rx.observeWeakly(Bool.self, #keyPath(WKWebView.isLoading), options: [.new])
-            .map { $0 ?? false }
-            .filter { !$0 }
-            .pausableBuffered(headerBoundsPauser, limit: nil)
-            .subscribeNextWeakly(weak: self) { this, flag in
-                this.set(bodyMarginTop: view.bounds.height)
-            }
-            .disposed(by: disposeBag)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.insertSubview(view, at: 1)
         
-        // bounds
-        view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
-            .pausable(headerBoundsPauser)
-            .map { $0?.height ?? 0 }
-            .distinctUntilChanged()
-            .subscribeNextWeakly(weak: self) { this, height in
-                this.set(bodyMarginTop: height)
-            }.disposed(by: disposeBag)
+        let vh = view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).map { $0?.height ?? 0 }
+        let cs = scrollView.rx.observeWeakly(CGSize.self, #keyPath(UIScrollView.contentSize)).map { $0?.height ?? 0 }
+        let co = scrollView.rx.observeWeakly(CGPoint.self, #keyPath(UIScrollView.contentOffset)).map { $0?.y ?? 0 }
+        
+        // dynamic top constraint
+        let topConstraint = view.topAnchor.constraint(equalTo: topAnchor)
+        Observable.combineLatest(vh, cs, co).map { ($1 - $0) - $2 }.distinctUntilChanged().bind(to: topConstraint.rx.constant).disposed(by: disposeBag)
+
+        // static constraints
+        NSLayoutConstraint.activate([
+            topConstraint,
+            view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: trailingAnchor)
+        ])
+    }
+    
+    func prepareBodyInsets() {
+        typealias O = Observable<Margin>
+        
+        let hv = headerContainerView
+        let fv = footerContainerView
+        
+        let l = rx.observeWeakly(Bool.self, #keyPath(WKWebView.isLoading), options: [.new]).map { $0 ?? false }.filter { !$0 }
+        
+        /*
+         Top inset (margin) based on header view height.
+        */
+        let lh: O = l.pausableBuffered(headerBoundsPauser, limit: nil).mapWeakly(weak: hv, default: .top(0)) { v, _ in .top(v.bounds.height) }
+        let hh: O = hv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).pausable(headerBoundsPauser).map { .top($0?.height ?? 0) }
+        
+        /*
+         Bottom inset (margin) based on footer view height.
+        */
+        let lf: O = l.mapWeakly(weak: fv, default: .bottom(0)) { v, _ in .bottom(v.bounds.height) }
+        let hf: O = fv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).map { .bottom($0?.height ?? 0) }
+        
+        Observable.merge(lh, hh, lf, hf).distinctUntilChanged().subscribeNextWeakly(weak: self) {
+            $0.set(bodyMargin: $1)
+        }.disposed(by: disposeBag)
     }
 }
 

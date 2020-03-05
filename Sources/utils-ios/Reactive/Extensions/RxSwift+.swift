@@ -22,6 +22,24 @@ public extension ObservableType {
         }
     }
     
+    func mapWeakly<A: AnyObject, Result>(weak obj: A?, `default`: Result, _ transform: @escaping (A, Element) -> Result) -> Observable<Result> {
+        return map { [weak obj] element in
+            guard let obj = obj else {
+                return `default`
+            }
+            return transform(obj, element)
+        }
+    }
+    
+    func mapWeakly<A: AnyObject, B: AnyObject, Result>(weaks obj1: A?, _ obj2: B?, `default`: Result, _ transform: @escaping (A, B, Element) -> Result) -> Observable<Result> {
+        return map { [weak obj1, weak obj2] element in
+            guard let obj1 = obj1, let obj2 = obj2 else {
+                return `default`
+            }
+            return transform(obj1, obj2, element)
+        }
+    }
+    
     func subscribeNextWeakly<A: AnyObject>(weak obj: A?, _ onNext: @escaping (A, Element) -> Void) -> Disposable {
         return subscribe(onNext: { [weak obj] element in
             guard let obj = obj else { return }

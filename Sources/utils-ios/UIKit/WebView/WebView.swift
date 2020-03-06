@@ -61,7 +61,9 @@ open class WebView: WKWebView {
     }
     
     open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        return headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ?? super.hitTest(point, with: event)
+        return headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ??
+               footerContainerView.hitTest(convert(point, to: footerContainerView), with: event) ??
+               super.hitTest(point, with: event)
     }
 }
 

@@ -30,7 +30,6 @@ open class WebView: WKWebView {
     }()
     
     open var headerTopConstraintConstant: Observable<CGFloat> {
-        // return scrollView.rx.contentOffset.map { -max(0, $0.y ) }
         return scrollView.rx.contentOffset.map { -$0.y }
     }
     

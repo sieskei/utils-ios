@@ -15,6 +15,8 @@ import RxCocoa
 open class WebView: WKWebView {
     private let disposeBag = DisposeBag()
     
+    private var isReady: EquatableValue<Bool> = .init(false)
+    
     public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
     
     public private (set) lazy var headerContainerView: UIView = {
@@ -30,6 +32,9 @@ open class WebView: WKWebView {
     }()
     
     open var headerTopConstraintConstant: Observable<CGFloat> {
+        /*
+         Follow vertical scroll content offset.
+        */
         return scrollView.rx.contentOffset.map { -$0.y }
     }
     
@@ -85,8 +90,41 @@ open class WebView: WKWebView {
                footerContainerView.hitTest(convert(point, to: footerContainerView), with: event) ??
                super.hitTest(point, with: event)
     }
+    
+    
+    // ---------------
+    // MARK: Load API.
+    // ---------------
+    
+    @discardableResult
+    open override func load(_ request: URLRequest) -> WKNavigation? {
+        isReady.value = false
+        return super.load(request)
+    }
+    
+    @discardableResult
+    open override func loadFileURL(_ URL: URL, allowingReadAccessTo readAccessURL: URL) -> WKNavigation? {
+        isReady.value = false
+        return super.loadFileURL(URL, allowingReadAccessTo: readAccessURL)
+    }
+    
+    @discardableResult
+    open override func load(_ data: Data, mimeType MIMEType: String, characterEncodingName: String, baseURL: URL) -> WKNavigation? {
+        isReady.value = false
+        return super.load(data, mimeType: MIMEType, characterEncodingName: characterEncodingName, baseURL: baseURL)
+    }
+    
+    @discardableResult
+    open override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
+        isReady.value = false
+        return super.loadHTMLString(string, baseURL: baseURL)
+    }
 }
 
+
+// -------------------------------------------
+// MARK: Prepeare header and footer containrs.
+// -------------------------------------------
 fileprivate extension WebView {
     func prepareHeaderContainerView() {
         let view = headerContainerView
@@ -126,9 +164,9 @@ fileprivate extension WebView {
 }
 
 
-// -----------------------------------
-// MARK: Document end message handler.
-// -----------------------------------
+// -----------------------------
+// MARK: Prepeare configuration.
+// -----------------------------
 extension WebView: WKScriptMessageHandler {
     private enum Margin: Equatable {
         case top(CGFloat)
@@ -168,9 +206,8 @@ extension WebView: WKScriptMessageHandler {
                 webkit.messageHandlers.ready.postMessage(\"\");
             """,
         injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-    }
-    
-    private func ready() {
+        
+        
         typealias O = Observable<Margin>
                 
         let hv = headerContainerView
@@ -179,28 +216,38 @@ extension WebView: WKScriptMessageHandler {
         /*
          Top inset (margin) based on header view height.
         */
-        let hh: O = hv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new]).pausable(headerBoundsPauser).map { .top($0?.height ?? 0) }
+        let hh: O = hv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new])
+            .pausable(headerBoundsPauser)
+            .map { .top($0?.height ?? 0) }
         
         /*
          Bottom inset (margin) based on footer view height.
         */
-        let hf: O = fv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new]).map { .bottom($0?.height ?? 0) }
+        let hf: O = fv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new])
+            .map { .bottom($0?.height ?? 0) }
         
-        Observable.merge(hh, hf).subscribeNextWeakly(weak: self) {
-            $0.evaluateJavaScript($1.script)
-        }.disposed(by: disposeBag)
-        
+        Observable.merge(hh, hf)
+            .pausable(isReady)
+            .subscribeNextWeakly(weak: self) {
+                $0.evaluateJavaScript($1.script)
+            }.disposed(by: disposeBag)
+    }
+    
+    private func ready() {
+        defer {
+            isReady.value = true
+        }
         
         /*
          Set body margins and display.
          */
-        let readyScript =
+        evaluateJavaScript(
             """
-                \(Margin.top(hv.bounds.height).script)
-                \(Margin.bottom(fv.bounds.height).script)
+                \(Margin.top(headerContainerView.bounds.height).script)
+                \(Margin.bottom(footerContainerView.bounds.height).script)
                 document.body.style.display = "initial";
             """
-        evaluateJavaScript(readyScript)
+        )
     }
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {

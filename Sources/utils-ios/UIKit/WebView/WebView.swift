@@ -137,31 +137,40 @@ extension WebView: WKScriptMessageHandler {
         var script: String {
             switch self {
             case .top(let v):
-                return "document.body.style.marginTop = \"\(v)px\""
+                return "document.body.style.marginTop = \"\(v)px\";"
             case .bottom(let v):
-                return "document.body.style.marginBottom = \"\(v)px\""
+                return "document.body.style.marginBottom = \"\(v)px\";"
             }
         }
     }
     
-    private static var messageName = "documentEnd"
+    private static var messageLogging = "logging"
+    private static var messageReady = "ready"
     
     internal func prepareConfiguration() {
         let ucc = configuration.userContentController
-        ucc.addUserScript(.init(source: "webkit.messageHandlers.documentEnd.postMessage(\"\");",
-                                injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-        ucc.add(self, name: WebView.messageName)
-    }
-    
-    private func set(bodyMargin margin: Margin) {
-        evaluateJavaScript(margin.script)
-    }
-    
-    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.webView == self, message.name == WebView.messageName else {
-            return
-        }
+        ucc.add(self, name: WebView.messageLogging)
+        ucc.add(self, name: WebView.messageReady)
         
+        ucc.addUserScript(.init(source:
+            """
+                var console = {
+                    log: function(msg) {
+                            window.webkit.messageHandlers.logging.postMessage(msg)
+                         }
+                };
+            """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        
+        
+        ucc.addUserScript(.init(source:
+            """
+                document.body.style.display = "none";
+                webkit.messageHandlers.ready.postMessage(\"\");
+            """,
+        injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+    }
+    
+    private func ready() {
         typealias O = Observable<Margin>
                 
         let hv = headerContainerView
@@ -170,16 +179,43 @@ extension WebView: WKScriptMessageHandler {
         /*
          Top inset (margin) based on header view height.
         */
-        let hh: O = hv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).pausable(headerBoundsPauser).map { .top($0?.height ?? 0) }
+        let hh: O = hv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new]).pausable(headerBoundsPauser).map { .top($0?.height ?? 0) }
         
         /*
          Bottom inset (margin) based on footer view height.
         */
-        let hf: O = fv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).map { .bottom($0?.height ?? 0) }
+        let hf: O = fv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new]).map { .bottom($0?.height ?? 0) }
         
         Observable.merge(hh, hf).subscribeNextWeakly(weak: self) {
-            $0.set(bodyMargin: $1)
+            $0.evaluateJavaScript($1.script)
         }.disposed(by: disposeBag)
+        
+        
+        /*
+         Set body margins and display.
+         */
+        let readyScript =
+            """
+                \(Margin.top(hv.bounds.height).script)
+                \(Margin.bottom(fv.bounds.height).script)
+                document.body.style.display = "initial";
+            """
+        evaluateJavaScript(readyScript)
+    }
+    
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.webView == self else {
+            return
+        }
+        
+        switch message.name {
+        case WebView.messageLogging:
+            print("[WebView.console.log]:", message.body)
+        case WebView.messageReady:
+            ready()
+        default:
+            break
+        }
     }
 }
 

@@ -119,6 +119,10 @@ open class WebView: WKWebView {
         isReady.value = false
         return super.loadHTMLString(string, baseURL: baseURL)
     }
+    
+    deinit {
+        print(self, "called ...")
+    }
 }
 
 
@@ -167,7 +171,30 @@ fileprivate extension WebView {
 // -----------------------------
 // MARK: Prepeare configuration.
 // -----------------------------
-extension WebView: WKScriptMessageHandler {
+extension WebView {
+    private class ScriptMessageHandler: NSObject, WKScriptMessageHandler {
+        private weak var view: WebView?
+        
+        init(_ view: WebView) {
+            self.view = view
+        }
+        
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard let view = view, message.webView == view else {
+                return
+            }
+            
+            switch message.name {
+            case WebView.messageLogging:
+                print("[WebView.console.log]:", message.body)
+            case WebView.messageReady:
+                view.ready()
+            default:
+                break
+            }
+        }
+    }
+    
     private enum Margin: Equatable {
         case top(CGFloat)
         case bottom(CGFloat)
@@ -187,9 +214,9 @@ extension WebView: WKScriptMessageHandler {
     
     internal func prepareConfiguration() {
         let ucc = configuration.userContentController
-        ucc.add(self, name: WebView.messageLogging)
-        ucc.add(self, name: WebView.messageReady)
-        
+        ucc.add(ScriptMessageHandler(self), name: WebView.messageLogging)
+        ucc.add(ScriptMessageHandler(self), name: WebView.messageReady)
+
         ucc.addUserScript(.init(source:
             """
                 var console = {
@@ -248,21 +275,6 @@ extension WebView: WKScriptMessageHandler {
                 document.body.style.display = "initial";
             """
         )
-    }
-    
-    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.webView == self else {
-            return
-        }
-        
-        switch message.name {
-        case WebView.messageLogging:
-            print("[WebView.console.log]:", message.body)
-        case WebView.messageReady:
-            ready()
-        default:
-            break
-        }
     }
 }
 

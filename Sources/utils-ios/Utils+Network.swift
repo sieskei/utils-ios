@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import Alamofire
 
-public extension NetworkReachabilityManager.NetworkReachabilityStatus {
+internal extension NetworkReachabilityManager.NetworkReachabilityStatus {
     var isReachable: Bool {
         return self == .reachable(.ethernetOrWiFi) || self == .reachable(.wwan)
     }
@@ -82,6 +82,24 @@ public extension Fault.Utils {
 public extension Utils {
     struct Network {
         private init() { }
+        
+        fileprivate static var isReachableValue: EquatableValue<Bool> = {
+            guard let manager = NetworkReachabilityManager() else {
+                return .init(true)
+            }
+            
+            manager.listener = {
+                let _ = manager // need to store in memory
+                Utils.Network.isReachableValue.value = $0.isReachable
+            }
+            manager.startListening()
+            
+            return .init(manager.isReachable)
+        }()
+        
+        public static var isReachable: Bool {
+            return isReachableValue.value
+        }
         
         public typealias ParametersEncodingType = ParameterEncoding
         
@@ -177,5 +195,13 @@ public extension Utils {
                 }
             }
         }
+    }
+}
+
+extension Utils.Network: ReactiveCompatible { }
+
+extension Reactive where Base == Utils.Network {
+    public static var isReachable: Observable<Bool> {
+        return Base.isReachableValue.asObservable()
     }
 }

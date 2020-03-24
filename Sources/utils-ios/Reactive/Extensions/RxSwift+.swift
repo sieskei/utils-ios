@@ -10,6 +10,16 @@ import Foundation
 import RxSwift
 
 public extension ObservableType {
+    func filter<A: AnyObject>(weak obj: A?, _ predicate: @escaping (A, Element) -> Bool) -> Observable<Element> {
+        return filter { [weak obj] element in
+            guard let obj = obj else {
+                return false
+            }
+            return predicate(obj, element)
+        }
+    }
+    
+    
     func map<A: AnyObject, Result>(unowned obj: A, _ transform: @escaping (A, Element) -> Result) -> Observable<Result> {
         return map { [unowned obj = obj] element in
             return transform(obj, element)

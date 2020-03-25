@@ -63,6 +63,10 @@ public extension Reactive where Base: Endpoint {
         return Utils.Network.rx.serialize(url: base, userInfo: prepeare(userInfo: ui))
     }
     
+    func serialize<T: Decodable>(interval: RxTimeInterval, userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
+        return Utils.Network.rx.serialize(interval: interval, url: base, userInfo: prepeare(userInfo: ui))
+    }
+
     func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         return Utils.Network.rx.serialize(url: base, to: object, userInfo: prepeare(userInfo: ui))
     }

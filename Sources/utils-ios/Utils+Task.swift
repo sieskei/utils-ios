@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RxSwift
 
 public extension NSLock {
     convenience init(name: String) {
@@ -40,7 +41,7 @@ public extension Utils {
     struct Task {
         public typealias Lock = NSLocking
         
-        public static var queue: DispatchQueue = {
+        public static var backgaroundQueue: DispatchQueue = {
             return DispatchQueue(label: "bg.netinfo.Task.dispatchQueue.stuff", qos: .background, attributes: .concurrent)
         }()
         
@@ -77,4 +78,12 @@ public extension Utils {
             }, waitUntilFinished: true)
         }
     }
+}
+
+extension Utils.Task: ReactiveCompatible { }
+
+public extension Reactive where Base == Utils.Task {
+    static let scheduler: ConcurrentDispatchQueueScheduler = {
+        return  .init(queue: Base.backgaroundQueue)
+    }()
 }

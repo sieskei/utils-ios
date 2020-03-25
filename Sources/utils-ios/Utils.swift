@@ -45,6 +45,8 @@ public struct Utils {
 
 extension Utils: ReactiveCompatible { }
 
-extension Reactive where Base == Utils {
-    
+public extension Reactive where Base == Utils {
+    static func interval(_ period: RxTimeInterval) -> Observable<Int> {
+        return .interval(period, scheduler: Base.Task.rx.scheduler)
+    }
 }

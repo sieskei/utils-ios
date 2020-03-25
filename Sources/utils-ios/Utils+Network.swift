@@ -154,7 +154,7 @@ public extension Reactive where Base == Utils.Network {
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
-                .responseJSONObject(userInfo: userInfo, queue: Utils.Task.queue, completionHandler: { (response: DataResponse<T>) in
+                .responseJSONObject(userInfo: userInfo, queue: Utils.Task.backgaroundQueue, completionHandler: { (response: DataResponse<T>) in
                     switch response.result {
                     case .success(let object):
                         single(.success(object))
@@ -176,12 +176,27 @@ public extension Reactive where Base == Utils.Network {
         }
     }
     
+    static func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
+        let serializing: EquatableValue<Bool> = .init(false)
+        return Utils.rx.interval(interval)
+            .pausable(Utils.Network.rx.isReachable)
+            .pausable(serializing.map { !$0 })
+            .flatMapLatest { _ in
+                serialize(url: url, userInfo: userInfo)
+                    .do(onSubscribe: {
+                        serializing.value = true
+                    }, onDispose: {
+                        serializing.value = false
+                    })
+            }
+    }
+    
     static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         return Single.create { single in
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
-                .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.queue) { response in
+                .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.backgaroundQueue) { response in
                     switch response.result {
                     case .success(let object):
                         single(.success(object))

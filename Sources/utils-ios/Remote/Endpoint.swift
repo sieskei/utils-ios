@@ -33,15 +33,9 @@ public extension Decoder {
     }
 }
 
-public protocol Endpoint: URLRequestConvertible {
+public protocol Endpoint: URLRequestConvertible, ReactiveCompatible {
     var rootKey: String { get }
     var decodeType: DecodeType { get }
-    
-    @discardableResult
-    func serialize<T: Decodable>(userInfo: [CodingUserInfoKey: Any]) -> Single<T>
-    
-    @discardableResult
-    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo: [CodingUserInfoKey: Any]) -> Single<T>
 }
 
 public protocol EndpointPageble: Endpoint {
@@ -56,20 +50,20 @@ public extension Endpoint {
     var decodeType: DecodeType {
         return .replace
     }
-    
-    @discardableResult
-    func serialize<T: Decodable>(userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        return Utils.Network.serialize(url: self,
-                                       userInfo: userInfo.insert(value: self,       forKey: CodingUserInfoKey.Decoder.endpoint)
-                                                         .insert(value: rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
-                                                         .insert(value: decodeType, forKey: CodingUserInfoKey.Decoder.decodeType))
+}
+
+public extension Reactive where Base: Endpoint {
+    private func prepeare(userInfo ui: [CodingUserInfoKey: Any]) -> [CodingUserInfoKey: Any] {
+        return ui.insert(value: base,            forKey: CodingUserInfoKey.Decoder.endpoint)
+                 .insert(value: base.rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
+                 .insert(value: base.decodeType, forKey: CodingUserInfoKey.Decoder.decodeType)
     }
     
-    @discardableResult
-    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        return Utils.Network.serialize(url: self, to: object,
-                                       userInfo: userInfo.insert(value: self,       forKey: CodingUserInfoKey.Decoder.endpoint)
-                                                         .insert(value: rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
-                                                         .insert(value: decodeType, forKey: CodingUserInfoKey.Decoder.decodeType))
+    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return Utils.Network.rx.serialize(url: base, userInfo: prepeare(userInfo: ui))
+    }
+    
+    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return Utils.Network.rx.serialize(url: base, to: object, userInfo: prepeare(userInfo: ui))
     }
 }

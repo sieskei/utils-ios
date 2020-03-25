@@ -42,3 +42,9 @@ public struct Utils {
         return true
     }
 }
+
+extension Utils: ReactiveCompatible { }
+
+extension Reactive where Base == Utils {
+    
+}

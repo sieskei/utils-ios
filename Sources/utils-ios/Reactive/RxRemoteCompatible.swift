@@ -61,9 +61,9 @@ fileprivate extension RxRemoteCompatible {
         return get(for: "disposeBag") { .init() }
     }
     
-    func execute(endpoint: Endpoint, for type: (Disposable) -> RemoteState.`Type`) {
+    func execute(endpoint: EndpointType, for type: (Disposable) -> RemoteState.`Type`) {
         let laststate = remoteState.last
-        let disposable = endpoint.serialize(to: self)
+        let disposable = endpoint.rx.serialize(to: self)
             .subscribeOn(CurrentThreadScheduler.instance)
             .observeOn(CurrentThreadScheduler.instance)
             .subscribe { event in

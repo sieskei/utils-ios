@@ -139,69 +139,67 @@ public extension Utils {
             
             return .failure(fault)
         }
-        
-        @discardableResult
-        public static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-            return Single.create { single in
-                let request = manager.request(url)
-                request
-                    .validate(validator)
-                    .responseJSONObject(to: object, userInfo: userInfo, queue: Task.queue) { response in
-                        switch response.result {
-                        case .success(let object):
-                            single(.success(object))
-                        case .failure(let error):
-                            print("Utils.Network: unable to serialize object: \(String(describing: object)) from url: \(url).")
-                            print(error)
-                            
-                            single(.error(error))
-                        }
-                }
-                
-                if !manager.startRequestsImmediately {
-                    request.resume()
-                }
-                
-                return Disposables.create {
-                    request.cancel()
-                }
-            }
-        }
-        
-        @discardableResult
-        public static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-            return Single.create { single in
-                let request = manager.request(url)
-                request
-                    .validate(validator)
-                    .responseJSONObject(userInfo: userInfo, queue: Task.queue, completionHandler: { (response: DataResponse<T>) in
-                        switch response.result {
-                        case .success(let object):
-                            single(.success(object))
-                        case .failure(let error):
-                            print("Utils.Network: unable to serialize object from url: \(url).")
-                            print(error)
-                            
-                            single(.error(error))
-                        }
-                    })
-                
-                if !manager.startRequestsImmediately {
-                    request.resume()
-                }
-                
-                return Disposables.create {
-                    request.cancel()
-                }
-            }
-        }
     }
 }
 
 extension Utils.Network: ReactiveCompatible { }
 
-extension Reactive where Base == Utils.Network {
-    public static var isReachable: Observable<Bool> {
+public extension Reactive where Base == Utils.Network {
+    static var isReachable: Observable<Bool> {
         return Base.isReachableValue.asObservable()
+    }
+    
+    static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return Single.create { single in
+            let request = Base.manager.request(url)
+            request
+                .validate(Base.validator)
+                .responseJSONObject(userInfo: userInfo, queue: Utils.Task.queue, completionHandler: { (response: DataResponse<T>) in
+                    switch response.result {
+                    case .success(let object):
+                        single(.success(object))
+                    case .failure(let error):
+                        print("Utils.Network: unable to serialize object from url: \(url).")
+                        print(error)
+                        
+                        single(.error(error))
+                    }
+                })
+            
+            if !Base.manager.startRequestsImmediately {
+                request.resume()
+            }
+            
+            return Disposables.create {
+                request.cancel()
+            }
+        }
+    }
+    
+    static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return Single.create { single in
+            let request = Base.manager.request(url)
+            request
+                .validate(Base.validator)
+                .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.queue) { response in
+                    switch response.result {
+                    case .success(let object):
+                        single(.success(object))
+                    case .failure(let error):
+                        print("Utils.Network: unable to serialize object: \(String(describing: object)) from url: \(url).")
+                        print(error)
+                        
+                        single(.error(error))
+                    }
+            }
+            
+            if !Base.manager.startRequestsImmediately {
+                request.resume()
+            }
+            
+            return Disposables.create {
+                request.cancel()
+            }
+        }
     }
 }

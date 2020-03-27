@@ -41,14 +41,14 @@ public extension Utils {
     struct Task {
         public typealias Lock = NSLocking
         
-        public static var backgaroundQueue: DispatchQueue = {
-            return DispatchQueue(label: "bg.netinfo.Task.dispatchQueue.stuff", qos: .background, attributes: .concurrent)
+        public static var concurrentUtilityQueue: DispatchQueue = {
+            return DispatchQueue(label: "bg.netinfo.Task.dispatchQueue.stuff", qos: .utility, attributes: .concurrent)
         }()
         
         private static var operationQueue: OperationQueue = {
             let queue = OperationQueue()
             queue.name = "bg.netinfo.Task.operationQueue.stuff"
-            queue.qualityOfService = .background
+            queue.underlyingQueue = concurrentUtilityQueue
             return queue
         }()
         
@@ -84,6 +84,6 @@ extension Utils.Task: ReactiveCompatible { }
 
 public extension Reactive where Base == Utils.Task {
     static let scheduler: ConcurrentDispatchQueueScheduler = {
-        return  .init(queue: Base.backgaroundQueue)
+        return  .init(queue: Base.concurrentUtilityQueue)
     }()
 }

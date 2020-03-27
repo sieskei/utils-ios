@@ -21,22 +21,23 @@ public protocol RxMultipleTimesDecodable:
     ReactiveCompatible { }
 
 internal extension RxMultipleTimesDecodable {
-    var valueDecode: Value<Void> {
-        return get(for: "valueDecode") { .instance }
+    var decodeNotifier: Notifier<Self> {
+        return get(for: "decodeNotifier") { .init() }
     }
 }
 
 // MARK: Only for testing.
 internal extension RxMultipleTimesDecodable {
     func simulateDecode() {
-        valueDecode.next()
+        decodeNotifier.notify(self)
     }
 }
 
 extension RxMultipleTimesDecodable {
     public func runDecode(from decoder: Decoder) throws {
         defer {
-            valueDecode.next()
+            print("[rc] notify")
+            decodeNotifier.notify(self)
         }
         
         try synchronized {
@@ -47,8 +48,6 @@ extension RxMultipleTimesDecodable {
 
 public extension Reactive where Base: RxMultipleTimesDecodable {
     var decode: Observable<Base> {
-        return base.valueDecode.skip(1).map { [unowned base] _ in
-            return base
-        }
+        return base.decodeNotifier.asObservable()
     }
 }

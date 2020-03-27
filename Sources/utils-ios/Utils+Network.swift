@@ -154,7 +154,7 @@ public extension Reactive where Base == Utils.Network {
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
-                .responseJSONObject(userInfo: userInfo, queue: Utils.Task.backgaroundQueue, completionHandler: { (response: DataResponse<T>) in
+                .responseJSONObject(userInfo: userInfo, queue: Utils.Task.concurrentUtilityQueue, completionHandler: { (response: DataResponse<T>) in
                     switch response.result {
                     case .success(let object):
                         single(.success(object))
@@ -196,7 +196,7 @@ public extension Reactive where Base == Utils.Network {
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
-                .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.backgaroundQueue) { response in
+                .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.concurrentUtilityQueue) { response in
                     switch response.result {
                     case .success(let object):
                         single(.success(object))

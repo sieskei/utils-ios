@@ -66,7 +66,13 @@ fileprivate extension RxRemoteCompatible {
         let disposable = endpoint.rx.serialize(to: self)
             .subscribeOn(CurrentThreadScheduler.instance)
             .observeOn(CurrentThreadScheduler.instance)
+            .do(onSuccess: { rc in
+                print("[rc] onSuccess")
+            }, onError: { er in
+                print("[rc] onError")
+            })
             .subscribe { event in
+                print("[rc] subscribe")
                 self.synchronized {
                     switch event {
                     case .success:

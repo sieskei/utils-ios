@@ -36,7 +36,6 @@ internal extension RxMultipleTimesDecodable {
 extension RxMultipleTimesDecodable {
     public func runDecode(from decoder: Decoder) throws {
         defer {
-            print("[rc] notify")
             decodeNotifier.notify(self)
         }
         

@@ -12,11 +12,15 @@ public extension UITableView {
         register(cellClass, forCellReuseIdentifier: cellClass.className)
     }
 
-    func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for indexPath: IndexPath) -> T {
-        return dequeueReusableCell(withIdentifier: cellClass.className, for: indexPath) as! T
+    func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for indexPath: IndexPath, addToSubviews flag: Bool = false) -> T {
+        let cell: T = dequeueReusableCell(withIdentifier: cellClass.className, for: indexPath) as! T
+        if flag, !cell.is(childOf: self) {
+            addSubview(cell)
+        }
+        return cell
     }
     
-    func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for row: Int) -> T {
-        return dequeueReusableCell(for: .init(row: row, section: 0))
+    func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for row: Int, addToSubviews flag: Bool = false) -> T {
+        return dequeueReusableCell(for: .init(row: row, section: 0), addToSubviews: flag)
     }
 }

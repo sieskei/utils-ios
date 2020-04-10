@@ -33,9 +33,17 @@ public extension Decoder {
     }
 }
 
+public indirect enum EndpointRoot {
+    case none
+    case firstOfArray
+    case key(String)
+}
+
 public protocol Endpoint: URLRequestConvertible, ReactiveCompatible {
-    var rootKey: String { get }
+    var root: EndpointRoot { get }
     var decodeType: DecodeType { get }
+    
+    func prepare(response data: Data) -> Data
 }
 
 public protocol EndpointPageble: Endpoint {
@@ -43,19 +51,23 @@ public protocol EndpointPageble: Endpoint {
 }
 
 public extension Endpoint {
-    var rootKey: String {
-        return ""
+    var root: EndpointRoot {
+        return .none
     }
     
     var decodeType: DecodeType {
         return .replace
+    }
+    
+    func prepare(response data: Data) -> Data {
+        return data
     }
 }
 
 public extension Reactive where Base: Endpoint {
     private func prepeare(userInfo ui: [CodingUserInfoKey: Any]) -> [CodingUserInfoKey: Any] {
         return ui.insert(value: base,            forKey: CodingUserInfoKey.Decoder.endpoint)
-                 .insert(value: base.rootKey,    forKey: CodingUserInfoKey.Decoder.rootKey)
+                 .insert(value: base.root,       forKey: CodingUserInfoKey.Decoder.root)
                  .insert(value: base.decodeType, forKey: CodingUserInfoKey.Decoder.decodeType)
     }
     

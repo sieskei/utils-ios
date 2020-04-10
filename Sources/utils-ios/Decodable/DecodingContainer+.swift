@@ -98,3 +98,9 @@ public extension KeyedDecodingContainer {
         }
     }
 }
+
+
+public extension UnkeyedDecodingContainer {
+    func aaa() {
+    }
+}

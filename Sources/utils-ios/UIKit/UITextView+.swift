@@ -9,6 +9,11 @@ import UIKit
 
 public extension UITextView {
     func setHTMLFromString(text: String) {
+        guard !text.isEmpty else {
+            attributedText = nil
+            return
+        }
+        
         let source: String
         if let font = font {
             let color = textColor?.hexString(.RRGGBB) ?? "#000000"

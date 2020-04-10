@@ -72,3 +72,27 @@ public extension UIView {
         layer.mask = maskLayer
     }
 }
+
+public extension UIView {
+    func `is`(childOf view: UIView) -> Bool {
+        var v: UIView? = superview
+        while nil != v {
+            if v === view {
+                return true
+            }
+            v = v?.superview
+        }
+        return false
+    }
+    
+    func traverseViewHierarchyForClassType<T: UIView>() -> T? {
+        var v: UIView? = self
+        while nil != v {
+            if v is T {
+                return v as? T
+            }
+            v = v?.superview
+        }
+        return nil
+    }
+}

@@ -9,17 +9,26 @@ import Foundation
 
 public extension CodingUserInfoKey {
     struct Decoder {
-        static let rootKey = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.rootKey")!
+        static let root = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.root")!
         static let object = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.object")!
     }
 }
 
 extension Decoder {
-    func rootKeyDecoder() throws -> Decoder? {
-        guard let name = userInfo[CodingUserInfoKey.Decoder.rootKey] as? String, !name.isEmpty else {
-            return nil
+    func rootDecoder() throws -> Decoder {
+        guard let root = userInfo[CodingUserInfoKey.Decoder.root] as? EndpointRoot else {
+            return self
         }
-        return try container(keyedBy: CustomCodingKey.self).superDecoder(forKey: .custom(named: name))
+        switch root {
+        case .none:
+            return self
+        case .firstOfArray:
+            var c = try unkeyedContainer()
+            var nc = try c.nestedUnkeyedContainer()
+            return try nc.superDecoder()
+        case .key(let name):
+            return try container(keyedBy: CustomCodingKey.self).superDecoder(forKey: .custom(named: name))
+        }
     }
 }
 
@@ -45,10 +54,10 @@ extension JSONDecoder {
         init(from decoder: Decoder) throws {
             do {
                 if let object: T = decoder.object() {
-                    try object.runDecode(from: decoder.rootKeyDecoder() ?? decoder)
+                    try object.runDecode(from: decoder.rootDecoder())
                     self = .success(object)
                 } else {
-                    self = .success(try T.init(from: decoder.rootKeyDecoder() ?? decoder))
+                    self = .success(try T.init(from: decoder.rootDecoder()))
                 }
             } catch (let error) {
                 self = .failure(error)
@@ -62,7 +71,7 @@ extension JSONDecoder {
         
         init(from decoder: Decoder) throws {
             do {
-                self = .success(try T.init(from: decoder.rootKeyDecoder() ?? decoder))
+                self = .success(try T.init(from: decoder.rootDecoder()))
             } catch (let error) {
                 self = .failure(error)
             }

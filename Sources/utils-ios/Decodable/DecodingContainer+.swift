@@ -8,11 +8,11 @@
 import Foundation
 
 public extension SingleValueDecodingContainer {
-    func decode<T>(_ type: T.Type = T.self) throws -> T where T : Decodable {
+    func decode<T>(to type: T.Type = T.self) throws -> T where T : Decodable {
         return try decode(type)
     }
     
-    func decode<T>(_ type: T.Type = T.self, default value: T) -> T where T : Decodable {
+    func decode<T>(to type: T.Type = T.self, default value: T) -> T where T : Decodable {
         do {
             return try decode(type)
         } catch {
@@ -20,7 +20,7 @@ public extension SingleValueDecodingContainer {
         }
     }
     
-    func parse<T>(_ type: T.Type = T.self) throws -> T where T : Decodable & StringParsable {
+    func parse<T>(to type: T.Type = T.self) throws -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self)
             return type.init(from: stringValue)
@@ -29,7 +29,7 @@ public extension SingleValueDecodingContainer {
         }
     }
     
-    func parse<T>(_ type: T.Type = T.self, default value: T) -> T where T : Decodable & StringParsable {
+    func parse<T>(to type: T.Type = T.self, default value: T) -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self)
             return type.init(from: stringValue)
@@ -52,11 +52,11 @@ public extension KeyedDecodingContainer {
         }
     }
     
-    func decode<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable {
+    func decode<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable {
         return try decode(type, forKey: key)
     }
     
-    func decode<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
+    func decode<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
         do {
             return try decode(type, forKey: key)
         } catch {
@@ -64,11 +64,11 @@ public extension KeyedDecodingContainer {
         }
     }
     
-    func decodeIfPresent<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T? where T : Decodable {
+    func decodeIfPresent<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T? where T : Decodable {
         return try decodeIfPresent(type, forKey: key)
     }
     
-    func decodeIfPresent<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
+    func decodeIfPresent<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
         do {
             return try decodeIfPresent(type, forKey: key) ?? value
         } catch {
@@ -76,7 +76,7 @@ public extension KeyedDecodingContainer {
         }
     }
     
-    func parse<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable & StringParsable {
+    func parse<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self, forKey: key)
             return type.init(from: stringValue)
@@ -85,7 +85,7 @@ public extension KeyedDecodingContainer {
         }
     }
     
-    func parse<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable & StringParsable {
+    func parse<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self, forKey: key)
             return type.init(from: stringValue)

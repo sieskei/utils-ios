@@ -8,34 +8,34 @@
 import Foundation
 
 public extension SingleValueDecodingContainer {
-    func decode<T>() throws -> T where T : Decodable {
-        return try decode(T.self)
+    func decode<T>(_ type: T.Type = T.self) throws -> T where T : Decodable {
+        return try decode(type)
     }
     
-    func decode<T>(default value: T) -> T where T : Decodable {
+    func decode<T>(_ type: T.Type = T.self, default value: T) -> T where T : Decodable {
         do {
-            return try decode(T.self)
+            return try decode(type)
         } catch {
             return value
         }
     }
     
-    func parse<T>() throws -> T where T : Decodable & StringParsable {
+    func parse<T>(_ type: T.Type = T.self) throws -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self)
-            return T.self.init(from: stringValue)
+            return type.init(from: stringValue)
         } catch {
-            return try decode(T.self)
+            return try decode(type)
         }
     }
     
-    func parse<T>(default value: T) -> T where T : Decodable & StringParsable {
+    func parse<T>(_ type: T.Type = T.self, default value: T) -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self)
-            return T.self.init(from: stringValue)
+            return type.init(from: stringValue)
         } catch {
             do {
-                return try decode(T.self)
+                return try decode(type)
             } catch {
                 return value
             }
@@ -52,55 +52,49 @@ public extension KeyedDecodingContainer {
         }
     }
     
-    func decode<T>(forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable {
-        return try decode(T.self, forKey: key)
+    func decode<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable {
+        return try decode(type, forKey: key)
     }
     
-    func decodeIfPresent<T>(forKey key: KeyedDecodingContainer.Key) throws -> T? where T : Decodable {
-        return try decodeIfPresent(T.self, forKey: key)
-    }
-    
-    func decode<T>(forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
+    func decode<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
         do {
-            return try decode(T.self, forKey: key)
+            return try decode(type, forKey: key)
         } catch {
             return value
         }
     }
     
-    func decodeIfPresent<T>(forKey key: KeyedDecodingContainer.Key, default value: T) throws -> T where T : Decodable {
+    func decodeIfPresent<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T? where T : Decodable {
+        return try decodeIfPresent(type, forKey: key)
+    }
+    
+    func decodeIfPresent<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable {
         do {
-            return try decodeIfPresent(T.self, forKey: key) ?? value
+            return try decodeIfPresent(type, forKey: key) ?? value
         } catch {
             return value
         }
     }
     
-    func parse<T>(forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable & StringParsable {
+    func parse<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self, forKey: key)
-            return T.self.init(from: stringValue)
+            return type.init(from: stringValue)
         } catch {
-            return try decode(T.self, forKey: key)
+            return try decode(type, forKey: key)
         }
     }
     
-    func parse<T>(forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable & StringParsable {
+    func parse<T>(_ type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key, default value: T) -> T where T : Decodable & StringParsable {
         do {
             let stringValue = try decode(String.self, forKey: key)
-            return T.self.init(from: stringValue)
+            return type.init(from: stringValue)
         } catch {
             do {
-                return try decode(T.self, forKey: key)
+                return try decode(type, forKey: key)
             } catch {
                 return value
             }
         }
-    }
-}
-
-
-public extension UnkeyedDecodingContainer {
-    func aaa() {
     }
 }

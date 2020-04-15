@@ -24,8 +24,7 @@ extension Decoder {
             return self
         case .firstOfArray:
             var c = try unkeyedContainer()
-            var nc = try c.nestedUnkeyedContainer()
-            return try nc.superDecoder()
+            return try c.superDecoder()
         case .key(let name):
             return try container(keyedBy: CustomCodingKey.self).superDecoder(forKey: .custom(named: name))
         }

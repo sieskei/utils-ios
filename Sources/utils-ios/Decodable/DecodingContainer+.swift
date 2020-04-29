@@ -64,6 +64,17 @@ public extension KeyedDecodingContainer {
         }
     }
     
+    func decode<T>(to type: T.Type = T.self, forKeys keys: [KeyedDecodingContainer.Key], default value: T) -> T where T : Decodable {
+        for key in keys {
+            do {
+                if let typeValue = try decodeIfPresent(type, forKey: key) {
+                    return typeValue
+                }
+            } catch { /* ignore */ }
+        }
+        return value
+    }
+    
     func decodeIfPresent<T>(to type: T.Type = T.self, forKey key: KeyedDecodingContainer.Key) throws -> T? where T : Decodable {
         return try decodeIfPresent(type, forKey: key)
     }
@@ -96,5 +107,22 @@ public extension KeyedDecodingContainer {
                 return value
             }
         }
+    }
+    
+    func parse<T>(to type: T.Type = T.self, forKeys keys: [KeyedDecodingContainer.Key], default value: T) -> T where T : Decodable & StringParsable {
+        for key in keys {
+            do {
+                if let stringValue = try decodeIfPresent(String.self, forKey: key) {
+                    return type.init(from: stringValue)
+                }
+            } catch {
+                do {
+                    if let typeValue = try decodeIfPresent(type, forKey: key) {
+                        return typeValue
+                    }
+                } catch { /* ignore */ }
+            }
+        }
+        return value
     }
 }

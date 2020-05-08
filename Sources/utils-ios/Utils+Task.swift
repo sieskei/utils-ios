@@ -8,6 +8,46 @@
 import Foundation
 import RxSwift
 
+extension DispatchQueue {
+    private struct QueueReference {
+        weak var queue: DispatchQueue?
+    }
+
+    private static let key: DispatchSpecificKey<QueueReference> = {
+        let key = DispatchSpecificKey<QueueReference>()
+        setupSystemQueuesDetection(key: key)
+        return key
+    }()
+
+    private static func registerDetection(of queues: [DispatchQueue], key: DispatchSpecificKey<QueueReference>) {
+        queues.forEach { $0.setSpecific(key: key, value: QueueReference(queue: $0)) }
+    }
+
+    private static func setupSystemQueuesDetection(key: DispatchSpecificKey<QueueReference>) {
+        let queues: [DispatchQueue] = [
+                                        .main,
+                                        .global(qos: .background),
+                                        .global(qos: .default),
+                                        .global(qos: .unspecified),
+                                        .global(qos: .userInitiated),
+                                        .global(qos: .userInteractive),
+                                        .global(qos: .utility)
+                                    ]
+        registerDetection(of: queues, key: key)
+    }
+}
+
+// MARK: public functionality
+
+extension DispatchQueue {
+    static func registerDetection(of queue: DispatchQueue) {
+        registerDetection(of: [queue], key: key)
+    }
+
+    static var currentQueueLabel: String? { current?.label }
+    static var current: DispatchQueue? { getSpecific(key: key)?.queue }
+}
+
 public extension NSLock {
     convenience init(name: String) {
         self.init()
@@ -37,15 +77,42 @@ public extension DispatchQueue {
     }
 }
 
+public extension DispatchTimeInterval {
+    var isZero: Bool {
+        switch self {
+        case .seconds(let i):
+            return i == 0
+        case .milliseconds(let i):
+            return i == 0
+        case .microseconds(let i):
+            return i == 0
+        case .nanoseconds(let i):
+            return i == 0
+        case .never:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+}
+
 public extension Utils {
     struct Task {
         public typealias Lock = NSLocking
         
-        public static var concurrentUtilityQueue: DispatchQueue = {
-            return DispatchQueue(label: "bg.netinfo.Task.dispatchQueue.stuff", qos: .utility, attributes: .concurrent)
+        public static var serialUtilityQueue: DispatchQueue = {
+            let queue = DispatchQueue(label: "Utils.Task.Queue.utility.serial", qos: .utility)
+            DispatchQueue.registerDetection(of: queue)
+            return queue
         }()
         
-        private static var operationQueue: OperationQueue = {
+        public static var concurrentUtilityQueue: DispatchQueue = {
+            let queue = DispatchQueue(label: "Utils.Task.Queue.utility.concurrent", qos: .utility, attributes: .concurrent)
+            DispatchQueue.registerDetection(of: queue)
+            return queue
+        }()
+        
+        private static var concurrentOperationQueue: OperationQueue = {
             let queue = OperationQueue()
             queue.name = "bg.netinfo.Task.operationQueue.stuff"
             queue.underlyingQueue = concurrentUtilityQueue
@@ -53,27 +120,27 @@ public extension Utils {
         }()
         
         public static func async(guard: Synchronized, block: @escaping () -> Void) {
-            operationQueue.addOperation {
+            concurrentOperationQueue.addOperation {
                 `guard`.synchronized(block)
             }
         }
         
         public static func async(guard: Lock, block: @escaping () -> Void) {
-            operationQueue.addOperation {
+            concurrentOperationQueue.addOperation {
                 `guard`.guard(block)
             }
         }
         
         public static func async(block: @escaping () -> Void) {
-            operationQueue.addOperation(block)
+            concurrentOperationQueue.addOperation(block)
         }
         
         public static func async(operation: Operation) {
-            operationQueue.addOperation(operation)
+            concurrentOperationQueue.addOperation(operation)
         }
         
         public static func batchSync(operations: () -> Void ...) {
-            operationQueue.addOperations(operations.map {
+            concurrentOperationQueue.addOperations(operations.map {
                 return BlockOperation(block: $0)
             }, waitUntilFinished: true)
         }
@@ -83,7 +150,11 @@ public extension Utils {
 extension Utils.Task: ReactiveCompatible { }
 
 public extension Reactive where Base == Utils.Task {
-    static let scheduler: ConcurrentDispatchQueueScheduler = {
-        return  .init(queue: Base.concurrentUtilityQueue)
+    static let concurrentScheduler: SchedulerType = {
+        return  ConcurrentDispatchQueueScheduler(queue: Base.concurrentUtilityQueue)
+    }()
+    
+    static let serialScheduler: SchedulerType = {
+        return ConcurrentDispatchQueueScheduler(queue: Base.serialUtilityQueue)
     }()
 }

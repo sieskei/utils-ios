@@ -32,9 +32,7 @@ public extension RxRemoteCompatible {
     }
     
     func reinit() {
-        Utils.Task.async(guard: self) {
-            self.runReinit()
-        }
+        runReinit()
     }
 }
 
@@ -46,9 +44,7 @@ public protocol RxRemotePageCompatible:
 // MARK: Default implementation.
 public extension RxRemotePageCompatible {
     func next() {
-        Utils.Task.async(guard: self) {
-            self.runNext()
-        }
+        runNext()
     }
 }
 
@@ -58,27 +54,22 @@ fileprivate extension RxRemoteCompatible {
     }
     
     var disposeBag: DisposeBag {
-        return get(for: "disposeBag") { .init() }
+        get { get(for: "disposeBag") { .init() } }
+        set { set(value: newValue, for: "disposeBag") }
     }
     
-    func execute(endpoint: EndpointType, for type: (Disposable) -> RemoteState.`Type`) {
-        let laststate = remoteState.last
-        let disposable = endpoint.rx.serialize(to: self)
-            .subscribeOn(CurrentThreadScheduler.instance)
-            .observeOn(CurrentThreadScheduler.instance)
-            .subscribe { event in
-                self.synchronized {
-                    switch event {
-                    case .success:
-                        self.remoteState = .done
-                    case .error(let error):
-                        self.remoteState = error.isCancelledURLRequest ? laststate : .error(error, last: laststate)
-                    }
-                }
-        }
-
-        remoteState = .ongoing(type(disposable))
-        disposable.disposed(by: disposeBag)
+    func serialize(endpoint: EndpointType) -> Single<Self> {
+        return endpoint.rx.serialize(to: self)
+            .subscribeOn(Utils.Task.rx.concurrentScheduler)
+            // .observeOn(Utils.Task.rx.serialScheduler)
+            .do(onSuccess: {
+                 // print("[T] serialize on success:", Thread.current)
+                
+                $0.remoteState = .done
+            }, onError: { [this = self] in
+                let laststate = this.remoteState.last
+                this.remoteState = $0.isCancelledURLRequest ? laststate : .error($0, last: laststate)
+            })
     }
 }
 
@@ -87,39 +78,54 @@ internal extension RxRemoteCompatible {
         switch state {
         case .not, .done:
             return .allowed
-        case .ongoing(let type):
+        case .ongoing(let type, _):
             switch type {
             case .reinit:
                 return .already
-            case .other(let interruptible):
-                return .interrupt(interruptible)
+            case .other:
+                return .interrupt
             }
         case .error(_, let last):
             return permission(for: last)
         }
     }
     
-    func runReinit() {
-        let access = permission(for: remoteState)
-        print(access)
-        
-        switch access {
-        case .already, .notAllowed:
-            return
-        case .interrupt(let interruptible):
-            interruptible.interrupt()
-            fallthrough
-        case .allowed:
-            execute(endpoint: remoteEndpoint) { _ in .reinit }
+    func serializeReinit() -> Single<Self> {
+        let permission: Single<Self> = Single.create { [this = self] in
+            // print("[T] reinit create:", Thread.current)
+            
+            let access = this.permission(for: this.remoteState)
+            print(access)
+            
+            switch access {
+            case .already:
+                $0(.error(Fault.RemotePermission.already))
+            case .notAllowed:
+                $0(.error(Fault.RemotePermission.notAllowed))
+            case .interrupt:
+                this.disposeBag = .init()
+                fallthrough
+            case .allowed:
+                 $0(.success(this))
+            }
+            
+            return Disposables.create { }
         }
+        
+        return permission
+            .subscribeOn(Utils.Task.rx.serialScheduler)
+            .do(afterSuccess: {
+                // print("[T] reinit create after success:", Thread.current)
+                
+                $0.remoteState = .ongoing(.reinit, last: $0.remoteState.last)
+            })
+            .flatMap { $0.serialize(endpoint: $0.remoteEndpoint) }
     }
-}
-
-
-internal struct RemoteNextPageAction: Interruptible {
-    let disposable: Disposable
-    func interrupt() {
-        disposable.dispose()
+    
+    func runReinit() {
+        serializeReinit()
+            .subscribe()
+            .disposed(by: disposeBag)
     }
 }
 
@@ -139,45 +145,75 @@ internal extension RxRemotePageCompatible {
         switch state {
         case .not, .done:
             return .allowed
-        case .ongoing(let type):
+        case .ongoing(let type, _):
             switch type {
             case .reinit:
                 return .notAllowed
-            case .other(let interruptible):
-                return interruptible is RemoteNextPageAction ? .already : .notAllowed
+            case .other:
+                return .already
             }
         case .error(_, let last):
             return permission(for: last)
         }
     }
     
-    func runNext() {
+    func serializeNext() -> Single<Self> {
         guard !isNeedReinit(for: remoteState) else {
-            return runReinit()
+            return serializeReinit()
         }
         
-        let access = permission(for: remoteState)
-        print(access)
-        
-        switch access {
-        case .already, .notAllowed:
-            return
-        case .interrupt(let interruptible):
-            interruptible.interrupt()
-            fallthrough
-        case .allowed:
-            guard remoteHasNextPage else { return }
+        let permission: Single<Self> = Single.create { [this = self] in
+            let access = this.permission(for: this.remoteState)
+            print(access)
             
-            execute(endpoint: remoteEndpoint.next(for: self)) {
-                .other(RemoteNextPageAction(disposable: $0))
+            switch access {
+            case .already:
+                $0(.error(Fault.RemotePermission.already))
+            case .notAllowed:
+                $0(.error(Fault.RemotePermission.notAllowed))
+            case .interrupt:
+                this.disposeBag = .init()
+                fallthrough
+            case .allowed:
+                if this.remoteHasNextPage {
+                    $0(.success(this))
+                } else {
+                    $0(.error(Fault.RemotePageCompatible.noMorePages))
+                }
             }
+            
+            return Disposables.create { }
         }
+        
+        return permission
+            .subscribeOn(Utils.Task.rx.serialScheduler)
+            .do(afterSuccess: {
+                $0.remoteState = .ongoing(.other, last: $0.remoteState.last)
+            })
+            .flatMap { $0.serialize(endpoint: $0.remoteEndpoint.next(for: $0)) }
+    }
+    
+    func runNext() {
+        serializeNext()
+            .subscribe()
+            .disposed(by: disposeBag)
     }
 }
 
-// MARK: Reactive compatible.
+// MARK: RxRemoteCompatible - reactive compatible.
 public extension Reactive where Base: RxRemoteCompatible {
     var remoteState: Observable<RemoteState> {
         return base.valueRemoteState.asObservable()
+    }
+    
+    func reinit() -> Single<Base> {
+        return base.serializeReinit()
+    }
+}
+
+// MARK: RxRemoteCompatible - reactive compatible.
+public extension Reactive where Base: RxRemotePageCompatible {
+    func next() -> Single<Base> {
+        return base.serializeNext()
     }
 }

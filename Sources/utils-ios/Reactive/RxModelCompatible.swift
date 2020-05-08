@@ -9,6 +9,7 @@ import Foundation
 
 import RxSwift
 import RxCocoa
+import RxSwiftExt
 
 public protocol RxModelCompatible:
     class,
@@ -60,3 +61,43 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
     }
 }
 
+// MARK: Reactive compatible for RxRemoteCompatible models.
+public extension Reactive where Base: RxModelCompatible, Base.M: RxRemoteCompatible {
+    var decoding: Observable<Bool> {
+        return base.valueModel.flatMapLatest {
+            return $0.map(.just(false)) { value -> Observable<Bool> in
+                value.rx.remoteState.map { $0.ongoing }.distinctUntilChanged()
+            }
+        }
+    }
+    
+    var error: Observable<Error> {
+        return base.valueModel.flatMapLatest {
+            return $0.map(.never()) { value -> Observable<Error> in
+                value.rx.remoteState.map {
+                    switch $0 {
+                    case .error(let error, _):
+                        return error
+                    default:
+                        return nil
+                    }
+                }.unwrap()
+            }
+        }
+    }
+    
+    func reinit() -> Single<Model<Base.M>> {
+        return base.model.map(.just(base.model)) {
+            $0.rx.reinit().map { .value($0) }
+        }
+    }
+}
+
+// MARK: Reactive compatible for RxRemoteCompatible models.
+public extension Reactive where Base: RxModelCompatible, Base.M: RxRemotePageCompatible {
+    func next() -> Single<Model<Base.M>> {
+        return base.model.map(.just(base.model)) {
+            $0.rx.next().map { .value($0) }
+        }
+    }
+}

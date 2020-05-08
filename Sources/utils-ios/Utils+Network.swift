@@ -151,10 +151,14 @@ public extension Reactive where Base == Utils.Network {
     
     static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         return Single.create { single in
+            // print("[T] serialize create:", Thread.current)
+            
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
                 .responseJSONObject(userInfo: userInfo, queue: Utils.Task.concurrentUtilityQueue, completionHandler: { (response: DataResponse<T>) in
+                    // print("[T] serialize.responseJSONObject:", Thread.current)
+                    
                     switch response.result {
                     case .success(let object):
                         single(.success(object))
@@ -193,10 +197,14 @@ public extension Reactive where Base == Utils.Network {
     
     static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         return Single.create { single in
+            // print("[T] serialize(to) create:", Thread.current)
+            
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
                 .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.concurrentUtilityQueue) { response in
+                    // print("[T] serialize(to).responseJSONObject:", Thread.current)
+                    
                     switch response.result {
                     case .success(let object):
                         single(.success(object))

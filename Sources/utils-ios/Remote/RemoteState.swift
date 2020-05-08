@@ -8,18 +8,20 @@
 import Foundation
 
 public indirect enum RemoteState {
-    public enum `Type` {
+    public enum `Type`: Int {
         case reinit
-        case other(Interruptible)
+        case other
     }
     
     case not
-    case ongoing(Type)
+    case ongoing(Type, last: RemoteState)
     case done
     case error(Error, last: RemoteState)
     
     var last: RemoteState {
         switch self {
+        case .ongoing(_, let last):
+            return last
         case .error(_, let last):
             return last
         default:
@@ -42,14 +44,9 @@ extension RemoteState: Equatable {
         switch lhs {
         case .not:
             if case .not = rhs { return true }
-        case .ongoing(let lhsType):
-            if case .ongoing(let rhsType) = rhs {
-                switch lhsType {
-                case .reinit:
-                    if case .reinit = rhsType { return true }
-                case .other:
-                    if case .other = rhsType { return true }
-                }
+        case .ongoing(let lhsType, _):
+            if case .ongoing(let rhsType, _) = rhs {
+                return lhsType == rhsType
             }
         case .done:
             if case .done = rhs { return true }

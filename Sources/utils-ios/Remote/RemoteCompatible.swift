@@ -7,6 +7,16 @@
 
 import Foundation
 
+public extension Fault {
+    struct RemotePageCompatible {
+        static var noMorePagesCode = "remote.page.compatible.no.more.pages"
+        static var noMorePages: Fault {
+            return Fault(code: noMorePagesCode, message: "Последната страница е достигната.")
+        }
+    }
+}
+
+
 public protocol RemoteCompatible: Initable {
     associatedtype EndpointType: Endpoint
     

@@ -255,7 +255,7 @@ extension WebView {
         
         Observable.merge(hh, hf)
             .pausable(isReady)
-            .subscribeNextWeakly(weak: self) {
+            .subscribeNext(weak: self) {
                 $0.evaluateJavaScript($1.script)
             }.disposed(by: disposeBag)
     }

@@ -131,7 +131,7 @@ fileprivate extension WebViewV1 {
             .pausable(headerBoundsPauser)
             .map { $0?.height ?? 0 }
             .distinctUntilChanged()
-            .subscribeNextWeakly(weak: self) { this, height in
+            .subscribeNext(weak: self) { this, height in
                 this.set(marginTop: height)
         }.disposed(by: disposeBag)
     }

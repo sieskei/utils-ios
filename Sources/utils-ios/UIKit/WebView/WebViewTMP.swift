@@ -43,7 +43,7 @@ open class WebViewTMP: WKWebView {
                 headerViewBoundsDisposable = view.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds))
                     .map { $0?.height ?? 0 }
                     .distinctUntilChanged()
-                    .subscribeNextWeakly(weak: scrollView) { scrollView, height in
+                    .subscribeNext(weak: scrollView) { scrollView, height in
                         guard scrollView.contentOffset.y + scrollView.contentInset.top >= 0 else {
                              return
                         }
@@ -61,7 +61,7 @@ open class WebViewTMP: WKWebView {
         // top
         let topView = UIView()
         topView.backgroundColor = .clear
-        source.subscribeNextWeakly(weak: topView) {
+        source.subscribeNext(weak: topView) {
             if $0.superview != nil {
                 $0.layout.top(-$1)
             }
@@ -70,7 +70,7 @@ open class WebViewTMP: WKWebView {
         // bottom
         let bottomView = UIView()
         bottomView.backgroundColor = .clear
-        source.subscribeNextWeakly(weaks: bottomView, scrollView) {
+        source.subscribeNext(weaks: bottomView, scrollView) {
             if $0.superview != nil {
                 $0.layout.top($1.contentSize.height - $2)
             }

@@ -19,7 +19,6 @@ public extension ObservableType {
         }
     }
     
-    
     func map<A: AnyObject, Result>(unowned obj: A, _ transform: @escaping (A, Element) -> Result) -> Observable<Result> {
         return map { [unowned obj = obj] element in
             return transform(obj, element)

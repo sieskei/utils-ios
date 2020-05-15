@@ -60,11 +60,8 @@ fileprivate extension RxRemoteCompatible {
     
     func serialize(endpoint: EndpointType) -> Single<Self> {
         return endpoint.rx.serialize(to: self)
-            .subscribeOn(Utils.Task.rx.concurrentScheduler)
-            // .observeOn(Utils.Task.rx.serialScheduler)
             .do(onSuccess: {
-                 // print("[T] serialize on success:", Thread.current)
-                
+                // print("[T] serialize on success:", Thread.current)
                 $0.remoteState = .done
             }, onError: { [this = self] in
                 let laststate = this.remoteState.last
@@ -114,12 +111,13 @@ internal extension RxRemoteCompatible {
         
         return permission
             .subscribeOn(Utils.Task.rx.serialScheduler)
-            .do(afterSuccess: {
+            .do(onSuccess: {
                 // print("[T] reinit create after success:", Thread.current)
-                
                 $0.remoteState = .ongoing(.reinit, last: $0.remoteState.last)
             })
-            .flatMap { $0.serialize(endpoint: $0.remoteEndpoint) }
+            .flatMap {
+                $0.serialize(endpoint: $0.remoteEndpoint)
+        }
     }
     
     func runReinit() {
@@ -187,7 +185,7 @@ internal extension RxRemotePageCompatible {
         
         return permission
             .subscribeOn(Utils.Task.rx.serialScheduler)
-            .do(afterSuccess: {
+            .do(onSuccess: {
                 $0.remoteState = .ongoing(.other, last: $0.remoteState.last)
             })
             .flatMap { $0.serialize(endpoint: $0.remoteEndpoint.next(for: $0)) }

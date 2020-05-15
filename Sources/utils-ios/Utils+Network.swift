@@ -16,51 +16,6 @@ internal extension NetworkReachabilityManager.NetworkReachabilityStatus {
     }
 }
 
-internal extension DataRequest {
-    @discardableResult
-    func responseJSONObject<T: MultipleTimesDecodable>(to object: T, userInfo: [CodingUserInfoKey: Any] = [:], queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<T>) -> Void) -> Self {
-        let responseSerializer = DataResponseSerializer<T> { request, response, data, error in
-            if let error = error {
-                return .failure(error)
-            }
-            
-            let decoder = JSONDecoder()
-            decoder.userInfo = userInfo
-            
-            switch decoder.decode(to: object, from: data) {
-            case .success(let object):
-                return .success(object)
-            case .failure(let error):
-                return .failure(error)
-            }
-        }
-        
-        return response(queue: queue, responseSerializer: responseSerializer, completionHandler: completionHandler)
-    }
-    
-    @discardableResult
-    func responseJSONObject<T: Decodable>(userInfo: [CodingUserInfoKey: Any] = [:], queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<T>) -> Void) -> Self {
-        let responseSerializer = DataResponseSerializer<T> { request, response, data, error in
-            if let error = error {
-                return .failure(error)
-            }
-            
-            let decoder = JSONDecoder()
-            decoder.userInfo = userInfo
-            
-            let result: JSONDecoder.Result<T> = decoder.decode(from: data)
-            switch result {
-            case .success(let object):
-                return .success(object)
-            case .failure(let error):
-                return .failure(error)
-            }
-        }
-        
-        return response(queue: queue, responseSerializer: responseSerializer, completionHandler: completionHandler)
-    }
-}
-
 public extension Fault.Utils {
     struct Network {
         public struct Key {
@@ -149,26 +104,26 @@ public extension Reactive where Base == Utils.Network {
         return Base.isReachableValue.asObservable()
     }
     
-    static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+    static func data(url: URLRequestConvertible) -> Single<Data> {
         return Single.create { single in
-            // print("[T] serialize create:", Thread.current)
+            // print("[T] data create:", Thread.current)
             
             let request = Base.manager.request(url)
             request
                 .validate(Base.validator)
-                .responseJSONObject(userInfo: userInfo, queue: Utils.Task.concurrentUtilityQueue, completionHandler: { (response: DataResponse<T>) in
-                    // print("[T] serialize.responseJSONObject:", Thread.current)
+                .responseData(queue: Utils.Task.concurrentUtilityQueue) {
+                    // print("[T] data.responseData:", Thread.current)
                     
-                    switch response.result {
-                    case .success(let object):
-                        single(.success(object))
+                    switch $0.result {
+                    case .success(let data):
+                        single(.success(data))
                     case .failure(let error):
-                        print("Utils.Network: unable to serialize object from url: \(url).")
+                        print("Utils.Network: unable to get data from url: \(url).")
                         print(error)
                         
                         single(.error(error))
                     }
-                })
+            }
             
             if !Base.manager.startRequestsImmediately {
                 request.resume()
@@ -177,6 +132,22 @@ public extension Reactive where Base == Utils.Network {
             return Disposables.create {
                 request.cancel()
             }
+        }
+    }
+    
+    static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return data(url: url).map {
+            print("[T] serialize:", Thread.current)
+            return try JSONDecoder(userInfo: userInfo)
+                .decode(from: $0)
+        }
+    }
+    
+    static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        return data(url: url).map {
+            print("[T] serialize to:", Thread.current)
+            return try JSONDecoder(userInfo: userInfo)
+                .decode(to: object, from: $0)
         }
     }
     
@@ -193,36 +164,5 @@ public extension Reactive where Base == Utils.Network {
                         serializing.value = false
                     })
             }
-    }
-    
-    static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        return Single.create { single in
-            // print("[T] serialize(to) create:", Thread.current)
-            
-            let request = Base.manager.request(url)
-            request
-                .validate(Base.validator)
-                .responseJSONObject(to: object, userInfo: userInfo, queue: Utils.Task.concurrentUtilityQueue) { response in
-                    // print("[T] serialize(to).responseJSONObject:", Thread.current)
-                    
-                    switch response.result {
-                    case .success(let object):
-                        single(.success(object))
-                    case .failure(let error):
-                        print("Utils.Network: unable to serialize object: \(String(describing: object)) from url: \(url).")
-                        print(error)
-                        
-                        single(.error(error))
-                    }
-            }
-            
-            if !Base.manager.startRequestsImmediately {
-                request.resume()
-            }
-            
-            return Disposables.create {
-                request.cancel()
-            }
-        }
     }
 }

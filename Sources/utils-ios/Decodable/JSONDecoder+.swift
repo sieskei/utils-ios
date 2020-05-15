@@ -46,7 +46,7 @@ private extension Decoder {
 }
 
 extension JSONDecoder {
-    enum MultipleTimesDecodableResult<T: MultipleTimesDecodable>: Decodable {
+    private enum MultipleTimesDecodableResult<T: MultipleTimesDecodable>: Decodable {
         case success(T)
         case failure(Error)
         
@@ -64,7 +64,7 @@ extension JSONDecoder {
         }
     }
     
-    enum Result<T: Decodable>: Decodable {
+    private enum Result<T: Decodable>: Decodable {
         case success(T)
         case failure(Error)
         
@@ -77,20 +77,28 @@ extension JSONDecoder {
         }
     }
     
-    func decode<T: MultipleTimesDecodable>(to object: T, from data: Data?) -> MultipleTimesDecodableResult<T> {
+    convenience init(userInfo: [CodingUserInfoKey: Any]) {
+        self.init()
+        self.userInfo = userInfo
+    }
+    
+    func decode<T: MultipleTimesDecodable>(to object: T, from data: Data) throws -> T {
         userInfo[CodingUserInfoKey.Decoder.object] = object
-        do {
-            return try decode(MultipleTimesDecodableResult<T>.self, from: data ?? Data())
-        } catch (let error) {
-            return .failure(error)
+        
+        switch try decode(MultipleTimesDecodableResult<T>.self, from: data) {
+        case .success(let obj):
+            return obj
+        case .failure(let error):
+            throw error
         }
     }
     
-    func decode<T: Decodable>(from data: Data?) -> Result<T> {
-        do {
-            return try decode(Result<T>.self, from: data ?? Data())
-        } catch (let error) {
-            return .failure(error)
+    func decode<T: Decodable>(from data: Data) throws -> T {
+        switch try decode(Result<T>.self, from: data) {
+        case .success(let obj):
+            return obj
+        case .failure(let error):
+            throw error
         }
     }
 }

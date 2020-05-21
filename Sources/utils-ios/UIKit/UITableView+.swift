@@ -23,4 +23,21 @@ public extension UITableView {
     func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for row: Int, addToSubviews flag: Bool = false) -> T {
         return dequeueReusableCell(for: .init(row: row, section: 0), addToSubviews: flag)
     }
+    
+    func reloadDataAndKeepOffset() {
+        // stop scrolling
+        setContentOffset(contentOffset, animated: false)
+        
+        // calculate the offset and reloadData
+        let beforeContentSize = contentSize
+        reloadData()
+        layoutIfNeeded()
+        let afterContentSize = contentSize
+        
+        // reset the contentOffset after data is updated
+        let newOffset = CGPoint(
+            x: contentOffset.x + (afterContentSize.width - beforeContentSize.width),
+            y: contentOffset.y + (afterContentSize.height - beforeContentSize.height))
+        setContentOffset(newOffset, animated: false)
+    }
 }

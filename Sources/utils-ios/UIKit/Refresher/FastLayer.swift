@@ -8,13 +8,8 @@
 import UIKit
 
 class FastLayer: CALayer {
-    private (set) lazy var circle: FastCircleLayer = {
-        return .init(frame: bounds, color: color, pointColor: arrowColor, lineWidth: lineWidth)
-    }()
-    
-    private (set) lazy var arrow: FastArrowLayer = {
-        return .init(frame: bounds, color: arrowColor, lineWidth: lineWidth)
-    }()
+    let circle: FastCircleLayer
+    var arrow: FastArrowLayer
     
     let color: UIColor
     let arrowColor: UIColor
@@ -24,23 +19,29 @@ class FastLayer: CALayer {
         self.color      = color
         self.arrowColor = arrowColor
         self.lineWidth  = lineWidth
+        self.circle = .init(frame: .init(origin: .zero, size: frame.size), color: color, pointColor: arrowColor, lineWidth: lineWidth)
+        self.arrow = .init(frame: .init(origin: .zero, size: frame.size), color: arrowColor, lineWidth: lineWidth)
+        
         super.init()
+        
         self.frame = frame
-        backgroundColor = UIColor.clear.cgColor
+        self.backgroundColor = UIColor.clear.cgColor
         
         addSublayer(circle)
         addSublayer(arrow)
     }
     
     override init(layer: Any) {
-        guard let fastLayer = layer as? FastLayer else {
-            fatalError("Unknown layer! \(layer)")
-        }
-        self.color = fastLayer.color
-        self.arrowColor = fastLayer.arrowColor
-        self.lineWidth = fastLayer.lineWidth
+        self.color = .init(rgb: (214, 214, 214))
+        self.arrowColor = .init(rgb: (165, 165, 165))
+        self.lineWidth  = 1
+        self.circle = .init(frame: .zero, color: color, pointColor: arrowColor, lineWidth: lineWidth)
+        self.arrow = .init(frame: .zero, color: arrowColor, lineWidth: lineWidth)
         
         super.init(layer: layer)
+        
+        addSublayer(circle)
+        addSublayer(arrow)
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -8,43 +8,34 @@
 import UIKit
 
 class FastLayer: CALayer {
-    let circle: FastCircleLayer
-    var arrow: FastArrowLayer
+    var circle: FastCircleLayer {
+        guard let layers = sublayers, layers.count == 2 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[0])
+    }
     
-    let color: UIColor
-    let arrowColor: UIColor
-    let lineWidth: CGFloat
+    var arrow: FastArrowLayer {
+        guard let layers = sublayers, layers.count == 2 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[1])
+    }
     
-    init(frame: CGRect, color: UIColor = .init(rgb: (214, 214, 214)), arrowColor: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
-        self.color      = color
-        self.arrowColor = arrowColor
-        self.lineWidth  = lineWidth
-        self.circle = .init(frame: .init(origin: .zero, size: frame.size), color: color, pointColor: arrowColor, lineWidth: lineWidth)
-        self.arrow = .init(frame: .init(origin: .zero, size: frame.size), color: arrowColor, lineWidth: lineWidth)
-        
-        super.init()
-        
+    func prepare(frame: CGRect, color: UIColor = .init(rgb: (214, 214, 214)), arrowColor: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
         self.frame = frame
         self.backgroundColor = UIColor.clear.cgColor
         
-        addSublayer(circle)
-        addSublayer(arrow)
-    }
-    
-    override init(layer: Any) {
-        self.color = .init(rgb: (214, 214, 214))
-        self.arrowColor = .init(rgb: (165, 165, 165))
-        self.lineWidth  = 1
-        self.circle = .init(frame: .zero, color: color, pointColor: arrowColor, lineWidth: lineWidth)
-        self.arrow = .init(frame: .zero, color: arrowColor, lineWidth: lineWidth)
+        addSublayer({
+            let layer = FastCircleLayer()
+            layer.prepare(frame: bounds, color: color, pointColor: arrowColor, lineWidth: lineWidth)
+            return layer
+        }())
         
-        super.init(layer: layer)
-        
-        addSublayer(circle)
-        addSublayer(arrow)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        addSublayer({
+            let layer = FastArrowLayer()
+            layer.prepare(frame: bounds, color: color, lineWidth: lineWidth)
+            return layer
+        }())
     }
 }

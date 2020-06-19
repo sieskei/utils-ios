@@ -8,136 +8,137 @@
 import UIKit
 
 class FastCircleLayer: CALayer {
-    let color: UIColor
-    let pointColor: UIColor
-    let lineWidth: CGFloat
-    
-    private (set) lazy var circle: CAShapeLayer = {
-        let width  = frame.size.width
-        let height = frame.size.height
-        
-        let path = UIBezierPath()
-        path.addArc(withCenter: .init(x: width/2, y: height/2), radius: (height - (lineWidth * 2)) / 2, startAngle: 0, endAngle: CGFloat(Double.pi * 2.0), clockwise: false)
-        
-        let layer = CAShapeLayer()
-        
-        layer.lineWidth   = lineWidth
-        layer.strokeColor = color.cgColor
-        layer.fillColor   = UIColor.clear.cgColor
-        layer.path        = path.cgPath
-        layer.isHidden    = true
-        
-        return layer
-    }()
-    
-    private (set) lazy var pointBack: CALayer = {
-        let layer = CALayer()
-        layer.frame = CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height)
-        layer.backgroundColor = UIColor.clear.cgColor
-        return layer
-    }()
-    
-    private (set) lazy var point: CAShapeLayer = {
-        let layer = CAShapeLayer()
-        
-        let width  = frame.size.width
-        let path = UIBezierPath()
-        path.addArc(withCenter: .init(x: width/2, y: width/2), radius: (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.1), clockwise: false)
-        
-        layer.lineCap     = CAShapeLayerLineCap.round
-        layer.lineWidth   = lineWidth * 2
-        layer.fillColor   = UIColor.clear.cgColor
-        layer.strokeColor = pointColor.cgColor
-        layer.path        = path.cgPath
-        
-        layer.isHidden = true
-        
-        return layer
-    }()
-    
-    
-    private var rotated: CGFloat = 0
-    private var rotatedSpeed: CGFloat = 0
-    private var speedInterval: CGFloat = 0
-    
-    private var stop: Bool = false
-    
-    private (set) lazy var check: FastCheckLayer = {
-        return .init(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height), color: pointColor, lineWidth: lineWidth)
-    }()
-    
-    private var codeTimer: DispatchSourceTimer? {
-        didSet {
-            oldValue?.cancel()
-            if let timer = codeTimer {
-                timer.schedule(deadline: .now(), repeating: .milliseconds(48))
-                timer.resume()
-            }
+    var circle: CAShapeLayer {
+        guard let layers = sublayers, layers.count == 3 else {
+            fatalError("Missing sublayers!")
         }
+        return Utils.castOrFatalError(layers[0])
+    }
+    
+    var pointBack: CALayer {
+        guard let layers = sublayers, layers.count == 3 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[1])
+    }
+    
+    var point: CAShapeLayer {
+        guard let layers = pointBack.sublayers, layers.count == 1 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[0])
+    }
+    
+    var check: FastCheckLayer {
+        guard let layers = sublayers, layers.count == 3 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[2])
     }
     
     //MARK: Initial Methods
-    init(frame: CGRect, color: UIColor = .init(rgb: (214, 214, 214)), pointColor: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
-        self.color      = color
-        self.lineWidth  = lineWidth
-        self.pointColor = pointColor
-        
-        super.init()
-        
+    func prepare(frame: CGRect, color: UIColor = .init(rgb: (214, 214, 214)), pointColor: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
         self.frame = frame
         self.backgroundColor = UIColor.clear.cgColor
         
-        addSublayer(circle)
+        self.lineWidth = lineWidth
         
-        pointBack.addSublayer(point)
-        addSublayer(pointBack)
+        addSublayer({
+            let width  = frame.size.width
+            let height = frame.size.height
+            
+            let path = UIBezierPath()
+            path.addArc(withCenter: .init(x: width/2, y: height/2), radius: (height - (lineWidth * 2)) / 2, startAngle: 0, endAngle: CGFloat(Double.pi * 2.0), clockwise: false)
+            
+            let layer = CAShapeLayer()
+            
+            layer.lineWidth   = lineWidth
+            layer.strokeColor = color.cgColor
+            layer.fillColor   = UIColor.clear.cgColor
+            layer.path        = path.cgPath
+            layer.isHidden    = true
+            
+            return layer
+            }())
         
-        addSublayer(check)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        addSublayer({
+            let layer = CALayer()
+            layer.frame = CGRect(x: 0, y: 0, width: frame.size.width, height: frame.size.height)
+            layer.backgroundColor = UIColor.clear.cgColor
+            
+            layer.addSublayer({
+                let layer = CAShapeLayer()
+                
+                let width  = frame.size.width
+                let path = UIBezierPath()
+                path.addArc(withCenter: .init(x: width/2, y: width/2), radius: (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.1), clockwise: false)
+                
+                layer.lineCap     = CAShapeLayerLineCap.round
+                layer.lineWidth   = lineWidth * 2
+                layer.fillColor   = UIColor.clear.cgColor
+                layer.strokeColor = pointColor.cgColor
+                layer.path        = path.cgPath
+                
+                layer.isHidden = true
+                
+                return layer
+                }())
+            
+            return layer
+            }())
+        
+        addSublayer({
+            let layer: FastCheckLayer = .init()
+            layer.prepare(frame: .init(origin: .zero, size: frame.size), color: pointColor, lineWidth: lineWidth)
+            return layer
+            }())
     }
     
     //MARK: Public Methods
-    func startAnimation() {
+    func start() {
+        guard !started else {
+            return
+        }
+        
+        started = true
+        
         circle.isHidden = false
         point.isHidden  = false
+        
+        var rotated: CGFloat = 0
+        var rotatedSpeed: CGFloat = 0
+        var speedInterval: CGFloat = 0
         
         let timer = DispatchSource.makeTimerSource(queue: .global())
         timer.setEventHandler { [weak self] in
             guard let this = self else { return }
             
-            this.rotated = this.rotated - this.rotatedSpeed
+            rotated -= rotatedSpeed
             
             if this.stop {
-                let count = Int(this.rotated / CGFloat(Double.pi * 2))
+                let count = Int(rotated / CGFloat(Double.pi * 2))
                 
-                if (CGFloat(Double.pi * 2 * Double(count)) - this.rotated) >= 1.1 {
-                    let transform = CGAffineTransform.identity.rotated(by: -1.1)
+                if (CGFloat(Double.pi * 2 * Double(count)) - rotated) >= 1.1 {
                     DispatchQueue.main.async {
-                        this.pointBack.setAffineTransform(transform)
+                        this.pointBack.setAffineTransform(CGAffineTransform.identity.rotated(by: -1.1))
                         this.point.isHidden = true
-                        this.check.startAnimation()
+                        this.check.start()
                     }
                     
                     this.codeTimer = nil
                     return
                 }
                 
-                if this.rotatedSpeed < 0.175 {
-                    this.rotatedSpeed = 0.175 // make it faster :)
-                }
+                // make it faster :)
+                rotatedSpeed = max(0.175, rotatedSpeed)
             }
             
-            if this.rotatedSpeed < 0.35 {
-                if this.speedInterval < 0.02 {
-                    this.speedInterval = this.speedInterval + 0.001
-                }
-                this.rotatedSpeed = this.rotatedSpeed + this.speedInterval
+            if rotatedSpeed < 0.35 {
+                speedInterval = min(0.02, speedInterval + 0.001)
+                rotatedSpeed += speedInterval
             }
             
-            let transform = CGAffineTransform.identity.rotated(by: this.rotated)
+            let transform = CGAffineTransform.identity.rotated(by: rotated)
             DispatchQueue.main.async {
                 this.pointBack.setAffineTransform(transform)
             }
@@ -148,21 +149,25 @@ class FastCircleLayer: CALayer {
         addPointAnimation()
     }
     
-    func endAnimation(finish: Bool) {
+    func stop(finish: Bool) {
         if finish {
+            guard stop else {
+                return
+            }
+            
             stop = false
-            rotated       = 0
-            rotatedSpeed  = 0
-            speedInterval = 0
             pointBack.setAffineTransform(.identity)
             circle.isHidden = true
             point.isHidden  = true
-            codeTimer?.cancel()
-            check.endAnimation()
+            codeTimer = nil
+            check.stop()
         } else {
-            DispatchQueue.global().async {
-                self.stop = true
+            guard started else {
+                return
             }
+            
+            started = false
+            stop = true
         }
     }
     
@@ -172,12 +177,54 @@ class FastCircleLayer: CALayer {
         path.beginTime = CACurrentMediaTime() + 1
         path.fromValue = point.path
         let toPath = UIBezierPath()
-        toPath.addArc(withCenter: .init(x: width/2, y: width/2), radius:  (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.3), clockwise: false)
+        toPath.addArc(withCenter: .init(x: width / 2, y: width / 2), radius:  (width - (lineWidth * 2)) / 2, startAngle: CGFloat(Double.pi * 1.5), endAngle: CGFloat((Double.pi * 1.5) - 0.3), clockwise: false)
         path.toValue = toPath.cgPath
         path.timingFunction = .init(name: .easeOut)
         path.duration = 2
         path.isRemovedOnCompletion = false
         path.fillMode = .forwards
         point.add(path, forKey: "path")
+    }
+}
+
+extension FastCircleLayer: AssociatedObjectCompatible {
+    class Props {
+        var lineWidth: CGFloat = 1
+        
+        var started: Bool = false
+        var stop: Bool = false
+        var codeTimer: DispatchSourceTimer? = nil
+    }
+    
+    private var props: Props {
+        return get(for: "props") { .init() }
+    }
+    
+    var lineWidth: CGFloat {
+        get { props.lineWidth }
+        set { props.lineWidth = newValue }
+    }
+    
+    var started: Bool {
+        get { props.started }
+        set { props.started = newValue }
+    }
+    
+    var stop: Bool {
+        get { props.stop }
+        set { props.stop = newValue }
+    }
+    
+    var codeTimer: DispatchSourceTimer? {
+        get { return props.codeTimer }
+        set {
+            props.codeTimer?.cancel()
+            props.codeTimer = newValue
+            
+            if let timer = newValue {
+                timer.schedule(deadline: .now(), repeating: .milliseconds(48))
+                timer.resume()
+            }
+        }
     }
 }

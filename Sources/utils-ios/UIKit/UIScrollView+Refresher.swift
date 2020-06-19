@@ -62,7 +62,8 @@ fileprivate extension UIScrollView {
             let layerFrame: CGRect = .init(x: width/2 - Constants.layerHalfSize, y: height/2 - Constants.layerHalfSize,
                                            width: Constants.layerSize, height: Constants.layerSize)
             
-            let fastLayer = FastLayer(frame: layerFrame, color: Constants.color, arrowColor: Constants.arrowColor, lineWidth: Constants.lineWidth)
+            let fastLayer: FastLayer = .init()
+            fastLayer.prepare(frame: layerFrame, color: Constants.color, arrowColor: Constants.arrowColor, lineWidth: Constants.lineWidth)
             layer.addSublayer(fastLayer)
             
             return fastLayer
@@ -146,8 +147,8 @@ fileprivate extension UIScrollView {
             stopObserving = true
             
             if !programmatically {
-                fastLayer.arrow.startAnimation().animationEnd = { [weak self] in
-                    self?.fastLayer.circle.startAnimation()
+                fastLayer.arrow.start { [weak self] in
+                    self?.fastLayer.circle.start()
                 }
             }
             
@@ -165,8 +166,8 @@ fileprivate extension UIScrollView {
                 }
                 
                 if programmatically {
-                    self.fastLayer.arrow.startAnimation().animationEnd = { [weak self] in
-                        self?.fastLayer.circle.startAnimation()
+                    self.fastLayer.arrow.start { [weak self] in
+                        self?.fastLayer.circle.start()
                     }
                 }
                 
@@ -206,10 +207,10 @@ fileprivate extension UIScrollView {
             isRefreshStopping = true
             stopObserving = true
             
-            fastLayer.circle.check.animationEnd = { [weak self, weak scrollView] in
+            fastLayer.circle.check.completion = { [weak self, weak scrollView] in
                 guard let this = self else { return }
                 
-                this.fastLayer.circle.endAnimation(finish: false)
+                // this.fastLayer.circle.stop(finish: false)
                 
                 let completion: (Bool) -> Void = { _ in
                     defer {
@@ -219,8 +220,8 @@ fileprivate extension UIScrollView {
                         this.isRefreshStopping = false
                     }
                     
-                    this.fastLayer.arrow.endAnimation()
-                    this.fastLayer.circle.endAnimation(finish: true)
+                    this.fastLayer.arrow.stop()
+                    this.fastLayer.circle.stop(finish: true)
                 }
                 
                 guard let scrollView = scrollView else {
@@ -251,7 +252,7 @@ fileprivate extension UIScrollView {
                 }
             }
             
-            fastLayer.circle.endAnimation(finish: false)
+            fastLayer.circle.stop(finish: false)
         }
         
         func start() {

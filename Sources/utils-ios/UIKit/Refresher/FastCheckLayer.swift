@@ -8,39 +8,22 @@
 import UIKit
 
 class FastCheckLayer: CALayer, CAAnimationDelegate {
-    private (set) lazy var check: CAShapeLayer = {
-        let layer = CAShapeLayer()
-        
-        layer.lineCap   = .round
-        layer.lineJoin  = .round
-        layer.lineWidth = lineWidth
-        layer.fillColor = UIColor.clear.cgColor
-        layer.strokeColor = color.cgColor
-        layer.strokeStart = 0
-        layer.strokeEnd = 0
-        
-        let path = UIBezierPath()
-        let width = Double(frame.size.width)
-        
-        let a = sin(0.4) * (width/2)
-        let b = cos(0.4) * (width/2)
-        path.move(to: CGPoint.init(x: width/2 - b, y: width/2 - a))
-        path.addLine(to: CGPoint.init(x: width/2 - width/20 , y: width/2 + width/8))
-        path.addLine(to: CGPoint.init(x: width - width/5, y: width/2 - a))
-        layer.path = path.cgPath
-        
-        return layer
-    }()
-    
-    let color: UIColor
-    
-    let lineWidth: CGFloat
-    
-    var animationEnd: (() -> Void)?
+    private var check: CAShapeLayer {
+        guard let layers = sublayers, layers.count == 1 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[0])
+    }
     
     //MARK: Public Methods
     @discardableResult
-    func startAnimation() -> Self {
+    func start() -> Self {
+        guard !started else {
+            return self
+        }
+        
+        started = true
+        
         let start = CAKeyframeAnimation(keyPath: "strokeStart")
         start.values = [0, 0.4, 0.3]
         start.isRemovedOnCompletion = false
@@ -63,26 +46,66 @@ class FastCheckLayer: CALayer, CAAnimationDelegate {
         return self
     }
     
-    func endAnimation() {
+    func stop() {
+        guard started else {
+            return
+        }
+        
+        started = false
         check.removeAllAnimations()
     }
     
-    //MARK: Initial Methods
-    init(frame: CGRect, color: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
-        self.color      = color
-        self.lineWidth  = lineWidth * 2
-        super.init()
-        self.frame      = frame
-        backgroundColor = UIColor.clear.cgColor
+    func prepare(frame: CGRect, color: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
+        self.frame = frame
+        self.backgroundColor = UIColor.clear.cgColor
         
-        addSublayer(check)
+        addSublayer({
+            let layer = CAShapeLayer()
+
+            layer.lineCap   = .round
+            layer.lineJoin  = .round
+            layer.lineWidth = lineWidth * 2
+            layer.fillColor = UIColor.clear.cgColor
+            layer.strokeColor = color.cgColor
+            layer.strokeStart = 0
+            layer.strokeEnd = 0
+
+            let path = UIBezierPath()
+            let width = Double(frame.size.width)
+
+            let a = sin(0.4) * (width/2)
+            let b = cos(0.4) * (width/2)
+            path.move(to: CGPoint.init(x: width/2 - b, y: width/2 - a))
+            path.addLine(to: CGPoint.init(x: width/2 - width/20 , y: width/2 + width/8))
+            path.addLine(to: CGPoint.init(x: width - width/5, y: width/2 - a))
+            layer.path = path.cgPath
+
+            return layer
+        }())
     }
     
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        animationEnd?()
+        completion?()
+    }
+}
+
+extension FastCheckLayer: AssociatedObjectCompatible {
+    class Props {
+        var started: Bool = false
+        var completion: (()->Void)? = nil
+    }
+    
+    private var props: Props {
+        return get(for: "props") { .init() }
+    }
+    
+    var started: Bool {
+        get { props.started }
+        set { props.started = newValue }
+    }
+    
+    var completion: (()->Void)? {
+        get { props.completion }
+        set { props.completion = newValue }
     }
 }

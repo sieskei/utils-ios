@@ -8,80 +8,73 @@
 import UIKit
 
 class FastArrowLayer: CALayer, CAAnimationDelegate {
-    private let animationDuration: Double = 0.2
-    private var started = false
-    
-    var animationEnd: (()->Void)?
-    
-    let color: UIColor
-    let lineWidth: CGFloat
-    
-    private lazy var lineLayer: CAShapeLayer = {
-        let width  = frame.size.width
-        let height = frame.size.height
-        
-        let path = UIBezierPath()
-        path.move(to: .init(x: width/2, y: 0))
-        path.addLine(to: .init(x: width/2, y: height/2 + height/3))
-        
-        let layer = CAShapeLayer()
-        layer.lineWidth   = lineWidth * 2
-        layer.strokeColor = color.cgColor
-        layer.fillColor   = UIColor.clear.cgColor
-        layer.lineCap     = CAShapeLayerLineCap.round
-        layer.path        = path.cgPath
-        layer.strokeStart = 0.5
-        
-        return layer
-    }()
-    
-    private lazy var arrowLayer: CAShapeLayer = {
-        let width  = frame.size.width
-        let height = frame.size.height
-        
-        let path = UIBezierPath()
-        path.move(to: .init(x: width/2 - height/6, y: height/2 + height/6))
-        path.addLine(to: .init(x: width/2, y: height/2 + height/3))
-        path.addLine(to: .init(x: width/2 + height/6, y: height/2 + height/6))
-        
-        let layer = CAShapeLayer()
-        layer.lineWidth   = lineWidth * 2
-        layer.strokeColor = color.cgColor
-        layer.lineCap     = CAShapeLayerLineCap.round
-        layer.lineJoin    = CAShapeLayerLineJoin.round
-        layer.fillColor   = UIColor.clear.cgColor
-        layer.path        = path.cgPath
-        
-        return layer
-    }()
-    
-    //MARK: Initial Methods
-    init(frame: CGRect, color: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
-        self.color      = color
-        self.lineWidth  = lineWidth
-        super.init()
-        self.frame      = frame
-        backgroundColor = UIColor.clear.cgColor
-        
-        addSublayer(lineLayer)
-        addSublayer(arrowLayer)
+    private var line: CAShapeLayer {
+        guard let layers = sublayers, layers.count == 2 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[0])
     }
     
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    private var arrow: CAShapeLayer {
+        guard let layers = sublayers, layers.count == 2 else {
+            fatalError("Missing sublayers!")
+        }
+        return Utils.castOrFatalError(layers[1])
+    }
+    
+    func prepare(frame: CGRect, color: UIColor = .init(rgb: (165, 165, 165)), lineWidth: CGFloat = 1) {
+        self.frame = frame
+        self.backgroundColor = UIColor.clear.cgColor
+        
+        let width  = frame.size.width
+        let height = frame.size.height
+        
+        addSublayer({
+            let path = UIBezierPath()
+            path.move(to: .init(x: width/2, y: 0))
+            path.addLine(to: .init(x: width/2, y: height/2 + height/3))
+            
+            let layer = CAShapeLayer()
+            layer.lineWidth   = lineWidth * 2
+            layer.strokeColor = color.cgColor
+            layer.fillColor   = UIColor.clear.cgColor
+            layer.lineCap     = CAShapeLayerLineCap.round
+            layer.path        = path.cgPath
+            layer.strokeStart = 0.5
+            
+            return layer
+        }())
+        
+        addSublayer({
+            let path = UIBezierPath()
+            path.move(to: .init(x: width/2 - height/6, y: height/2 + height/6))
+            path.addLine(to: .init(x: width/2, y: height/2 + height/3))
+            path.addLine(to: .init(x: width/2 + height/6, y: height/2 + height/6))
+            
+            let layer = CAShapeLayer()
+            layer.lineWidth   = lineWidth * 2
+            layer.strokeColor = color.cgColor
+            layer.lineCap     = CAShapeLayerLineCap.round
+            layer.lineJoin    = CAShapeLayerLineJoin.round
+            layer.fillColor   = UIColor.clear.cgColor
+            layer.path        = path.cgPath
+            
+            return layer
+        }())
     }
     
     //MARK: public Methods
     @discardableResult
-    func startAnimation() -> Self {
+    func start(_ callback: (() -> Void)? = nil) -> Self {
         guard !started else {
             return self
         }
-        
+
+        completion = callback
         started = true
         
         let start = CABasicAnimation(keyPath: "strokeStart")
-        start.duration  = animationDuration
+        start.duration  = 0.2
         start.fromValue = 0
         start.toValue   = 0.5
         start.isRemovedOnCompletion = false
@@ -90,25 +83,25 @@ class FastArrowLayer: CALayer, CAAnimationDelegate {
         start.timingFunction = .init(name: .easeInEaseOut)
         
         let end = CABasicAnimation(keyPath: "strokeEnd")
-        end.duration  = animationDuration
+        end.duration  = 0.2
         end.fromValue = 1
         end.toValue   = 0.5
         end.isRemovedOnCompletion = false
         end.fillMode  = .forwards
         end.timingFunction = .init(name: .easeInEaseOut)
         
-        arrowLayer.add(start, forKey: "strokeStart")
-        arrowLayer.add(end, forKey: "strokeEnd")
+        arrow.add(start, forKey: "strokeStart")
+        arrow.add(end, forKey: "strokeEnd")
         
         return self
     }
 
-    func endAnimation() {
-        arrowLayer.isHidden = false
-        lineLayer.isHidden  = false
+    func stop() {
+        arrow.isHidden = false
+        line.isHidden  = false
         
-        arrowLayer.removeAllAnimations()
-        lineLayer.removeAllAnimations()
+        arrow.removeAllAnimations()
+        line.removeAllAnimations()
     }
 
     private func addLineAnimation() {
@@ -118,19 +111,19 @@ class FastArrowLayer: CALayer, CAAnimationDelegate {
         start.isRemovedOnCompletion = false
         start.fillMode  = .forwards
         start.timingFunction = .init(name: .easeInEaseOut)
-        start.duration  = animationDuration / 2
-        lineLayer.add(start, forKey: "strokeStart")
+        start.duration  = 0.2 / 2
+        line.add(start, forKey: "strokeStart")
         
         let end = CABasicAnimation(keyPath: "strokeEnd")
-        // end.beginTime = CACurrentMediaTime() + (animationDuration / 3)
-        end.duration  = animationDuration / 2
+        // end.beginTime = CACurrentMediaTime() + (0.2 / 3)
+        end.duration  = 0.2 / 2
         end.fromValue = 1
         end.toValue   = 0.03
         end.isRemovedOnCompletion = false
         end.fillMode  = .forwards
         end.delegate  = self
         end.timingFunction = .init(name: .easeInEaseOut)
-        lineLayer.add(end, forKey: "strokeEnd")
+        line.add(end, forKey: "strokeEnd")
     }
 }
 
@@ -143,15 +136,39 @@ extension FastArrowLayer: CALayerDelegate {
         
         switch anim.keyPath {
         case "strokeStart":
-            arrowLayer.isHidden = true
+            arrow.isHidden = true
             addLineAnimation()
         case "strokeEnd":
-            lineLayer.isHidden = true
-            animationEnd?()
-            
+            line.isHidden = true
             started = false
+            completion?()
         default:
             print("Unknown animation: \(anim).")
         }
+    }
+}
+
+extension FastArrowLayer: AssociatedObjectCompatible {
+    class Props {
+        var started: Bool
+        var completion: (()->Void)? = nil
+        
+        init(_ started: Bool = false) {
+            self.started = started
+        }
+    }
+    
+    private var props: Props {
+        return get(for: "props") { .init() }
+    }
+    
+    var started: Bool {
+        get { props.started }
+        set { props.started = newValue }
+    }
+    
+    var completion: (()->Void)? {
+        get { props.completion }
+        set { props.completion = newValue }
     }
 }

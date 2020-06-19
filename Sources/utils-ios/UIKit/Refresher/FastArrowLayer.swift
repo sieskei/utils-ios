@@ -97,6 +97,12 @@ class FastArrowLayer: CALayer, CAAnimationDelegate {
     }
 
     func stop() {
+        guard started else {
+            return
+        }
+        
+        started = false
+        
         arrow.isHidden = false
         line.isHidden  = false
         
@@ -140,7 +146,6 @@ extension FastArrowLayer: CALayerDelegate {
             addLineAnimation()
         case "strokeEnd":
             line.isHidden = true
-            started = false
             completion?()
         default:
             print("Unknown animation: \(anim).")
@@ -150,12 +155,8 @@ extension FastArrowLayer: CALayerDelegate {
 
 extension FastArrowLayer: AssociatedObjectCompatible {
     class Props {
-        var started: Bool
+        var started: Bool = false
         var completion: (()->Void)? = nil
-        
-        init(_ started: Bool = false) {
-            self.started = started
-        }
     }
     
     private var props: Props {

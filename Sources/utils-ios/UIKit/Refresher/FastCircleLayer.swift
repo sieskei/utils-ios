@@ -96,11 +96,11 @@ class FastCircleLayer: CALayer {
     
     //MARK: Public Methods
     func start() {
-        guard !started else {
-            return
-        }
-        
-        started = true
+//        guard !started else {
+//            return
+//        }
+//        
+//        started = true
         
         circle.isHidden = false
         point.isHidden  = false
@@ -151,10 +151,10 @@ class FastCircleLayer: CALayer {
     
     func stop(finish: Bool) {
         if finish {
-            guard stop else {
-                return
-            }
-            
+//            guard stop else {
+//                return
+//            }
+//
             stop = false
             pointBack.setAffineTransform(.identity)
             circle.isHidden = true
@@ -162,11 +162,11 @@ class FastCircleLayer: CALayer {
             codeTimer = nil
             check.stop()
         } else {
-            guard started else {
-                return
-            }
-            
-            started = false
+//            guard started else {
+//                return
+//            }
+//            
+//            started = false
             stop = true
         }
     }

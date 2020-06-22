@@ -96,12 +96,6 @@ class FastCircleLayer: CALayer {
     
     //MARK: Public Methods
     func start() {
-//        guard !started else {
-//            return
-//        }
-//        
-//        started = true
-        
         circle.isHidden = false
         point.isHidden  = false
         
@@ -115,7 +109,7 @@ class FastCircleLayer: CALayer {
             
             rotated -= rotatedSpeed
             
-            if this.stop {
+            if this.stopping {
                 let count = Int(rotated / CGFloat(Double.pi * 2))
                 
                 if (CGFloat(Double.pi * 2 * Double(count)) - rotated) >= 1.1 {
@@ -151,23 +145,15 @@ class FastCircleLayer: CALayer {
     
     func stop(finish: Bool) {
         if finish {
-//            guard stop else {
-//                return
-//            }
-//
-            stop = false
+            stopping = false
+            
             pointBack.setAffineTransform(.identity)
             circle.isHidden = true
             point.isHidden  = true
             codeTimer = nil
             check.stop()
         } else {
-//            guard started else {
-//                return
-//            }
-//            
-//            started = false
-            stop = true
+            stopping = true
         }
     }
     
@@ -192,7 +178,7 @@ extension FastCircleLayer: AssociatedObjectCompatible {
         var lineWidth: CGFloat = 1
         
         var started: Bool = false
-        var stop: Bool = false
+        var stopping: Bool = false
         var codeTimer: DispatchSourceTimer? = nil
     }
     
@@ -205,14 +191,9 @@ extension FastCircleLayer: AssociatedObjectCompatible {
         set { props.lineWidth = newValue }
     }
     
-    var started: Bool {
-        get { props.started }
-        set { props.started = newValue }
-    }
-    
-    var stop: Bool {
-        get { props.stop }
-        set { props.stop = newValue }
+    var stopping: Bool {
+        get { props.stopping }
+        set { props.stopping = newValue }
     }
     
     var codeTimer: DispatchSourceTimer? {

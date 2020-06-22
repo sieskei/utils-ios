@@ -34,7 +34,7 @@ class FastLayer: CALayer {
         
         addSublayer({
             let layer = FastArrowLayer()
-            layer.prepare(frame: bounds, color: color, lineWidth: lineWidth)
+            layer.prepare(frame: bounds, color: arrowColor, lineWidth: lineWidth)
             return layer
         }())
     }

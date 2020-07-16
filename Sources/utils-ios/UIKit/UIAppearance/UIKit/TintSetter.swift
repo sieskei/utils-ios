@@ -17,3 +17,15 @@ extension UIView: TintSetter {
         self.tintColor = color
     }
 }
+
+
+@objc
+public protocol TrackTintSetter {
+    dynamic func set(trackTintColor color: UIColor)
+}
+
+extension UIProgressView: TrackTintSetter {
+    public func set(trackTintColor color: UIColor) {
+        self.trackTintColor = color
+    }
+}

@@ -49,4 +49,8 @@ public extension Reactive where Base == Utils {
     static func interval(_ period: RxTimeInterval) -> Observable<Int> {
         return .interval(period, scheduler: Base.Task.rx.concurrentScheduler)
     }
+    
+    static func timer(_ dueTime: RxTimeInterval, period: RxTimeInterval? = nil) -> Observable<Int> {
+        return .timer(dueTime, period: period, scheduler: Base.Task.rx.concurrentScheduler)
+    }
 }

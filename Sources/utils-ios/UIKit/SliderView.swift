@@ -118,17 +118,22 @@ open class SliderView: UIView {
         prepareGestures()
     }
     
-    open override func willMove(toSuperview newSuperview: UIView?) {
-        super.willMove(toSuperview: newSuperview)
+    open override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
         
-        if newSuperview != nil {
+        if nil != newWindow {
             prepare(view: leftView, at: .left)
             prepare(view: centerView, at: .center)
             prepare(view: rightView, at: .right)
+            
+            didAppear(view: centerView)
         }
     }
     
     open func prepare(view: UIView, at position: Position) { }
+    
+    open func didAppear(view: UIView) { }
+    open func didDisappear(view: UIView) { }
 }
 
 fileprivate extension SliderView {
@@ -162,6 +167,12 @@ fileprivate extension SliderView {
     func set(selected i: Int) {
         guard selected != i else {
             return
+        }
+        
+        let cc = centerView
+        defer {
+            didDisappear(view: cc)
+            didAppear(view: centerView)
         }
         
         let s = selected

@@ -136,6 +136,103 @@ open class SliderView: UIView {
     open func didDisappear(view: UIView) { }
 }
 
+public extension SliderView {
+    enum Direction {
+        case left
+        case right
+        case up
+        case down
+    }
+    
+    func close(_ direction: Direction) {
+        switch direction {
+            
+        case .left:
+            positionConstraint?.constant = -frame.width
+        case .right:
+            positionConstraint?.constant = frame.width
+        case .up, .down:
+            fatalError("Not supported yet!")
+        }
+        
+        setNeedsLayout()
+        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut, animations: { [t = self] in
+            t[.left, .center, .right].forEach {
+                $0.alpha = 0
+                $0.transform = .init(scaleX: 0.9, y: 0.9)
+            }
+            t.alpha = 0
+            t.layoutIfNeeded()
+        }, completion: { [t = self] _ in
+            t.removeFromSuperview()
+        })
+    }
+    
+    enum Step {
+        case next
+        case prev
+        
+        func can(_ selected: Int, count: Int) -> Bool {
+            switch self {
+            case .next:
+                return selected + 1 <= count - 1
+            case .prev:
+                return selected - 1 >= 0
+            }
+        }
+    }
+    
+    fileprivate func select(_ step: Step, isGesture flag: Bool) {
+        guard step.can(selected, count: count) else {
+            return
+        }
+        
+        if !flag {
+            // nothing to do for now
+        }
+        
+        let tbh: [UIView] // to be hide
+            let tbs: [UIView] // to be show
+            let s: Int // selected
+            
+            switch step {
+            case .next:
+                s = selected + 1
+                tbh = self[.left, .center]
+                tbs = self[.right]
+                
+                positionConstraint = holderView.rightAnchor.constraint(equalTo: rightAnchor)
+            case .prev:
+                s = selected - 1
+                tbh = self[.right, .center]
+                tbs = self[.left]
+                
+                positionConstraint = holderView.leftAnchor.constraint(equalTo: leftAnchor)
+            }
+            
+            setNeedsLayout()
+            UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 3, options: .curveEaseInOut, animations: { [t = self] in
+                tbh.forEach {
+                    $0.alpha = 0
+                    $0.transform = .init(scaleX: 0.9, y: 0.9)
+                }
+                
+                tbs.forEach {
+                    $0.alpha = 1
+                    $0.transform = .identity
+                }
+                
+                t.layoutIfNeeded()
+            }, completion: { [t = self] _ in
+                t.set(selected: s)
+            })
+    }
+    
+    func select(_ step: Step) {
+        select(step, isGesture: false)
+    }
+}
+
 fileprivate extension SliderView {
     func recenter() {
         positionConstraint = holderView.centerXAnchor.constraint(equalTo: centerXAnchor)
@@ -297,18 +394,7 @@ fileprivate extension SliderView {
             if $0.selected == 0 { // first
                 if $1.translation.x > 0 {
                     if p > 0.5 {
-                        $0.positionConstraint?.constant = $0.frame.width
-                        $0.setNeedsLayout()
-                        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut, animations: { [t = $0] in
-                            t[.left, .center, .right].forEach {
-                                $0.alpha = 0
-                                $0.transform = .init(scaleX: 0.9, y: 0.9)
-                            }
-                            t.alpha = 0
-                            t.layoutIfNeeded()
-                        }, completion: { [t = $0] _ in
-                            t.removeFromSuperview()
-                        })
+                        $0.close(.right)
                     } else {
                         revert()
                     }
@@ -317,18 +403,7 @@ fileprivate extension SliderView {
             } else if $0.selected == $0.count - 1 { // last
                 if $1.translation.x < 0 {
                     if p > 0.5 {
-                        $0.positionConstraint?.constant = -($0.frame.width)
-                        $0.setNeedsLayout()
-                        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut, animations: { [t = $0] in
-                            t[.left, .center, .right].forEach {
-                                $0.alpha = 0
-                                $0.transform = .init(scaleX: 0.9, y: 0.9)
-                            }
-                            t.alpha = 0
-                            t.layoutIfNeeded()
-                        }, completion: { [t = $0] _ in
-                            t.removeFromSuperview()
-                        })
+                        $0.close(.left)
                     } else {
                         revert()
                     }
@@ -338,45 +413,13 @@ fileprivate extension SliderView {
             
             if $1.translation.x < 0 {
                 if p > 0.5 {
-                    $0.positionConstraint = $0.holderView.rightAnchor.constraint(equalTo: $0.rightAnchor)
-                    $0.setNeedsLayout()
-                    UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 3, options: .curveEaseInOut, animations: { [t = $0] in
-                        t[.left, .center].forEach {
-                            $0.alpha = 0
-                            $0.transform = .init(scaleX: 0.9, y: 0.9)
-                        }
-                        
-                        t[.right].forEach {
-                            $0.alpha = 1
-                            $0.transform = .identity
-                        }
-                        
-                        t.layoutIfNeeded()
-                    }, completion: { [t = $0] _ in
-                        t.set(selected: t.selected + 1)
-                    })
+                    $0.select(.next, isGesture: true)
                 } else {
                     revert()
                 }
             } else {
                 if p > 0.5 {
-                    $0.positionConstraint = $0.holderView.leftAnchor.constraint(equalTo: $0.leftAnchor)
-                    $0.setNeedsLayout()
-                    UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 3, options: .curveEaseInOut, animations: { [t = $0] in
-                        t[.center, .right].forEach {
-                            $0.alpha = 0
-                            $0.transform = .init(scaleX: 0.9, y: 0.9)
-                        }
-                        
-                        t[.left].forEach {
-                            $0.alpha = 1
-                            $0.transform = .identity
-                        }
-                        
-                        t.layoutIfNeeded()
-                    }, completion: { [t = $0] _ in
-                        t.set(selected: t.selected - 1)
-                    })
+                    $0.select(.prev, isGesture: true)
                 } else {
                     revert()
                 }

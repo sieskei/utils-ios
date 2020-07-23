@@ -143,6 +143,32 @@ public extension SliderView {
         case ceter
     }
     
+    func open(in containerView: UIView) {
+        translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(self)
+        
+        NSLayoutConstraint.activate([
+            topAnchor.constraint(equalTo: containerView.topAnchor),
+            bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            leftAnchor.constraint(equalTo: containerView.leftAnchor),
+            rightAnchor.constraint(equalTo: containerView.rightAnchor)
+        ])
+        
+        alpha = 0
+        self[.left, .center, .right].forEach {
+            $0.alpha = 0
+            $0.transform = .init(scaleX: 0.9, y: 0.9)
+        }
+        
+        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut, animations: { [t = self] in
+            t[.left, .center, .right].forEach {
+                $0.alpha = 1
+                $0.transform = .identity
+            }
+            t.alpha = 1
+        })
+    }
+    
     func close(_ direction: Direction) {
         switch direction {
             

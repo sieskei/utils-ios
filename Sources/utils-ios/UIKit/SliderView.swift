@@ -326,12 +326,13 @@ fileprivate extension SliderView {
                 return abs(v.x) > abs(v.y)
             })
         }
-        
+
+        /*
         pan
             .when(.began)
-            .subscribeNext(weak: self) { this, _ in
-                
-            }.disposed(by: disposeBag)
+            .subscribeNext(weak: self) { this, _ in }
+            .disposed(by: disposeBag)
+        */
         
         pan
             .when(.changed)

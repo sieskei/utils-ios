@@ -140,8 +140,7 @@ public extension SliderView {
     enum Direction {
         case left
         case right
-        case up
-        case down
+        case ceter
     }
     
     func close(_ direction: Direction) {
@@ -151,8 +150,8 @@ public extension SliderView {
             positionConstraint?.constant = -frame.width
         case .right:
             positionConstraint?.constant = frame.width
-        case .up, .down:
-            fatalError("Not supported yet!")
+        case .ceter:
+            break
         }
         
         setNeedsLayout()

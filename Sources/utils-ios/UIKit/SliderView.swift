@@ -304,11 +304,6 @@ fileprivate extension SliderView {
                                      holderView.bottomAnchor.constraint(equalTo: bottomAnchor),
                                      holderView.subviews[0].widthAnchor.constraint(equalTo: widthAnchor)])
         recenter()
-        
-        // for debug
-        leftView.backgroundColor = .red
-        centerView.backgroundColor = .green
-        rightView.backgroundColor = .blue
     }
     
     func prepareGestures() {

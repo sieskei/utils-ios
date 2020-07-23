@@ -155,17 +155,11 @@ public extension SliderView {
         ])
         
         alpha = 0
-        self[.left, .center, .right].forEach {
-            $0.alpha = 0
-            $0.transform = .init(scaleX: 0.9, y: 0.9)
-        }
+        centerView.transform = .init(scaleX: 0.9, y: 0.9)
         
         UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseInOut, animations: { [t = self] in
-            t[.left, .center, .right].forEach {
-                $0.alpha = 1
-                $0.transform = .identity
-            }
             t.alpha = 1
+            t.centerView.transform = .identity
         })
     }
     

@@ -202,13 +202,13 @@ public extension SliderView {
                 tbh = self[.left, .center]
                 tbs = self[.right]
                 
-                positionConstraint = holderView.rightAnchor.constraint(equalTo: rightAnchor)
+                positionConstraint = holderView.rightAnchor.constraint(equalTo: anchors.right)
             case .prev:
                 s = selected - 1
                 tbh = self[.right, .center]
                 tbs = self[.left]
                 
-                positionConstraint = holderView.leftAnchor.constraint(equalTo: leftAnchor)
+                positionConstraint = holderView.leftAnchor.constraint(equalTo: anchors.left)
             }
             
             setNeedsLayout()
@@ -298,11 +298,20 @@ fileprivate extension SliderView {
         recenter()
     }
     
+    var anchors: (top: NSLayoutYAxisAnchor, bottom: NSLayoutYAxisAnchor, left: NSLayoutXAxisAnchor, right: NSLayoutXAxisAnchor, center: NSLayoutXAxisAnchor, width: NSLayoutDimension) {
+        if #available(iOS 11.0, *) {
+            return (safeAreaLayoutGuide.topAnchor, safeAreaLayoutGuide.bottomAnchor, safeAreaLayoutGuide.leftAnchor, safeAreaLayoutGuide.rightAnchor, safeAreaLayoutGuide.centerXAnchor, safeAreaLayoutGuide.widthAnchor)
+        } else {
+            return (topAnchor, bottomAnchor, leftAnchor, rightAnchor, centerXAnchor, widthAnchor)
+        }
+    }
+    
     func prepareLayout() {
         addSubview(holderView)
-        NSLayoutConstraint.activate([holderView.topAnchor.constraint(equalTo: topAnchor),
-                                     holderView.bottomAnchor.constraint(equalTo: bottomAnchor),
-                                     holderView.subviews[0].widthAnchor.constraint(equalTo: widthAnchor)])
+        
+        NSLayoutConstraint.activate([holderView.topAnchor.constraint(equalTo: anchors.top),
+                                     holderView.bottomAnchor.constraint(equalTo: anchors.bottom),
+                                     holderView.subviews[0].widthAnchor.constraint(equalTo: anchors.width)])
         recenter()
     }
     
@@ -331,25 +340,14 @@ fileprivate extension SliderView {
                 let p = abs($1.translation.x / $0.frame.width)
                 let p_3 = p / 3
                 
-                if $0.selected == 0 { // first
-                    if $1.translation.x > 0 {
-                        $0.positionConstraint?.constant = $1.translation.x / 5
-                        $0[.center, .right].forEach {
-                            $0.alpha = 1 - p_3
-                            $0.transform = .init(scaleX: 1 - (0.1 * p_3), y: 1 - (0.1 * p_3))
-                        }
-                        return
+                if ($0.selected == 0 && $1.translation.x > 0) || ($0.selected == $0.count - 1 && $1.translation.x < 0) { // first or last
+                    $0.positionConstraint?.constant = $1.translation.x / 5
+                    $0[.center].forEach {
+                        $0.alpha = 1 - p_3
+                        $0.transform = .init(scaleX: 1 - (0.1 * p_3), y: 1 - (0.1 * p_3))
                     }
                     
-                } else if $0.selected == $0.count - 1 { // last
-                    if $1.translation.x < 0 {
-                        $0.positionConstraint?.constant = $1.translation.x / 5
-                        $0[.left, .center].forEach {
-                            $0.alpha = 1 - p_3
-                            $0.transform = .init(scaleX: 1 - (0.1 * p_3), y: 1 - (0.1 * p_3))
-                        }
-                        return
-                    }
+                    return
                 }
                 
                 $0.positionConstraint?.constant = $1.translation.x

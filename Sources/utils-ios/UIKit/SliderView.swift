@@ -182,9 +182,10 @@ public extension SliderView {
         }
     }
     
-    fileprivate func select(_ step: Step, isGesture flag: Bool) {
+    @discardableResult
+    fileprivate func select(_ step: Step, isGesture flag: Bool) -> Bool {
         guard step.can(selected, count: count) else {
-            return
+            return false
         }
         
         if !flag {
@@ -226,10 +227,13 @@ public extension SliderView {
             }, completion: { [t = self] _ in
                 t.set(selected: s)
             })
+        
+        return true
     }
     
-    func select(_ step: Step) {
-        select(step, isGesture: false)
+    @discardableResult
+    func select(_ step: Step) -> Bool {
+        return select(step, isGesture: false)
     }
 }
 

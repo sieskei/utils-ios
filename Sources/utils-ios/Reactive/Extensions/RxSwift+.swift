@@ -69,4 +69,46 @@ public extension ObservableType {
             on(obj, event)
         }
     }
+    
+    func `do`<A: AnyObject>(weak obj: A?, onNext: ((A, Element) throws -> Void)? = nil, afterNext: ((A, Element) throws -> Void)? = nil, onError: ((A, Swift.Error) throws -> Void)? = nil, afterError: ((A, Swift.Error) throws -> Void)? = nil, onCompleted: ((A) throws -> Void)? = nil, afterCompleted: ((A) throws -> Void)? = nil, onSubscribe: ((A) -> Void)? = nil, onSubscribed: ((A) -> Void)? = nil, onDispose: ((A) -> Void)? = nil)
+    -> Observable<Element> {
+        return `do`(
+            onNext: { [weak obj] in
+                if let o = obj, let c = onNext {
+                    try c(o, $0)
+                }
+            }, afterNext: { [weak obj] in
+                if let o = obj, let c = afterNext {
+                    try c(o, $0)
+                }
+            }, onError: { [weak obj] in
+                if let o = obj, let c = onError {
+                    try c(o, $0)
+                }
+            }, afterError: { [weak obj] in
+                if let o = obj, let c = afterError {
+                    try c(o, $0)
+                }
+            }, onCompleted: { [weak obj] in
+                if let o = obj, let c = onCompleted {
+                    try c(o)
+                }
+            }, afterCompleted: { [weak obj] in
+                if let o = obj, let c = afterCompleted {
+                    try c(o)
+                }
+            }, onSubscribe: { [weak obj] in
+                if let o = obj, let c = onSubscribe {
+                    c(o)
+                }
+            }, onSubscribed: { [weak obj] in
+                if let o = obj, let c = onSubscribed {
+                    c(o)
+                }
+            }, onDispose: { [weak obj] in
+                if let o = obj, let c = onDispose {
+                    c(o)
+                }
+        })
+    }
 }

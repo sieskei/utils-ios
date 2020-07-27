@@ -15,4 +15,8 @@ public extension UIAppearance {
     static func appearance(in containerTypes: [UIAppearanceContainer.Type], _ modificator: (Self) -> Void) {
         modificator(appearance(whenContainedInInstancesOf: containerTypes))
     }
+    
+    static func appearance(for trait: UITraitCollection, _ modificator: (Self) -> Void) {
+        modificator(appearance(for: trait))
+    }
 }

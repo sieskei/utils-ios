@@ -19,7 +19,7 @@ public extension UILabel {
             let color = textColor?.hexString(.RRGGBB) ?? "#000000"
             source =
             """
-            <span style=\"font-family: '\(font.fontName)'; font-size: \(font.pointSize)px; color: \(color); text-align: \(textAlignment.description);\">\(text.trimmingCharacters(in: .whitespacesAndNewlines))</span>
+            <span style=\"display: block; font-family: '\(font.fontName)'; font-size: \(font.pointSize)px; color: \(color); text-align: \(textAlignment.description);\">\(text.trimmingCharacters(in: .whitespacesAndNewlines))</span>
             """
         } else {
             source = text

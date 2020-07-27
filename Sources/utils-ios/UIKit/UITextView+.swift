@@ -19,7 +19,7 @@ public extension UITextView {
             let color = textColor?.hexString(.RRGGBB) ?? "#000000"
             source =
             """
-            <span style=\"font-family: \(font.fontName); font-size: \(font.pointSize); color: \(color); text-align: \(textAlignment.description);\">\(text)</span>
+            <span style=\"display: block; font-family: \(font.fontName); font-size: \(font.pointSize); color: \(color); text-align: \(textAlignment.description);\">\(text.trimmingCharacters(in: .whitespacesAndNewlines))</span>
             """
         } else {
             source = text

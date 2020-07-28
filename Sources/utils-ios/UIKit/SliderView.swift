@@ -143,17 +143,7 @@ public extension SliderView {
         case ceter
     }
     
-    func open(in containerView: UIView) {
-        translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(self)
-        
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: containerView.topAnchor),
-            bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-            leftAnchor.constraint(equalTo: containerView.leftAnchor),
-            rightAnchor.constraint(equalTo: containerView.rightAnchor)
-        ])
-        
+    func open() {
         alpha = 0
         centerView.transform = .init(scaleX: 0.9, y: 0.9)
         
@@ -161,6 +151,20 @@ public extension SliderView {
             t.alpha = 1
             t.centerView.transform = .identity
         })
+    }
+    
+    func open(in containerView: UIView, insets: UIEdgeInsets = .zero) {
+        translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(self)
+        
+        NSLayoutConstraint.activate([
+            topAnchor.constraint(equalTo: containerView.topAnchor, constant: insets.top),
+            bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: insets.bottom),
+            leftAnchor.constraint(equalTo: containerView.leftAnchor, constant: insets.left),
+            rightAnchor.constraint(equalTo: containerView.rightAnchor, constant: insets.right)
+        ])
+        
+        open()
     }
     
     func close(_ direction: Direction) {

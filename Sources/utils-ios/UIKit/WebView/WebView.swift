@@ -44,17 +44,19 @@ open class WebView: WKWebView {
     
     open var footerTopConstraintConstant: Observable<CGFloat> {
         /*
-         View height propery
+         Header and footer height properties.
          */
-        let vh = footerContainerView.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).map { $0?.height ?? 0 }
+        let hh = headerContainerView.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).map { $0?.height ?? 0 }.pausable(headerBoundsPauser)
+        let fh = footerContainerView.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds)).map { $0?.height ?? 0 }
         
         /*
-         Scroll view content offset and size properties.
+         Scroll view content size.
          */
-        let cs = scrollView.rx.observeWeakly(CGSize.self,  #keyPath(UIScrollView.contentSize)).map   { $0?.height ?? 0 }
-        let co = scrollView.rx.observeWeakly(CGPoint.self, #keyPath(UIScrollView.contentOffset)).map { $0?.y      ?? 0 }
+        let cs = scrollView.rx.observeWeakly(CGSize.self, #keyPath(UIScrollView.contentSize)).map { $0?.height ?? 0 }
         
-        return Observable.combineLatest(vh, cs, co).map { ($1 - $0) - $2 }
+        return Observable.combineLatest(cs, hh, fh).map {
+            return max(0, $0 - $1 - $2)
+        }
     }
     
     public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
@@ -159,7 +161,7 @@ fileprivate extension WebView {
         scrollView.insertSubview(view, at: 1)
         
         // dynamic top constraint
-        let topConstraint = view.topAnchor.constraint(equalTo: topAnchor)
+        let topConstraint = view.topAnchor.constraint(equalTo: headerContainerView.bottomAnchor)
         footerTopConstraintConstant.distinctUntilChanged().bind(to: topConstraint.rx.constant).disposed(by: disposeBag)
         
         // static constraints

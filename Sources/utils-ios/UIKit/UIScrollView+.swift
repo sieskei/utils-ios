@@ -8,6 +8,15 @@
 import UIKit
 
 public extension UIScrollView {
+    var maxContentOffset: CGPoint {
+        return .init(x: contentSize.width - bounds.width + contentInset.right,
+                     y: contentSize.height - bounds.height + contentInset.bottom)
+    }
+    
+    var minContentOffset: CGPoint {
+        return .init(x: -contentInset.left, y: -contentInset.top)
+    }
+    
     var contentFillsVerticalScrollEdges: Bool {
         return contentSize.height + contentInset.top + contentInset.bottom >= bounds.height
     }
@@ -27,11 +36,11 @@ public extension UIScrollView {
     }
     
     var bounceBottomOffsetRaw: CGFloat {
-        return contentOffset.y - (contentSize.height - bounds.height + contentInset.bottom)
+        return contentOffset.y - maxContentOffset.y
     }
     
     var bounceRightOffsetRaw: CGFloat {
-        return contentOffset.x - (contentSize.width - bounds.width + contentInset.right)
+        return contentOffset.x - maxContentOffset.x
     }
     
     var bounceTopOffset: CGFloat {

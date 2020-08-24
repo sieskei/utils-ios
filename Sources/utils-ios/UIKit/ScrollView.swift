@@ -1,3 +1,4 @@
+
 //
 //  ScrollView.swift
 //  
@@ -9,6 +10,14 @@ import UIKit
 import WebKit
 
 open class ScrollView: UIScrollView {
+    /// Will layout the view.
+    private var willLayout: Bool {
+      return 0 < bounds.width && 0 < bounds.height && nil != superview
+    }
+    
+    private var willUpdateContentSize: Bool = true
+    
+    
     /// UIScrollView.contnetSize observer context
     private var KVOContentSizeContext = 0
     
@@ -60,7 +69,15 @@ open class ScrollView: UIScrollView {
     open override func layoutSubviews() {
         super.layoutSubviews()
         
-        updateContentSize()
+        guard willLayout else {
+            return
+        }
+        
+        if willUpdateContentSize {
+            willUpdateContentSize = false
+            updateContentSize()
+        }
+        
         adjustContentOnScroll()
     }
     
@@ -97,9 +114,11 @@ fileprivate extension ScrollView {
                 // take care of the insets
                 height = scrollView.contentSize.height + scrollView.contentInset.top + scrollView.contentInset.bottom
             } else {
+//                height = $1.view.sizeThatFits(CGSize(width: frame.width, height: .greatestFiniteMagnitude)).height
                 height = $1.view.systemLayoutSizeFitting(.init(width: frame.width, height: 0),
-                                                              withHorizontalFittingPriority: .required,
-                                                              verticalFittingPriority: .defaultLow).height
+                                                         withHorizontalFittingPriority: .required,
+                                                         verticalFittingPriority: .defaultLow).height
+                
                 if height == 0 {
                     print(self, $1.view, "Does not specify a valid height.")
                 }
@@ -107,7 +126,7 @@ fileprivate extension ScrollView {
             
             // This is the ideal rect
             // don't worry, its adjusted below
-            $1.rect = .init(x: 0.0, y: $0, width: frame.width, height: height)
+            $1.rect = .init(x: 0.0, y: $0, width: bounds.width, height: height)
             $0 += height // calculate the new offset
         })
     }
@@ -151,14 +170,14 @@ fileprivate extension ScrollView {
                 // It's used to adjust the inner table/collection offset in order to
                 // simulate continous scrolling
                 let innerScrollOffsetY = mainOffsetY - itemRect.minY
-                // This is the height of the visible region of the inner table/collection
+                // This is the height of the visible region of the inner scroll
                 let visibleInnerHeight = innerScroll.contentSize.height - innerScrollOffsetY
                 
                 var innerScrollRect: CGRect = .zero
                 innerScrollRect.origin = .init(x: 0, y: itemRect.origin.y + innerScrollOffsetY)
                 if visibleInnerHeight < visibleRect.size.height {
                     // partially visible when pinned on top
-                    innerScrollRect.size = .init(width: width, height: min(visibleInnerHeight,itemVisibleRect.height))
+                    innerScrollRect.size = .init(width: width, height: min(visibleInnerHeight, itemVisibleRect.height))
                 } else {
                     // the inner scroll occupy the entire parent scroll's height
                     innerScrollRect.size = itemVisibleRect.size
@@ -167,7 +186,7 @@ fileprivate extension ScrollView {
                 $0.view.frame = innerScrollRect
                 
                 // adjust the offset to simulate the scroll
-                innerScroll.contentOffset = .init(x: 0, y: innerScrollOffsetY)
+                innerScroll.contentOffset = .init(x: 0, y: min(innerScrollOffsetY, innerScroll.maxContentOffset.y))
             } else {
                 // The inner scroll view is partially visible
                 // Adjust the frame as it needs (at its max it reaches the height of the parent)
@@ -175,7 +194,7 @@ fileprivate extension ScrollView {
                 let visibileHeight = visibleRect.size.height - offsetOfInnerY
                 
                 $0.view.frame = .init(origin: itemRect.origin, size: .init(width: width, height: min(visibileHeight, itemVisibleRect.height)))
-                innerScroll.contentOffset = .zero
+                innerScroll.contentOffset = innerScroll.minContentOffset
             }
         }
     }
@@ -194,6 +213,7 @@ public extension ScrollView {
     
     /// Relayout.
     func relayout() {
+        willUpdateContentSize = true
         setNeedsLayout()
         layoutIfNeeded()
     }

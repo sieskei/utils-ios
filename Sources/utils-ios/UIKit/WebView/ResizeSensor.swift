@@ -317,7 +317,7 @@ struct ResizeSensor {
 
             this.detach = function(ev) {
                 // clean up the unfinished animation frame to prevent a potential endless requestAnimationFrame of reset
-                if (!lastAnimationFrameForInvisibleCheck) {
+                if (lastAnimationFrameForInvisibleCheck) {
                     cancelAnimationFrame(lastAnimationFrameForInvisibleCheck);
                     lastAnimationFrameForInvisibleCheck = 0;
                 }
@@ -325,13 +325,19 @@ struct ResizeSensor {
             };
 
             this.reset = function() {
-                element.resizeSensor.resetSensor();
+                //To prevent invoking element.resizeSensor.resetSensor if it's undefined
+                if (element.resizeSensor.resetSensor) {
+                    element.resizeSensor.resetSensor();
+                }
             };
         };
 
         ResizeSensor.reset = function(element) {
             forEachElement(element, function(elem){
-                elem.resizeSensor.resetSensor();
+                //To prevent invoking element.resizeSensor.resetSensor if it's undefined
+                if (element.resizeSensor.resetSensor) {
+                    elem.resizeSensor.resetSensor();
+                }
             });
         };
 

@@ -10,16 +10,13 @@ import UIKit
 import WebKit
 
 open class ScrollView: UIScrollView {
-    /// Will layout the view.
-    private var willLayout: Bool {
-      return 0 < bounds.width && 0 < bounds.height && nil != superview
+    open override var bounds: CGRect {
+        didSet {
+            if bounds.size != oldValue.size {
+                updateContentSize()
+            }
+        }
     }
-    
-    private var willUpdateContentSize: Bool = true
-    
-    
-    /// UIScrollView.contnetSize observer context
-    private var KVOContentSizeContext = 0
     
     private var elements: [Element] = [] {
         didSet {
@@ -29,18 +26,15 @@ open class ScrollView: UIScrollView {
             
             oldValue.forEach {
                 $0.view.removeFromSuperview()
-                
-                if let scrollView = $0.scrollView {
-                    scrollView.removeObserver(self, forKeyPath: #keyPath(UIScrollView.contentSize))
-                }
             }
             
             elements.forEach {
+                $0.view.bounds = .init(origin: .zero, size: .init(width: bounds.width, height: 0))
                 addSubview($0.view)
                 
-                if let scrollView = $0.scrollView {
-                    scrollView.isScrollEnabled = false // disable scrolling so it does not interfere with the parent scroll
-                    scrollView.addObserver(self, forKeyPath: #keyPath(UIScrollView.contentSize), options: [.old], context: &KVOContentSizeContext)
+                $0.onResize { [weak t = self] e in
+                    t?.updateContentSize()
+                    t?.setNeedsLayout()
                 }
             }
         }
@@ -64,40 +58,12 @@ open class ScrollView: UIScrollView {
     public func prepare() {
         clipsToBounds = true
         contentScaleFactor = UIScreen.main.scale
+        alwaysBounceVertical = true
     }
     
     open override func layoutSubviews() {
         super.layoutSubviews()
-        
-        guard willLayout else {
-            return
-        }
-        
-        if willUpdateContentSize {
-            willUpdateContentSize = false
-            updateContentSize()
-        }
-        
         adjustContentOnScroll()
-    }
-    
-    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        guard context == &KVOContentSizeContext else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-            return
-        }
-        
-        guard let object = object as? UIScrollView, elements.contains(where: { return $0.scrollView == object }) else {
-            return
-        }
-        
-        if keyPath == #keyPath(UIScrollView.contentSize) {
-            guard let oldSize = change?[.oldKey] as? CGSize, oldSize != object.contentSize else {
-                return
-            }
-
-            relayout()
-        }
     }
 }
 
@@ -107,26 +73,11 @@ fileprivate extension ScrollView {
     func updateContentSize() {
         // Setup manyally the content size and adjust the items based upon the visibility
         contentSize = .init(width: frame.width, height: elements.reduce(into: 0) {
-            var height: CGFloat = 0
-            if let scrollView = $1.scrollView {
-                // for webview/table/collections/scrollview the occupied space is calculated with the content size of scroll
-                // itself and specified inset of it inside the parent view.
-                // take care of the insets
-                height = scrollView.contentSize.height + scrollView.contentInset.top + scrollView.contentInset.bottom
-            } else {
-//                height = $1.view.sizeThatFits(CGSize(width: frame.width, height: .greatestFiniteMagnitude)).height
-                height = $1.view.systemLayoutSizeFitting(.init(width: frame.width, height: 0),
-                                                         withHorizontalFittingPriority: .required,
-                                                         verticalFittingPriority: .defaultLow).height
-                
-                if height == 0 {
-                    print(self, $1.view, "Does not specify a valid height.")
-                }
-            }
+            let height = $1.height(for: bounds)
             
             // This is the ideal rect
             // don't worry, its adjusted below
-            $1.rect = .init(x: 0.0, y: $0, width: bounds.width, height: height)
+            $1.rect = .init(x: 0, y: $0, width: bounds.width, height: height)
             $0 += height // calculate the new offset
         })
     }
@@ -204,16 +155,17 @@ public extension ScrollView {
     /// Reference to scrolling views.
     var views: [UIView] {
         get {
-            return elements.map { return $0.view }
+            elements.map { $0.view }
         }
         set {
-            elements = newValue.map { .init($0) }
+            elements = newValue.map { .init($0)}
         }
     }
     
     /// Relayout.
     func relayout() {
-        willUpdateContentSize = true
+        updateContentSize()
+        
         setNeedsLayout()
         layoutIfNeeded()
     }
@@ -222,6 +174,7 @@ public extension ScrollView {
 fileprivate extension ScrollView {
     class Element {
         let view: UIView
+        var observation: NSKeyValueObservation? = nil
         
         var scrollView: UIScrollView? {
             return view as? UIScrollView ?? (view as? WKWebView)?.scrollView
@@ -237,6 +190,35 @@ fileprivate extension ScrollView {
         
         init(_ view: UIView) {
             self.view = view
+            self.scrollView?.isScrollEnabled = false // disable scrolling so it does not interfere with the parent scroll
+        }
+        
+        func onResize(_ callback: @escaping (Element) -> Void) {
+            let ops: NSKeyValueObservingOptions = [.old, .new, .initial]
+            let handler:  (UIView, NSKeyValueObservedChange<CGSize>) -> Void = { [weak self] in
+                guard let this = self, $1.oldValue != $1.newValue else {
+                    return
+                }
+                callback(this)
+            }
+            
+            if let sv = view as? UIScrollView {
+                observation = sv.observe(\UIScrollView.contentSize, options: ops, changeHandler: handler)
+            } else if let wv = view as? NIWebView {
+                observation = wv.observe(\NIWebView.bodySize, options: ops, changeHandler: handler)
+            }
+        }
+        
+        func height(for bounds: CGRect) -> CGFloat {
+            if let sv = view as? UIScrollView {
+                return sv.contentInset.top + sv.contentSize.height + sv.contentInset.bottom
+            } else if let wv = view as? NIWebView {
+                return wv.scrollView.contentInset.top + wv.bodySize.height + wv.scrollView.contentInset.bottom
+            } else {
+                return view.systemLayoutSizeFitting(.init(width: bounds.width, height: 0),
+                                                    withHorizontalFittingPriority: .required,
+                                                    verticalFittingPriority: .defaultLow).height
+            }
         }
         
         func defaults() {
@@ -249,6 +231,11 @@ fileprivate extension ScrollView {
             if view.frame != f {
                 view.frame = f
             }
+        }
+        
+        deinit {
+            observation = nil
+            print(self, "deinit ...")
         }
     }
 }

@@ -29,7 +29,7 @@ open class ScrollView: UIScrollView {
             }
             
             elements.forEach {
-                $0.view.bounds = .init(origin: .zero, size: .init(width: bounds.width, height: 0))
+                $0.view.bounds = bounds // temporary
                 addSubview($0.view)
                 
                 $0.onResize { [weak t = self] e in

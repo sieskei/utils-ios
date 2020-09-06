@@ -20,16 +20,12 @@ open class ScrollView: UIScrollView {
     
     private var elements: [Element] = [] {
         didSet {
-            defer {
-                relayout()
-            }
-            
             oldValue.forEach {
                 $0.view.removeFromSuperview()
             }
             
+            updateContentSize()
             elements.forEach {
-                $0.view.bounds = bounds // temporary
                 addSubview($0.view)
                 
                 $0.onResize { [weak t = self] e in
@@ -37,6 +33,9 @@ open class ScrollView: UIScrollView {
                     t?.setNeedsLayout()
                 }
             }
+            
+            setNeedsLayout()
+            layoutIfNeeded()
         }
     }
     

@@ -10,7 +10,7 @@ import WebKit
 
 open class NIWebView: WKWebView {
     @objc
-    public fileprivate (set) dynamic var bodySize: CGSize = .zero
+    open fileprivate (set) dynamic var bodySize: CGSize = .zero
     
     public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
         configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()

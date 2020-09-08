@@ -1,24 +1,22 @@
 //
-//  Button+FontStateSetter.swift
+//  File.swift
 //  
 //
-//  Created by Miroslav Yozov on 22.01.20.
+//  Created by Miroslav Yozov on 7.09.20.
 //
 
 import UIKit
 import Material
 
-extension Button {
-    public override func set(fontColor color: UIColor) {
-        self.titleColor = color
-    }
-
+extension TabItem {
     public override func set(fontColor color: UIColor, for state: UIControl.State) {
         switch state {
         case .normal:
-            self.titleColor = color
+            setTabItemColor(color, for: .normal)
+        case .highlighted:
+            setTabItemColor(color, for: .highlighted)
         case .selected:
-            self.selectedTitleColor = color
+            setTabItemColor(color, for: .selected)
         default:
             super.set(fontColor: color, for: state)
         }

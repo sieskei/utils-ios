@@ -41,3 +41,10 @@ public extension UITableView {
         setContentOffset(newOffset, animated: false)
     }
 }
+
+extension UITableViewCell {
+    @objc
+    open class func estimatedHeight(for size: CGSize) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+}

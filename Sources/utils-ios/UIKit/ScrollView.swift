@@ -29,7 +29,7 @@ open class ScrollView: UIScrollView {
                 addSubview($0.view)
                 
                 $0.onResize { [weak t = self] e in
-                    t?.updateContentSize()
+                    t?.updateContentSize(for: e)
                     t?.setNeedsLayout()
                 }
             }
@@ -71,7 +71,7 @@ fileprivate extension ScrollView {
     /// It's called when a new array of views is set.
     func updateContentSize() {
         // Setup manyally the content size and adjust the items based upon the visibility
-        contentSize = .init(width: frame.width, height: elements.reduce(into: 0) {
+        contentSize = .init(width: bounds.width, height: elements.reduce(into: 0) {
             let height = $1.height(for: bounds)
             
             // This is the ideal rect
@@ -79,6 +79,26 @@ fileprivate extension ScrollView {
             $1.rect = .init(x: 0, y: $0, width: bounds.width, height: height)
             $0 += height // calculate the new offset
         })
+    }
+    
+    func updateContentSize(for element: Element) {
+        guard let index = elements.firstIndex(where: { $0 === element }) else {
+            return
+        }
+        
+        let height = element.height(for: bounds)
+        let diff = element.rect.height - height
+        
+        // update only height
+        element.rect.size.height = height
+        
+        // reposition all elements after resized element
+        elements[index + 1 ..< elements.count].forEach {
+            $0.rect.origin.y = $0.rect.origin.y - diff
+        }
+        
+        // update new content size
+        contentSize.height -= diff
     }
     
     /// This function is used to adjust the frame of the object as the parent
@@ -181,9 +201,10 @@ fileprivate extension ScrollView {
         
         var rect: CGRect = .zero {
             didSet {
-                if rect != oldValue {
-                    view.frame = .init(origin: rect.origin, size: .init(width: rect.width, height: scrollView == nil ? rect.height : 0))
+                guard rect != oldValue else {
+                    return
                 }
+                view.frame = .init(origin: rect.origin, size: .init(width: rect.width, height: scrollView == nil ? rect.height : view.frame.height))
             }
         }
         

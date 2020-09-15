@@ -11,11 +11,7 @@ import RxSwift
 import RxCocoa
 import RxSwiftExt
 
-public protocol RxModelCompatible:
-    class,
-    ModelCompatible,
-    AssociatedObjectCompatible,
-    ReactiveCompatible { }
+public protocol RxModelCompatible: class, ModelCompatible, AssociatedObjectCompatible, ReactiveCompatible { }
 
 internal extension RxModelCompatible {
     var valueModel: EquatableValue<Model<M>> {

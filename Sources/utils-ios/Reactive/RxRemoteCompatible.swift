@@ -10,18 +10,17 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-public protocol RxRemoteCompatible:
-    RemoteCompatible,
-    MultipleTimesDecodable,
-    AssociatedObjectCompatible,
-    ReactiveCompatible {
-    
+public protocol RxRemoteCompatible: RemoteCompatible, RxMultipleTimesDecodable where EndpointType: RxEndpoint {
     /// Default remote state aka when constructed.
     var defaultRemoteState: RemoteState { get }
 }
 
 // MARK: Default implementation.
 public extension RxRemoteCompatible {
+    fileprivate var valueRemoteState: EquatableValue<RemoteState> {
+        return get(for: "valueRemoteState") { .init(defaultRemoteState) }
+    }
+    
     fileprivate (set) var remoteState: RemoteState {
         get { return valueRemoteState.value }
         set { valueRemoteState.value = newValue }
@@ -36,10 +35,7 @@ public extension RxRemoteCompatible {
     }
 }
 
-public protocol RxRemotePageCompatible:
-    RxRemoteCompatible,
-    RemotePageCompatible {
-}
+public protocol RxRemotePageCompatible: RxRemoteCompatible, RemotePageCompatible where EndpointType: RxEndpointPageble { }
 
 // MARK: Default implementation.
 public extension RxRemotePageCompatible {
@@ -49,10 +45,6 @@ public extension RxRemotePageCompatible {
 }
 
 fileprivate extension RxRemoteCompatible {
-    var valueRemoteState: EquatableValue<RemoteState> {
-        return get(for: "valueRemoteState") { .init(defaultRemoteState) }
-    }
-    
     var disposeBag: DisposeBag {
         get { get(for: "disposeBag") { .init() } }
         set { set(value: newValue, for: "disposeBag") }

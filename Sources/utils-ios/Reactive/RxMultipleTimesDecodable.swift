@@ -15,10 +15,7 @@ fileprivate extension Value where Element == Void {
     func next() { value = () }
 }
 
-public protocol RxMultipleTimesDecodable:
-    MultipleTimesDecodable,
-    AssociatedObjectCompatible,
-    ReactiveCompatible { }
+public protocol RxMultipleTimesDecodable: MultipleTimesDecodable, AssociatedObjectCompatible, ReactiveCompatible { }
 
 internal extension RxMultipleTimesDecodable {
     var decodeNotifier: Notifier<Self> {

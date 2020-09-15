@@ -7,7 +7,7 @@
 
 import Foundation
 
-open class RemoteContainer<Element: Decodable, EndpointType: RxEndpointPageble>: Container<Element>, RxRemotePageCompatible {
+open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>: Container<Element>, RxRemotePageCompatible {
     
     // MAK: RxRemoteCompatible, RxRemotePageCompatible
     public private (set) var remoteEndpoint: EndpointType

@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-public protocol RxRemoteCompatible: RemoteCompatible, RxMultipleTimesDecodable where EndpointType: RxEndpoint {
+public protocol RxRemoteCompatible: RemoteCompatible, RxMultipleTimesDecodable {
     /// Default remote state aka when constructed.
     var defaultRemoteState: RemoteState { get }
 }
@@ -35,7 +35,7 @@ public extension RxRemoteCompatible {
     }
 }
 
-public protocol RxRemotePageCompatible: RxRemoteCompatible, RemotePageCompatible where EndpointType: RxEndpointPageble { }
+public protocol RxRemotePageCompatible: RxRemoteCompatible, RemotePageCompatible { }
 
 // MARK: Default implementation.
 public extension RxRemotePageCompatible {
@@ -51,7 +51,7 @@ fileprivate extension RxRemoteCompatible {
     }
     
     func serialize(endpoint: EndpointType) -> Single<Self> {
-        return endpoint.rx.serialize(to: self)
+        return endpoint.rxWrapper.rx.serialize(to: self)
             .do(onSuccess: {
                 // print("[T] serialize on success:", Thread.current)
                 $0.remoteState = .done

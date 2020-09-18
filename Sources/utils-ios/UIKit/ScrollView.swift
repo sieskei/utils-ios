@@ -47,10 +47,7 @@ open class ScrollView: UIScrollView {
                 }
             }
             
-            setNeedsLayout()
-            DispatchQueue.main.async { [weak this = self] in
-                this?.layoutIfNeeded()
-            }
+            relayout()
         }
     }
     
@@ -207,6 +204,11 @@ public extension ScrollView {
     
     /// Relayout.
     func relayout() {
+        guard !boundsChanged else {
+            // will be layout soon
+            return
+        }
+        
         boundsChanged = true // simulate bounds changed, see layoutsubviews for more info
         setNeedsLayout()
         layoutIfNeeded()

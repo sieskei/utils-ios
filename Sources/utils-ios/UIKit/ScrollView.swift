@@ -10,11 +10,11 @@ import UIKit
 import WebKit
 
 open class ScrollView: UIScrollView {
+    private var boundsChanged: Bool = false
+    
     open override var bounds: CGRect {
-        didSet {
-            if bounds.size != oldValue.size {
-                updateContentSize()
-            }
+        willSet {
+            boundsChanged = true
         }
     }
     
@@ -25,17 +25,32 @@ open class ScrollView: UIScrollView {
             }
             
             updateContentSize()
+            
             elements.forEach {
                 addSubview($0.view)
                 
-                $0.onResize { [weak t = self] e in
-                    t?.updateContentSize(for: e)
-                    t?.setNeedsLayout()
+                $0.onResize { [weak self] in
+                    guard let this = self else {
+                        return
+                    }
+                    
+                    guard !this.boundsChanged else {
+                        // view will be relayout, see layoutsubviews for more info.
+                        return
+                    }
+                    
+                    this.updateContentSize(for: $0)
+                    this.setNeedsLayout()
+                    DispatchQueue.main.async {
+                        this.layoutIfNeeded()
+                    }
                 }
             }
             
             setNeedsLayout()
-            layoutIfNeeded()
+            DispatchQueue.main.async { [weak this = self] in
+                this?.layoutIfNeeded()
+            }
         }
     }
     
@@ -61,7 +76,16 @@ open class ScrollView: UIScrollView {
     }
     
     open override func layoutSubviews() {
+        defer {
+            boundsChanged = false
+        }
+        
+        if boundsChanged {
+            updateContentSize()
+        }
+        
         super.layoutSubviews()
+        
         adjustContentOnScroll()
     }
 }
@@ -183,8 +207,7 @@ public extension ScrollView {
     
     /// Relayout.
     func relayout() {
-        updateContentSize()
-        
+        boundsChanged = true // simulate bounds changed, see layoutsubviews for more info
         setNeedsLayout()
         layoutIfNeeded()
     }

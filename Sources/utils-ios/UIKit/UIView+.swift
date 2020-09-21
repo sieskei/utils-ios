@@ -43,6 +43,13 @@ public extension UIView {
         return view
     }
     
+    func asyncLayout() {
+        setNeedsLayout()
+        DispatchQueue.main.async { [weak self] in
+            self?.layoutIfNeeded()
+        }
+    }
+    
     @discardableResult
     func forceUpdateConstraints(ifThereAreDifferences diff: Bool) -> Bool {
         guard diff else { return false }

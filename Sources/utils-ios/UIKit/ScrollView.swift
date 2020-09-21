@@ -1,7 +1,7 @@
 
 //
 //  ScrollView.swift
-//  
+//
 //
 //  Created by Miroslav Yozov on 17.03.20.
 //
@@ -10,13 +10,7 @@ import UIKit
 import WebKit
 
 open class ScrollView: UIScrollView {
-    private var boundsChanged: Bool = false
-    
-    open override var bounds: CGRect {
-        willSet {
-            boundsChanged = true
-        }
-    }
+    private var layouting: Bool = false
     
     private var elements: [Element] = [] {
         didSet {
@@ -29,25 +23,15 @@ open class ScrollView: UIScrollView {
             elements.forEach {
                 addSubview($0.view)
                 
-                $0.onResize { [weak self] in
-                    guard let this = self else {
+                $0.onResize { [weak self] _ in
+                    guard let this = self, !this.layouting else {
                         return
                     }
-                    
-                    guard !this.boundsChanged else {
-                        // view will be relayout, see layoutsubviews for more info.
-                        return
-                    }
-                    
-                    this.updateContentSize(for: $0)
-                    this.setNeedsLayout()
-                    DispatchQueue.main.async {
-                        this.layoutIfNeeded()
-                    }
+                    this.asyncLayout()
                 }
             }
             
-            relayout()
+            asyncLayout()
         }
     }
     
@@ -73,16 +57,14 @@ open class ScrollView: UIScrollView {
     }
     
     open override func layoutSubviews() {
+        layouting = true
         defer {
-            boundsChanged = false
-        }
-        
-        if boundsChanged {
-            updateContentSize()
+            layouting = false
         }
         
         super.layoutSubviews()
         
+        updateContentSize()
         adjustContentOnScroll()
     }
 }
@@ -102,26 +84,6 @@ fileprivate extension ScrollView {
         })
     }
     
-    func updateContentSize(for element: Element) {
-        guard let index = elements.firstIndex(where: { $0 === element }) else {
-            return
-        }
-        
-        let height = element.height(for: bounds)
-        let diff = element.rect.height - height
-        
-        // update only height
-        element.rect.size.height = height
-        
-        // reposition all elements after resized element
-        elements[index + 1 ..< elements.count].forEach {
-            $0.rect.origin.y = $0.rect.origin.y - diff
-        }
-        
-        // update new content size
-        contentSize.height -= diff
-    }
-    
     /// This function is used to adjust the frame of the object as the parent
     /// scroll view did scroll.
     /// How it works:
@@ -133,10 +95,10 @@ fileprivate extension ScrollView {
         let mainOffsetY = contentOffset.y
         
         // This is the scroll view width
-        let width = frame.width
+        let width = bounds.width
         
         // This is the visible rect of the parent scroll view
-        let visibleRect: CGRect = .init(x: 0.0, y:mainOffsetY, width: width, height: frame.height)
+        let visibleRect: CGRect = .init(x: 0.0, y:mainOffsetY, width: width, height: bounds.height)
         
         // Enumerate each item of the stack
         elements.forEach {
@@ -148,7 +110,7 @@ fileprivate extension ScrollView {
             let itemVisibleRect = visibleRect.intersection(itemRect)
             guard !itemVisibleRect.height.isZero else {
                 // If not visible the frame of the inner's scroll is canceled.
-                $0.defaults()
+                $0.offScreen()
                 return
             }
             
@@ -204,14 +166,7 @@ public extension ScrollView {
     
     /// Relayout.
     func relayout() {
-        guard !boundsChanged else {
-            // will be layout soon
-            return
-        }
-        
-        boundsChanged = true // simulate bounds changed, see layoutsubviews for more info
-        setNeedsLayout()
-        layoutIfNeeded()
+        asyncLayout()
     }
 }
 
@@ -266,7 +221,7 @@ fileprivate extension ScrollView {
             }
         }
         
-        func defaults() {
+        func offScreen() {
             var h = rect.height
             if let sv = scrollView {
                 sv.contentOffset = .zero

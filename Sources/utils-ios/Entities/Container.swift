@@ -8,11 +8,11 @@
 import Foundation
 
 open class Container<Element: Decodable>: RxMultipleTimesDecodable {
-    public class var factory: Factory.Type {
+    open class var factory: Factory.Type {
         return Factory.self
     }
     
-    public private (set) var elements: [Element]
+    open private (set) var elements: [Element]
     
     public var count: Int {
         return elements.count
@@ -48,13 +48,17 @@ open class Container<Element: Decodable>: RxMultipleTimesDecodable {
 }
 
 // MARK: Default factory - init new `Element`.
-public extension Container {
-    class Factory {
-        public class func unkeyedContainer(from decoder: Decoder) throws -> UnkeyedDecodingContainer {
+extension Container {
+    open class Factory {
+        open class func unkeyedContainer(from decoder: Decoder) throws -> UnkeyedDecodingContainer {
             return try decoder.unkeyedContainer()
         }
         
-        public class func elements(from decoder: Decoder, current: [Element]) throws -> [Element] {
+        open class func element( from container: inout UnkeyedDecodingContainer) throws -> Element {
+            return try container.decode(Element.self)
+        }
+        
+        open class func elements(from decoder: Decoder, current: [Element]) throws -> [Element] {
             var container: UnkeyedDecodingContainer
             do {
                 container = try unkeyedContainer(from: decoder)
@@ -68,8 +72,8 @@ public extension Container {
             var elements = [Element]()
             while !container.isAtEnd {
                 do {
-                    let element = try container.decode(Element.self)
-                    elements.append(element)
+                    let e = try element(from: &container)
+                    elements.append(e)
                 } catch (let error) {
                     print("Container.Factory: unable to decode element.")
                     print(error)

@@ -17,7 +17,7 @@ public extension Reactive where Base: UIImageView {
     var imageURL: Binder<URL?> {
         return Binder(self.base) { view, url in
             if let url = url {
-                view.af_setImage(withURL: url)
+                view.af.setImage(withURL: url)
             } else {
                 view.image = nil
             }
@@ -27,7 +27,7 @@ public extension Reactive where Base: UIImageView {
     var transitionImageURL: Binder<(URL?, UIImageView.ImageTransition)> {
         return Binder(self.base) { view, pair in
             if let url = pair.0 {
-                view.af_setImage(withURL: url, imageTransition: pair.1)
+                view.af.setImage(withURL: url, imageTransition: pair.1)
             } else {
                 view.image = nil
             }

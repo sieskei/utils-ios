@@ -12,7 +12,7 @@ import Alamofire
 
 internal extension NetworkReachabilityManager.NetworkReachabilityStatus {
     var isReachable: Bool {
-        return self == .reachable(.ethernetOrWiFi) || self == .reachable(.wwan)
+        return self == .reachable(.ethernetOrWiFi) || self == .reachable(.cellular)
     }
 }
 
@@ -43,11 +43,10 @@ public extension Utils {
                 return .init(true)
             }
             
-            manager.listener = {
+            manager.startListening {
                 let _ = manager // need to store in memory
                 Utils.Network.isReachableValue.value = $0.isReachable
             }
-            manager.startListening()
             
             return .init(manager.isReachable)
         }()
@@ -62,20 +61,18 @@ public extension Utils {
         public typealias Parameters = [String: Any]
         public typealias Map = [AnyHashable: Any]
         
-        private (set) static var manager: SessionManager = {
+        private (set) static var manager: Session = {
             let configuration = URLSessionConfiguration.default
-            configuration.httpAdditionalHeaders = SessionManager.defaultHTTPHeaders
             configuration.timeoutIntervalForRequest  = 30
             configuration.timeoutIntervalForResource = 30
-            
-            let manager = SessionManager(configuration: configuration)
-            manager.startRequestsImmediately = false
+            let manager = Session(configuration: configuration, startRequestsImmediately: false)
             return manager
         }()
         
+        
         static let validator: DataRequest.Validation = { request, response, data in
             guard response.statusCode != 200 else {
-                return .success
+                return .success(Void())
             }
             
             struct ResposeError: Decodable {

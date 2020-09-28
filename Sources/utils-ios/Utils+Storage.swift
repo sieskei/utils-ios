@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RxSwift
 
 public extension Utils {
     class Storage { }
@@ -19,7 +20,7 @@ public extension Utils.Storage {
             guard let identifier = Bundle.main.bundleIdentifier else {
                 return key
             }
-            return "\(identifier).\(key)"
+            return "\(identifier).\(key)".replacingOccurrences(of: ".", with: ":")
         }
     }
     
@@ -78,6 +79,14 @@ public extension Utils.Storage {
         if let data = try? JSONEncoder().encode(pair) {
             defaults.set(data, forKey: Keys.gen(key))
         }
+    }
+}
+
+extension Utils.Storage: ReactiveCompatible { }
+
+public extension Reactive where Base == Utils.Storage {
+    static func get<T: PrimitiveType>(for key: String, default: T) -> Observable<T> {
+        Base.defaults.rx.observe(T.self, Base.Keys.gen(key)).map { $0 ?? `default` }
     }
 }
 

@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-internal class RxEndpointWrapper: ReactiveCompatible {
+public class RxEndpointWrapper: ReactiveCompatible {
     let origin: Endpoint
     
     init(_ origin: Endpoint) {
@@ -16,7 +16,7 @@ internal class RxEndpointWrapper: ReactiveCompatible {
     }
 }
 
-extension Reactive where Base: RxEndpointWrapper {
+public extension Reactive where Base: RxEndpointWrapper {
     private func prepeare(userInfo ui: [CodingUserInfoKey: Any]) -> [CodingUserInfoKey: Any] {
         return ui.insert(value: base.origin,            forKey: CodingUserInfoKey.Decoder.endpoint)
                  .insert(value: base.origin.root,       forKey: CodingUserInfoKey.Decoder.root)
@@ -36,8 +36,14 @@ extension Reactive where Base: RxEndpointWrapper {
     }
 }
 
-internal extension Endpoint {
-    var rxWrapper: RxEndpointWrapper {
-        return .init(self)
+public extension Endpoint {
+    /// Reactive extensions.
+    static var rx: Reactive<RxEndpointWrapper>.Type {
+        Reactive<RxEndpointWrapper>.self
+    }
+    
+    /// Reactive extensions.
+    var rx: Reactive<RxEndpointWrapper> {
+        RxEndpointWrapper(self).rx
     }
 }

@@ -114,7 +114,7 @@ public extension Utils {
         
         private static var concurrentOperationQueue: OperationQueue = {
             let queue = OperationQueue()
-            queue.name = "bg.netinfo.Task.operationQueue.stuff"
+            queue.name = "ios.utils.Task.operationQueue.stuff"
             queue.underlyingQueue = concurrentUtilityQueue
             return queue
         }()

@@ -9,8 +9,8 @@ import Foundation
 
 public extension CodingUserInfoKey {
     struct Decoder {
-        static let root = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.root")!
-        static let object = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.object")!
+        static let root = CodingUserInfoKey(rawValue: "ios.utils.Decoder.root")!
+        static let object = CodingUserInfoKey(rawValue: "ios.utils.Decoder.object")!
     }
 }
 

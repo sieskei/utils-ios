@@ -11,7 +11,7 @@ public extension Fault {
     struct RemotePageCompatible {
         static var noMorePagesCode = "remote.page.compatible.no.more.pages"
         static var noMorePages: Fault {
-            return Fault(code: noMorePagesCode, message: "Последната страница е достигната.")
+            return Fault(code: noMorePagesCode, enMessage: "No more pages.")
         }
     }
 }

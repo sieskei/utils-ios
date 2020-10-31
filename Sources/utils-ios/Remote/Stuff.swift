@@ -11,12 +11,12 @@ public extension Fault {
     struct RemotePermission {
         static var notAllowedCode = "remote.permission.not.allowed"
         static var notAllowed: Fault {
-            return Fault(code: notAllowedCode, message: "Заявката не е позволена.")
+            return Fault(code: notAllowedCode, enMessage: "Remote request: not allowed.")
         }
         
         static var alreadyCode = "remote.permission.already"
         static var already: Fault {
-            return Fault(code: alreadyCode, message: "Заявката e вече стартирана.")
+            return Fault(code: alreadyCode, message: "Remote request: already started.")
         }
     }
 }

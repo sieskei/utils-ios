@@ -14,13 +14,13 @@ public extension Fault {
     struct Endpoint {
         static var endpointMissingCode = "endpoint.missing"
         static var endpointMissing: Fault {
-            return Fault(code: endpointMissingCode, message: "Не е наличен `Еndpoint`.")
+            return Fault(code: endpointMissingCode, enMessage: "Missing `Еndpoint`.")
         }
     }
 }
 
 public extension CodingUserInfoKey.Decoder {
-    static let endpoint = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.endpoint")!
+    static let endpoint = CodingUserInfoKey(rawValue: "ios.utils.Decoder.endpoint")!
 }
 
 public extension Decoder {

@@ -13,7 +13,7 @@ public enum DecodeType: Int {
 }
 
 public extension CodingUserInfoKey.Decoder {
-    static let decodeType = CodingUserInfoKey(rawValue: "bg.netinfo.Decoder.decodeType")!
+    static let decodeType = CodingUserInfoKey(rawValue: "ios.utils.Decoder.decodeType")!
 }
 
 public extension Decoder {

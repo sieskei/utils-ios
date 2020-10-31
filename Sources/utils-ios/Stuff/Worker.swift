@@ -11,7 +11,7 @@ public class Worker {
     private static let queueKey = DispatchSpecificKey<Int>()
     private lazy var queueContext = unsafeBitCast(self, to: Int.self)
     private lazy var queue: DispatchQueue = {
-        let value = DispatchQueue(label: "bg.netinfo.App.Worker")
+        let value = DispatchQueue(label: "ios.utils.App.Worker")
         value.setSpecific(key: Worker.queueKey, value: queueContext)
         return value
     }()

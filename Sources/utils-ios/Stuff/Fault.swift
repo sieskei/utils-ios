@@ -13,9 +13,13 @@ public class Fault: Error, CustomStringConvertible {
         case error
     }
     
-    public static var domain: String {
-        return "bg.netinfo.fault"
+    public enum Languages: String {
+        case english
+        case bulgarian
     }
+    
+    public static let domain: String = "ios.utils.fault"
+    public static var defaultLang: Languages = .english
     
     /// Full fault code: Fault.codePrefix + "." + 'code'
     public static func code(for code: String) -> String {
@@ -30,14 +34,27 @@ public class Fault: Error, CustomStringConvertible {
         return Fault.code(for: code)
     }
     
+    private var lang2messages: [Languages: String] = [:]
+    
     public let code: String
-    public let message: String
     public let info: [AnyHashable: Any]
     public let parent: Error?
     
-    public init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
+    public var message: String {
+        return lang2messages[Fault.defaultLang] ?? lang2messages[.english] ?? ""
+    }
+    
+    public convenience init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
+        self.init(code: code, messages: [Fault.defaultLang: message], info: info, parent: parent)
+    }
+    
+    public convenience init(code: String, enMessage: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
+        self.init(code: code, messages: [.english: enMessage], info: info, parent: parent)
+    }
+    
+    public init(code: String, messages: [Languages: String], info: [AnyHashable: Any] = [:], parent: Error? = nil) {
         self.code = code
-        self.message = message
+        self.lang2messages = messages
         self.info = info
         self.parent = parent
     }
@@ -52,17 +69,17 @@ public class Fault: Error, CustomStringConvertible {
 public extension Fault {
     static var cancelledCode = "cancelled"
     static var cancelled: Fault {
-        return Fault(code: cancelledCode, message: "Спряна операция.")
+        return Fault(code: cancelledCode, messages: [.bulgarian: "Спряна операция.", .english: "Operation cancelled."])
     }
     
     static var notConnectedToInternetCode = "notConnectedToInternet"
     static var notConnectedToInternet: Fault {
-        return Fault(code: notConnectedToInternetCode, message: "Няма връзка с интернет.")
+        return Fault(code: notConnectedToInternetCode, messages: [.bulgarian: "Няма връзка с интернет.", .english: "No Internet connection."])
     }
     
     static var errorCode = "error"
     static func error(_ error: Error? = nil) -> Fault {
-        return Fault(code: errorCode, message: "Непозната грешка.", parent: error)
+        return Fault(code: errorCode, messages: [.bulgarian: "Непозната грешка.", .english: "Unknown error."], parent: error)
     }
 }
 

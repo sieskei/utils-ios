@@ -14,7 +14,7 @@ public extension Utils {
 
 public extension Utils.Storage {
     struct Keys {
-        public static let group = "group.bg.netinfo"
+        public static var group = "group.bg.netinfo"
         
         fileprivate static func gen(_ key: String) -> String {
             guard let identifier = Bundle.main.bundleIdentifier else {

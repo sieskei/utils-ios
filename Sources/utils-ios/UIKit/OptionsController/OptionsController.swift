@@ -81,13 +81,13 @@ public class OptionsController: ViewController {
     }
     
     public var actions: [Action] = []
-    
-    public override func initialize() {
-        super.initialize()
 
-        modalTransitionStyle = .crossDissolve
-        modalPresentationStyle = .overFullScreen
-    }
+//    public override func initialize() {
+//        super.initialize()
+//
+//        modalTransitionStyle = .crossDissolve
+//        modalPresentationStyle = .overFullScreen
+//    }
     
     public override func prepare() {
         super.prepare()

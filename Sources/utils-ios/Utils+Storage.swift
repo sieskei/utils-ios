@@ -37,8 +37,28 @@ public extension Utils.Storage {
         }
     }
     
-    static func set<T: PrimitiveType>(key: String, value: T) {
+    static func set(key: String, value: PrimitiveType) {
         defaults.set(value, forKey: Keys.gen(key))
+    }
+    
+    static func get<T: Codable>(for key: String, default: T) -> T {
+        guard let data = defaults.data(forKey: Keys.gen(key)) else {
+            set(key: key, value: `default`)
+            return `default`
+        }
+        
+        guard let value = try? JSONDecoder().decode(T.self, from: data) else {
+            set(key: key, value: `default`)
+            return `default`
+        }
+        
+        return value
+    }
+    
+    static func set<T: Encodable>(key: String, value: T) {
+        if let data = try? JSONEncoder().encode(value) {
+            defaults.set(data, forKey: Keys.gen(key))
+        }
     }
     
     static func remove(key: String) {

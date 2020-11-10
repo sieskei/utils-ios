@@ -1,13 +1,11 @@
 //
-//  File.swift
+//  Endpoint.swift
 //  
 //
 //  Created by Miroslav Yozov on 31.10.19.
 //
 
 import Foundation
-
-import RxSwift
 import Alamofire
 
 public extension Fault {
@@ -43,6 +41,8 @@ public protocol Endpoint: URLRequestConvertible {
     var root: EndpointRoot { get }
     var decodeType: DecodeType { get }
     
+    var interceptor: RequestInterceptor? { get }
+    
     func prepare(response data: Data) -> Data
 }
 
@@ -57,6 +57,10 @@ public extension Endpoint {
     
     var decodeType: DecodeType {
         return .replace
+    }
+    
+    var interceptor: RequestInterceptor? {
+        return nil
     }
     
     func prepare(response data: Data) -> Data {

@@ -23,16 +23,20 @@ public extension Reactive where Base: RxEndpointWrapper {
                  .insert(value: base.origin.decodeType, forKey: CodingUserInfoKey.Decoder.decodeType)
     }
     
-    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        return Utils.Network.rx.serialize(url: base.origin, userInfo: prepeare(userInfo: ui))
+    func data(network: Utils.Network = .default) -> Single<Data> {
+        network.rx.data(url: base.origin, interceptor: base.origin.interceptor)
     }
     
-    func serialize<T: Decodable>(interval: RxTimeInterval, userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
-        return Utils.Network.rx.serialize(interval: interval, url: base.origin, userInfo: prepeare(userInfo: ui))
+    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .default) -> Single<T> {
+        network.rx.serialize(url: base.origin, interceptor: base.origin.interceptor, userInfo: prepeare(userInfo: ui))
+    }
+    
+    func serialize<T: Decodable>(interval: RxTimeInterval, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .default) -> Observable<T> {
+        network.rx.serialize(interval: interval, url: base.origin, interceptor: base.origin.interceptor, userInfo: prepeare(userInfo: ui))
     }
 
-    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        return Utils.Network.rx.serialize(url: base.origin, to: object, userInfo: prepeare(userInfo: ui))
+    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .default) -> Single<T> {
+        network.rx.serialize(url: base.origin, to: object, interceptor: base.origin.interceptor, userInfo: prepeare(userInfo: ui))
     }
 }
 

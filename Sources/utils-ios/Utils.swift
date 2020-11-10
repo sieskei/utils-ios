@@ -10,7 +10,12 @@ import RxSwift
 import RxCocoa
 
 public extension Fault {
-    struct Utils { }
+    struct Utils {
+        public static var castingCode = "utils.casting"
+        public static func casting(object: Any, targetType: Any.Type) -> Fault {
+            return Fault(code: castingCode, enMessage: "Error casting `\(object)` to `\(targetType)`")
+        }
+    }
 }
 
 public struct Utils {
@@ -28,7 +33,14 @@ public struct Utils {
         guard let result = maybeResult else {
             fatalError("Failure converting from \(String(describing: value)) to \(T.self)")
         }
-        
+        return result
+    }
+    
+    public static func castOrThrow<T>(_ value: Any) throws -> T {
+        let maybeResult: T? = value as? T
+        guard let result = maybeResult else {
+            throw Fault.Utils.casting(object: value, targetType: T.self)
+        }
         return result
     }
     

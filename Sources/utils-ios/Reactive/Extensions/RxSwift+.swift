@@ -112,3 +112,51 @@ public extension ObservableType {
         })
     }
 }
+
+public extension PrimitiveSequenceType where Trait == SingleTrait {
+    func `do`<A: AnyObject>(weak obj: A?, onSuccess: ((A, Element) throws -> Void)? = nil, afterSuccess: ((A, Element) throws -> Void)? = nil, onError: ((A, Error) throws -> Void)? = nil, afterError: ((A, Error) throws -> Void)? = nil, onSubscribe: ((A) -> Void)? = nil, onSubscribed: ((A) -> Void)? = nil, onDispose: ((A) -> Void)? = nil) -> Single<Element> {
+        return `do`(
+            onSuccess: { [weak obj] in
+                if let o = obj, let c = onSuccess {
+                    try c(o, $0)
+                }
+            }, afterSuccess: { [weak obj] in
+                if let o = obj, let c = afterSuccess {
+                    try c(o, $0)
+                }
+            }, onError: { [weak obj] in
+                if let o = obj, let c = onError {
+                    try c(o, $0)
+                }
+            }, afterError: { [weak obj] in
+                if let o = obj, let c = afterError {
+                    try c(o, $0)
+                }
+            }, onSubscribe: { [weak obj] in
+                if let o = obj, let c = onSubscribe {
+                    c(o)
+                }
+            }, onSubscribed: { [weak obj] in
+                if let o = obj, let c = onSubscribed {
+                    c(o)
+                }
+            }, onDispose: { [weak obj] in
+                if let o = obj, let c = onDispose {
+                    c(o)
+                }
+        })
+    }
+    
+    func subscribe<A: AnyObject>(weak obj: A?, onSuccess: ((A, Element) -> Void)? = nil, onError: ((A, Error) -> Void)? = nil) -> Disposable {
+        return subscribe(
+            onSuccess: { [weak obj] in
+                if let o = obj, let c = onSuccess {
+                    c(o, $0)
+                }
+            }, onError: { [weak obj] in
+                if let o = obj, let c = onError {
+                    c(o, $0)
+                }
+            })
+    }
+}

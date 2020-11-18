@@ -29,7 +29,7 @@ public extension Fault.Utils {
         
         public static let responseUnknownCode = "Tools.Network.responseUnkwnon"
         public static func responseUnknown(with httpCode: Int, parent: Error? = nil) -> Fault {
-            return Fault(code: resposeErrorCode, messages: [.bulgarian: "Неуспешна заявка.", .english: "Failed request."], info: [Key.HTTPStatusCode: httpCode], parent: parent)
+            return Fault(code: resposeErrorCode, messages: [.bg: "Неуспешна заявка.", .en: "Failed request."], info: [Key.HTTPStatusCode: httpCode], parent: parent)
         }
     }
 }

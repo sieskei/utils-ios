@@ -9,17 +9,13 @@ import Foundation
 
 /// Describes a arror with message and more data.
 public class Fault: Error, CustomStringConvertible {
-    private enum CodingKeys: String, CodingKey {
-        case error
-    }
-    
     public enum Languages: String {
-        case english
-        case bulgarian
+        case en
+        case bg
     }
     
     public static let domain: String = "ios.utils.fault"
-    public static var defaultLang: Languages = .english
+    public static var defaultLang: Languages = .en
     
     /// Full fault code: Fault.codePrefix + "." + 'code'
     public static func code(for code: String) -> String {
@@ -41,7 +37,7 @@ public class Fault: Error, CustomStringConvertible {
     public let parent: Error?
     
     public var message: String {
-        return lang2messages[Fault.defaultLang] ?? lang2messages[.english] ?? ""
+        return lang2messages[Fault.defaultLang] ?? lang2messages[.en] ?? ""
     }
     
     public convenience init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
@@ -49,7 +45,7 @@ public class Fault: Error, CustomStringConvertible {
     }
     
     public convenience init(code: String, enMessage: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
-        self.init(code: code, messages: [.english: enMessage], info: info, parent: parent)
+        self.init(code: code, messages: [.en: enMessage], info: info, parent: parent)
     }
     
     public init(code: String, messages: [Languages: String], info: [AnyHashable: Any] = [:], parent: Error? = nil) {
@@ -64,22 +60,29 @@ public class Fault: Error, CustomStringConvertible {
     }
 }
 
+// MARK: Global `Fault` struct for codes.
+public extension Fault {
+    struct Codes { }
+}
 
 // MARK: Basic `Fault` instances.
+public extension Fault.Codes {
+    static let cancelled = "cancelled"
+    static let notConnectedToInternet = "notConnectedToInternet"
+    static let error = "error"
+}
+
 public extension Fault {
-    static var cancelledCode = "cancelled"
     static var cancelled: Fault {
-        return Fault(code: cancelledCode, messages: [.bulgarian: "Спряна операция.", .english: "Operation cancelled."])
+        .init(code: Codes.cancelled, messages: [.bg: "Спряна операция.", .en: "Operation cancelled."])
     }
     
-    static var notConnectedToInternetCode = "notConnectedToInternet"
     static var notConnectedToInternet: Fault {
-        return Fault(code: notConnectedToInternetCode, messages: [.bulgarian: "Няма връзка с интернет.", .english: "No Internet connection."])
+        .init(code: Codes.notConnectedToInternet, messages: [.bg: "Няма връзка с интернет.", .en: "No Internet connection."])
     }
     
-    static var errorCode = "error"
     static func error(_ error: Error? = nil) -> Fault {
-        return Fault(code: errorCode, messages: [.bulgarian: "Непозната грешка.", .english: "Unknown error."], parent: error)
+        .init(code: Codes.error, messages: [.bg: "Непозната грешка.", .en: "Unknown error."], parent: error)
     }
 }
 
@@ -116,7 +119,7 @@ public extension Error {
             return fault
         } else {
             if isNotConnectedToInternet {
-                return .notConnectedToInternet
+                 return .notConnectedToInternet
             } else if isCancelledURLRequest {
                 return .cancelled
             } else {

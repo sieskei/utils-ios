@@ -15,12 +15,10 @@ public extension Utils {
 public extension Utils.Storage {
     struct Keys {
         public static var group = "group.bg.netinfo"
+        public static var prefix = ""
         
         fileprivate static func gen(_ key: String) -> String {
-            guard let identifier = Bundle.main.bundleIdentifier else {
-                return key
-            }
-            return "\(identifier).\(key)".replacingOccurrences(of: ".", with: ":")
+            "\(prefix.isEmpty ? Bundle.main.bundleIdentifier ?? "" : prefix).\(key)".replacingOccurrences(of: ".", with: ":")
         }
     }
     

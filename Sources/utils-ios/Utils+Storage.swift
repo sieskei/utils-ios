@@ -19,6 +19,7 @@ public extension Utils.Storage {
         
         fileprivate static func gen(_ key: String) -> String {
             "\(prefix.isEmpty ? Bundle.main.bundleIdentifier ?? "" : prefix).\(key)".replacingOccurrences(of: ".", with: ":")
+            // "\(prefix.isEmpty ? Bundle.main.bundleIdentifier ?? "" : prefix).\(key)"
         }
     }
     

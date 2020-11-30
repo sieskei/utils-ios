@@ -10,13 +10,7 @@ import Foundation
 fileprivate struct AssociatedKey {
     private static let lock: NSLock = .init(name: "AssociatedKey.lock")
     
-    private static var currentCode: UInt = 1
     private static var keys: [String: UnsafeRawPointer] = [:]
-    
-    static var nextCode: UInt {
-        defer { currentCode += 1 }
-        return currentCode
-    }
     
     static func pointer(for key: String) -> UnsafeRawPointer {
         lock.lock(); defer { lock.unlock() }
@@ -24,8 +18,7 @@ fileprivate struct AssociatedKey {
         if let exist = keys[key] {
             return exist
         } else {
-            let pointer = UnsafeRawPointer(bitPattern: AssociatedKey.nextCode)
-            let new = Utils.unwrapOrFatalError(pointer)
+            let new = Utils.unwrapOrFatalError(UnsafeRawPointer(bitPattern: Int.randomIdentifier))
             keys[key] = new
             return new
         }

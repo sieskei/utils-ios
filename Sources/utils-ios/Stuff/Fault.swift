@@ -18,7 +18,7 @@ public class Fault: Error, CustomStringConvertible {
     public static var defaultLang: Languages = .en
     
     /// Full fault code: Fault.codePrefix + "." + 'code'
-    public static func code(for code: String) -> String {
+    public static func identifier(for code: String) -> String {
         return "\(Fault.domain).\(code)"
     }
     
@@ -27,7 +27,7 @@ public class Fault: Error, CustomStringConvertible {
     }
     
     public var identifier: String {
-        return Fault.code(for: code)
+        return Fault.identifier(for: code)
     }
     
     private var lang2messages: [Languages: String] = [:]
@@ -38,6 +38,10 @@ public class Fault: Error, CustomStringConvertible {
     
     public var message: String {
         return lang2messages[Fault.defaultLang] ?? lang2messages[.en] ?? ""
+    }
+    
+    public var description: String {
+        return "Fault { identifier: \(identifier), message: \(message), parent: \(String(describing: parent)) }"
     }
     
     public convenience init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
@@ -55,9 +59,14 @@ public class Fault: Error, CustomStringConvertible {
         self.parent = parent
     }
     
-    public var description: String {
-        return "Fault { identifier: \(identifier), message: \(message), parent: \(String(describing: parent)) }"
+    public func `is`(code c: String) -> Bool {
+        identifier == Fault.identifier(for: c)
     }
+}
+
+// MARK: Global `Fault` struct for info keys.
+public extension Fault {
+    struct Keys { }
 }
 
 // MARK: Global `Fault` struct for codes.

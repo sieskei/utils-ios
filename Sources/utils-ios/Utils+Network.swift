@@ -12,78 +12,101 @@ import Alamofire
 
 internal extension NetworkReachabilityManager.NetworkReachabilityStatus {
     var isReachable: Bool {
-        return self == .reachable(.ethernetOrWiFi) || self == .reachable(.cellular)
+        switch self {
+        case .reachable:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+public extension Fault.Keys.Utils {
+    struct Network {
+        public static let response = "HTTPURLResponse"
+    }
+}
+
+public extension Fault.Codes.Utils {
+    struct Network {
+        public static var responseFail = "utils.network.response.fail"
     }
 }
 
 public extension Fault.Utils {
     struct Network {
-        public struct Key {
-            static let HTTPStatusCode = "HTTPStatusCode"
-        }
-        
-        public static let resposeErrorCode = "Tools.Network.resposeError"
-        public static func resposeError(with message: String) -> Fault {
-            return Fault(code: resposeErrorCode, message: message)
-        }
-        
-        public static let responseUnknownCode = "Tools.Network.responseUnkwnon"
-        public static func responseUnknown(with httpCode: Int, parent: Error? = nil) -> Fault {
-            return Fault(code: resposeErrorCode, messages: [.bg: "Неуспешна заявка.", .en: "Failed request."], info: [Key.HTTPStatusCode: httpCode], parent: parent)
+        public static func fail(response: HTTPURLResponse) -> Fault {
+            .init(code: Fault.Codes.Utils.Network.responseFail,
+                  messages: [.bg: "Неуспешна заявка.", .en: "Failed request."],
+                  info: [Fault.Keys.Utils.Network.response: response])
         }
     }
 }
 
-public extension Utils {
-    struct Network {
-        public typealias ParametersEncodingType = ParameterEncoding
+extension Session: AssociatedObjectCompatible {
+    public var network: Utils.Network? {
+        return get(for: "utils.network") { () -> Utils.Network? in return nil }
+    }
+}
+
+extension Utils {
+    open class Network {
+        public static let shared: Network = .init(factory: Factory.shared)
         
-        public typealias Method = HTTPMethod
-        public typealias Parameters = [String: Any]
-        public typealias Map = [AnyHashable: Any]
+        public let session: Session
+        public let validation: DataRequest.Validation
         
-        public static let `default`: Network = .init()
+        public init(factory: Factory) {
+            session = factory.session
+            validation = factory.validation
+        }
         
-        fileprivate let session: Session
-        fileprivate let validator: DataRequest.Validation
-        
-        public init(session s: Session, validator v: @escaping DataRequest.Validation) {
+        public init(session s: Session, validation v: @escaping DataRequest.Validation) {
             session = s
-            validator = v
+            validation = v
+            
+            session.set(value: self, for: "utils.network", policy: .weak)
         }
         
-        public init() {
-            self.init(session: {
-                let configuration = URLSessionConfiguration.default
-                configuration.timeoutIntervalForRequest  = 30
-                configuration.timeoutIntervalForResource = 30
-                let manager = Session(configuration: configuration, startRequestsImmediately: false)
-                return manager
-            }(), validator: { request, response, data in
-                guard response.statusCode != 200 else {
-                    return .success(Void())
-                }
-                
-                struct ResposeError: Decodable {
-                    let message: String
-                }
-                
-                let fault: Fault
-                
-                do {
-                    let decoder = JSONDecoder()
-                    let responseError = try decoder.decode(ResposeError.self, from: data ?? Data())
-                    fault = Fault.Utils.Network.resposeError(with: responseError.message)
-                } catch (let error) {
-                    fault = Fault.Utils.Network.responseUnknown(with: response.statusCode, parent: error)
-                }
-                
-                return .failure(fault)
-            })
+        open func request(for url: URLRequestConvertible) -> DataRequest {
+            session.request(url).validate(validation)
         }
     }
 }
 
+// MARK: Inner types.
+extension Utils.Network {
+    public typealias ParametersEncodingType = ParameterEncoding
+    
+    public typealias Method = HTTPMethod
+    public typealias Parameters = [String: Any]
+    public typealias Map = [AnyHashable: Any]
+    
+    open class Factory {
+        // Can be project dependancy factory.
+        public static var shared: Factory = .init()
+        
+        open var session: Session {
+            .init(configuration: .default, startRequestsImmediately: false)
+        }
+        
+        open var validation: DataRequest.Validation {
+            { _, r, _ in
+                switch r.statusCode {
+                case 200:
+                    return .success(())
+                default:
+                    return .failure(Fault.Utils.Network.fail(response: r))
+                }
+            }
+        }
+        
+        public init() { }
+    }
+}
+
+
+// MARK: Reachable helper.
 public extension Utils.Network {
     fileprivate static var isReachableValue: EquatableValue<Bool> = {
         guard let manager = NetworkReachabilityManager() else {
@@ -103,17 +126,17 @@ public extension Utils.Network {
     }
 }
 
+
+// MARK: Reactive compatible.
 extension Utils.Network: ReactiveCompatible { }
 
 // MARK: Instance reactive extension.
-public extension Reactive where Base == Utils.Network {
-    func data(url: URLRequestConvertible, interceptor: RequestInterceptor? = nil) -> Single<Data> {
+public extension Reactive where Base: Utils.Network {
+    func data(url: URLRequestConvertible) -> Single<Data> {
         Single.create { single in
             // print("[T] data create:", Thread.current)
             
-            let request = base.session.request(url, interceptor: interceptor)
-            request
-                .validate(base.validator)
+            let request = base.request(for: url)
                 .responseData(queue: Utils.Task.concurrentUtilityQueue) {
                     // print("[T] data.responseData:", Thread.current)
                     
@@ -138,27 +161,27 @@ public extension Reactive where Base == Utils.Network {
         }
     }
     
-    func serialize<T: Decodable>(url: URLRequestConvertible, interceptor: RequestInterceptor? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        data(url: url, interceptor: interceptor).map {
+    func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        data(url: url).map {
             // print("[T] serialize:", Thread.current)
             try JSONDecoder(userInfo: userInfo).decode(from: $0)
         }
     }
     
-    func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, interceptor: RequestInterceptor? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        data(url: url, interceptor: interceptor).map {
+    func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        data(url: url).map {
             // print("[T] serialize to:", Thread.current)
             try JSONDecoder(userInfo: userInfo).decode(to: object, from: $0)
         }
     }
     
-    func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, interceptor: RequestInterceptor? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
+    func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
         let serializing: EquatableValue<Bool> = .init(false)
         return Utils.rx.interval(interval)
             .pausable(Utils.Network.rx.isReachable)
             .pausable(serializing.map { !$0 })
             .flatMapLatest { _ in
-                serialize(url: url, interceptor: interceptor, userInfo: userInfo)
+                serialize(url: url, userInfo: userInfo)
                     .do(onSubscribe: {
                         serializing.value = true
                     }, onDispose: {
@@ -170,24 +193,24 @@ public extension Reactive where Base == Utils.Network {
 
 
 // MARK: Class reactive extension.
-public extension Reactive where Base == Utils.Network {
+public extension Reactive where Base: Utils.Network {
     static var isReachable: Observable<Bool> {
         Base.isReachableValue.asObservable()
     }
     
-    static func data(url: URLRequestConvertible, interceptor: RequestInterceptor? = nil) -> Single<Data> {
-        Base.default.rx.data(url: url, interceptor: interceptor)
+    static func data(url: URLRequestConvertible) -> Single<Data> {
+        Base.shared.rx.data(url: url)
     }
     
-    static func serialize<T: Decodable>(url: URLRequestConvertible, interceptor: RequestInterceptor? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        Base.default.rx.serialize(url: url, interceptor: interceptor, userInfo: userInfo)
+    static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        Base.shared.rx.serialize(url: url, userInfo: userInfo)
     }
     
-    static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, interceptor: RequestInterceptor? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        Base.default.rx.serialize(url: url, to: object, interceptor: interceptor, userInfo: userInfo)
+    static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+        Base.shared.rx.serialize(url: url, to: object, userInfo: userInfo)
     }
     
-    static func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, interceptor: RequestInterceptor? = nil, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
-        Base.default.rx.serialize(interval: interval, url: url, interceptor: interceptor, userInfo: userInfo)
+    static func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
+        Base.shared.rx.serialize(interval: interval, url: url, userInfo: userInfo)
     }
 }

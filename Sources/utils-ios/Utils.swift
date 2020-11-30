@@ -9,12 +9,30 @@ import Foundation
 import RxSwift
 import RxCocoa
 
+public extension Fault.Keys {
+    struct Utils { }
+}
+
+public extension Fault.Codes {
+    struct Utils { }
+}
+
 public extension Fault {
-    struct Utils {
-        public static var castingCode = "utils.casting"
-        public static func casting(object: Any, targetType: Any.Type) -> Fault {
-            return Fault(code: castingCode, enMessage: "Error casting `\(object)` to `\(targetType)`")
-        }
+    struct Utils { }
+}
+
+public extension Fault.Codes.Utils {
+    static var unwrap = "utils.unwrap"
+    static var casting = "utils.casting"
+}
+
+public extension Fault.Utils {
+    static func unwrap(targetType: Any.Type) -> Fault {
+        return Fault(code: Fault.Codes.Utils.unwrap, enMessage: "Failure unwrap to `\(targetType.self)`")
+    }
+    
+    static func casting(object: Any, targetType: Any.Type) -> Fault {
+        return Fault(code: Fault.Codes.Utils.casting, enMessage: "Error casting `\(object)` to `\(targetType)`")
     }
 }
 
@@ -28,18 +46,27 @@ public struct Utils {
         return result
     }
     
-    public static func castOrFatalError<T>(_ value: Any) -> T {
-        let maybeResult: T? = value as? T
+    public static func unwrapOrThrow<T>(_ value: T?) throws -> T {
+        guard let result = value else {
+            throw Fault.Utils.unwrap(targetType: T.self)
+        }
+        return result
+    }
+    
+    public static func castOrFatalError<T>(_ value: Any?) -> T {
+        let v: Any = unwrapOrFatalError(value)
+        let maybeResult: T? = v as? T
         guard let result = maybeResult else {
             fatalError("Failure converting from \(String(describing: value)) to \(T.self)")
         }
         return result
     }
     
-    public static func castOrThrow<T>(_ value: Any) throws -> T {
-        let maybeResult: T? = value as? T
+    public static func castOrThrow<T>(_ value: Any?) throws -> T {
+        let v: Any = try unwrapOrThrow(value)
+        let maybeResult: T? = v as? T
         guard let result = maybeResult else {
-            throw Fault.Utils.casting(object: value, targetType: T.self)
+            throw Fault.Utils.casting(object: v, targetType: T.self)
         }
         return result
     }

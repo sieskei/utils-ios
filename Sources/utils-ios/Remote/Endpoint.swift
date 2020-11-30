@@ -41,8 +41,6 @@ public protocol Endpoint: URLRequestConvertible {
     var root: EndpointRoot { get }
     var decodeType: DecodeType { get }
     
-    var interceptor: RequestInterceptor? { get }
-    
     func prepare(response data: Data) -> Data
 }
 
@@ -57,10 +55,6 @@ public extension Endpoint {
     
     var decodeType: DecodeType {
         return .replace
-    }
-    
-    var interceptor: RequestInterceptor? {
-        return nil
     }
     
     func prepare(response data: Data) -> Data {

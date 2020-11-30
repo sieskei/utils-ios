@@ -28,13 +28,18 @@ public extension Utils.Storage {
 }
 
 public extension Utils.Storage {
-    static func get<T: PrimitiveType>(for key: String, default: T) -> T {
+    static func get<T: PrimitiveType>(for key: String, default: () -> T) -> T {
         if let value = defaults.object(forKey: Keys.gen(key)) as? T {
             return value
         } else {
-            set(key: key, value: `default`)
-            return `default`
+            let v = `default`()
+            set(key: key, value: v)
+            return v
         }
+    }
+    
+    static func get<T: PrimitiveType>(for key: String, default: T) -> T {
+        get(for: key) { `default` }
     }
     
     static func set(key: String, value: PrimitiveType) {

@@ -23,20 +23,20 @@ public extension Reactive where Base: RxEndpointWrapper {
                  .insert(value: base.origin.decodeType, forKey: CodingUserInfoKey.Decoder.decodeType)
     }
     
-    func data(network: Utils.Network = .default) -> Single<Data> {
-        network.rx.data(url: base.origin, interceptor: base.origin.interceptor)
+    func data(network: Utils.Network = .shared) -> Single<Data> {
+        network.rx.data(url: base.origin)
     }
     
-    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .default) -> Single<T> {
-        network.rx.serialize(url: base.origin, interceptor: base.origin.interceptor, userInfo: prepeare(userInfo: ui))
+    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {
+        network.rx.serialize(url: base.origin, userInfo: prepeare(userInfo: ui))
     }
     
-    func serialize<T: Decodable>(interval: RxTimeInterval, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .default) -> Observable<T> {
-        network.rx.serialize(interval: interval, url: base.origin, interceptor: base.origin.interceptor, userInfo: prepeare(userInfo: ui))
+    func serialize<T: Decodable>(interval: RxTimeInterval, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Observable<T> {
+        network.rx.serialize(interval: interval, url: base.origin, userInfo: prepeare(userInfo: ui))
     }
 
-    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .default) -> Single<T> {
-        network.rx.serialize(url: base.origin, to: object, interceptor: base.origin.interceptor, userInfo: prepeare(userInfo: ui))
+    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {
+        network.rx.serialize(url: base.origin, to: object, userInfo: prepeare(userInfo: ui))
     }
 }
 

@@ -33,9 +33,12 @@ extension Utils {
             }
             
             let storeURL = containerURL.appendingPathComponent(Configuration.SQLiteFilename)
+            let storeDesc: NSPersistentStoreDescription = .init(url: storeURL)
+            storeDesc.shouldInferMappingModelAutomatically = true
+            storeDesc.shouldMigrateStoreAutomatically = true
             
             container = NSPersistentContainer(name: Configuration.name)
-            container.persistentStoreDescriptions = [.init(url: storeURL)]
+            container.persistentStoreDescriptions = [storeDesc]
             container.loadPersistentStores(completionHandler: {
                 if let error = $1 {
                     fatalError("Unable to load CoreData persistent store! \(error)")
@@ -43,20 +46,14 @@ extension Utils {
             })
         }
         
-        public static func instance<T>(forEntryName entryName: String, save: Bool = true, init: ((T) -> Void)? = nil ) -> T {
-            var object: T!
-            
+        public static func instance<T: NSManagedObject>(forEntity name: String, save: Bool = true, init: ((NSManagedObjectContext) -> T) ) -> T {
             let MOC = shared.MOC
-            MOC.performAndWait {
-                object = Utils.castOrFatalError(NSEntityDescription.insertNewObject(forEntityName: entryName, into: MOC))
-                
-                `init`?(object)
-                
-                if save {
+            let object = `init`(MOC)
+            if save {
+                MOC.perform {
                     MOC.saveQuite()
                 }
             }
-            
             return object
         }
         

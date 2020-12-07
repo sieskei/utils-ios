@@ -8,6 +8,18 @@
 import Foundation
 import CoreData
 
+public extension NSManagedObject {
+    static var entityName: String {
+        String(describing: self)
+    }
+    
+    static func entityDesc(in context: NSManagedObjectContext) -> NSEntityDescription {
+        let entity = NSEntityDescription.entity(forEntityName: entityName, in: context)
+        return Utils.unwrapOrFatalError(entity)
+    }
+}
+
+
 extension Utils {
     public struct DB {
         public struct Configuration {

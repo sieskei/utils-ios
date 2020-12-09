@@ -46,9 +46,9 @@ public struct Utils {
         return result
     }
     
-    public static func unwrapOrThrow<T>(_ value: T?) throws -> T {
+    public static func unwrapOrThrow<T>(_ value: T?, _ fault: Fault? = nil) throws -> T {
         guard let result = value else {
-            throw Fault.Utils.unwrap(targetType: T.self)
+            throw fault ?? Fault.Utils.unwrap(targetType: T.self)
         }
         return result
     }
@@ -62,11 +62,11 @@ public struct Utils {
         return result
     }
     
-    public static func castOrThrow<T>(_ value: Any?) throws -> T {
-        let v: Any = try unwrapOrThrow(value)
+    public static func castOrThrow<T>(_ value: Any?, _ fault: Fault? = nil) throws -> T {
+        let v: Any = try unwrapOrThrow(value, fault)
         let maybeResult: T? = v as? T
         guard let result = maybeResult else {
-            throw Fault.Utils.casting(object: v, targetType: T.self)
+            throw fault ?? Fault.Utils.casting(object: v, targetType: T.self)
         }
         return result
     }

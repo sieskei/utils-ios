@@ -76,6 +76,13 @@ extension JSONDecoder {
             }
         }
     }
+}
+
+public extension JSONDecoder {
+    static func decode<T: Decodable>(from data: Data, with info: [CodingUserInfoKey: Any]) throws -> T {
+        let decoder: JSONDecoder = .init(userInfo: info)
+        return try decoder.decode(from: data)
+    }
     
     convenience init(userInfo: [CodingUserInfoKey: Any]) {
         self.init()

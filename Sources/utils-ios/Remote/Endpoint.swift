@@ -8,11 +8,16 @@
 import Foundation
 import Alamofire
 
+public extension Fault.Codes {
+    struct Endpoint {
+        public static let missing = "endpoint.missing"
+    }
+}
+
 public extension Fault {
     struct Endpoint {
-        static var endpointMissingCode = "endpoint.missing"
-        static var endpointMissing: Fault {
-            return Fault(code: endpointMissingCode, enMessage: "Missing `Еndpoint`.")
+        static var missing: Fault {
+            .init(code: Fault.Codes.Endpoint.missing, enMessage: "Missing `Еndpoint`.")
         }
     }
 }
@@ -23,11 +28,7 @@ public extension CodingUserInfoKey.Decoder {
 
 public extension Decoder {
     func endpoint<T: Endpoint>() throws -> T {
-        guard let router = userInfo[CodingUserInfoKey.Decoder.endpoint] as? T else {
-            throw Fault.Endpoint.endpointMissing
-        }
-        
-        return router
+        try Utils.castOrThrow(userInfo[CodingUserInfoKey.Decoder.endpoint], Fault.Endpoint.missing)
     }
 }
 

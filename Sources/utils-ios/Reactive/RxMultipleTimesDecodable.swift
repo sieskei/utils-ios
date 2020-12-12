@@ -8,13 +8,6 @@
 import Foundation
 import RxSwift
 
-// MARK: Small `Value` helper methods.
-fileprivate extension Value where Element == Void {
-    static var instance: Value<Element> { return .init(()) }
-    
-    func next() { value = () }
-}
-
 public protocol RxMultipleTimesDecodable: MultipleTimesDecodable, AssociatedObjectCompatible, ReactiveCompatible { }
 
 internal extension RxMultipleTimesDecodable {

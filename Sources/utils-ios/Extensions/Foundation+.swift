@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CommonCrypto
 
 public extension String {
     var fromBase64: String? {
@@ -18,6 +19,22 @@ public extension String {
     
     var base64: String {
         return Data(utf8).base64EncodedString()
+    }
+    
+    var md5: String {
+        let length = Int(CC_MD5_DIGEST_LENGTH)
+        var digest = [UInt8](repeating: 0, count: length)
+
+        if let data = data(using: .utf8) {
+            _ = data.withUnsafeBytes { body -> String in
+                CC_MD5(body.baseAddress, CC_LONG(data.count), &digest)
+                return ""
+            }
+        }
+
+        return (0 ..< length).reduce("") {
+            $0 + String(format: "%02x", digest[$1])
+        }
     }
 }
 
@@ -63,4 +80,20 @@ public extension Locale {
 
 public extension TimeZone {
     static var GMT: TimeZone? = TimeZone(secondsFromGMT: 0)
+}
+
+public extension URL {
+    /// Returns a new URL by adding the query items, or nil if the URL doesn't support it.
+    /// URL must conform to RFC 3986.
+    func appending(_ queryItems: [URLQueryItem]) -> URL? {
+        guard var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            // URL is not conforming to RFC 3986 (maybe it is only conforming to RFC 1808, RFC 1738, and RFC 2732)
+            return nil
+        }
+        // append the query items to the existing ones
+        urlComponents.queryItems = (urlComponents.queryItems ?? []) + queryItems
+
+        // return the url from new url components
+        return urlComponents.url
+    }
 }

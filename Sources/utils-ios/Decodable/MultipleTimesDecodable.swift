@@ -23,11 +23,17 @@ public extension Decoder {
 }
 
 public protocol MultipleTimesDecodable: Decodable, Synchronized, IdentityEquatable {
+    func runDecode(fromJson data: Data) throws
     func runDecode(from decoder: Decoder) throws
+    
     func decode(from decoder: Decoder) throws
 }
 
 extension MultipleTimesDecodable {
+    public func runDecode(fromJson data: Data) throws {
+        try JSONDecoder.decode(to: self, from: data)
+    }
+    
     public func runDecode(from decoder: Decoder) throws {
         try synchronized {
             try decode(from: decoder)

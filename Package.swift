@@ -22,6 +22,7 @@ let package = Package(
         .package(url: "https://github.com/RxSwiftCommunity/RxGesture.git", from: "3.0.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.2.0"),
         .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "4.1.0"),
+        .package(url: "https://github.com/Kitura/HeliumLogger.git", from: "1.9.0"),
         // .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .revision("52c76a07a82cdc61494bf9e6871dbf99e4685cf7")),
         // .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .revision("808ac0cf1b67c5e4163ee867dd6c056836fcbc58")),
         .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .branch("development")),
@@ -32,7 +33,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "RxSwiftExt", "RxGesture", "Alamofire", "AlamofireImage", "Material", "Motion"]),
+            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "RxSwiftExt", "RxGesture", "Alamofire", "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),

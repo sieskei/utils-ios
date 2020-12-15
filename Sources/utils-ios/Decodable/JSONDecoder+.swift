@@ -79,9 +79,15 @@ extension JSONDecoder {
 }
 
 public extension JSONDecoder {
-    static func decode<T: Decodable>(from data: Data, with info: [CodingUserInfoKey: Any]) throws -> T {
+    static func decode<T: Decodable>(from data: Data, with info: [CodingUserInfoKey: Any] = [:]) throws -> T {
         let decoder: JSONDecoder = .init(userInfo: info)
         return try decoder.decode(from: data)
+    }
+    
+    @discardableResult
+    static func decode<T: MultipleTimesDecodable>(to object: T, from data: Data, with info: [CodingUserInfoKey: Any] = [:]) throws -> T {
+        let decoder: JSONDecoder = .init(userInfo: info)
+        return try decoder.decode(to: object, from: data)
     }
     
     convenience init(userInfo: [CodingUserInfoKey: Any]) {

@@ -15,7 +15,7 @@ public extension Utils {
 }
 
 public extension Utils.Log {
-    class func initialize(_ type: LoggerMessageType = .verbose) {
+    class func initialize(_ type: LoggerMessageType = .debug) {
         Log.logger = HeliumLogger(type)
     }
     

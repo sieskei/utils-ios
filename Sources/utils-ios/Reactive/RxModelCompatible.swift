@@ -45,9 +45,7 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
     var decode: ControlProperty<Model<Base.M>> {
         let values: Observable<Model<Base.M>> = base.valueModel.flatMapLatest {
             return $0.map(.just(.empty)) { value -> Observable<Model<Base.M>> in
-                .merge(.just(.value(value)), value.rx.decode.map {
-                    .value($0)
-                })
+                value.rx.decode.map { .value($0) }.startWith(.value(value))
             }
         }
         let bindingObserver: Binder<Model<Base.M>> = .init(base, scheduler: CurrentThreadScheduler.instance) {

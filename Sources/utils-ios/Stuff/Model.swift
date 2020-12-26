@@ -16,13 +16,31 @@ public protocol ModelType {
     init(_ model: M?)
 }
 
-// --------------- //
-// MARK: ViewModel //
-// --------------- //
-
+// ----------- //
+// MARK: Model //
+// ----------- //
+@propertyWrapper
 public enum Model<M: Equatable>: ModelType {
     case empty
     case value(M)
+    
+    public var wrappedValue: M? {
+        get {
+            switch self {
+            case .empty:
+                return nil
+            case .value(let value):
+                return value
+            }
+        }
+        set {
+            self = .init(newValue)
+        }
+    }
+    
+    public var projectedValue: Self {
+        self
+    }
     
     public init(_ model: M?) {
         if let model = model {
@@ -30,6 +48,10 @@ public enum Model<M: Equatable>: ModelType {
         } else {
             self = .empty
         }
+    }
+    
+    public init(wrappedValue: M?) {
+        self.init(wrappedValue)
     }
     
     public var isEmpty: Bool {

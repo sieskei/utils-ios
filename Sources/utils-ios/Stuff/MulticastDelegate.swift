@@ -9,117 +9,75 @@
 import Foundation
 
 infix operator =>
-infix operator ~>
 
-private struct WeakRef<T>: Equatable {
-    private (set) weak var ref: AnyObject?
-    
-    var value: T? {
-        get { return ref as? T }
-        set {
-            ref = newValue as AnyObject?
-        }
-    }
-    
-    init(value: T) {
-        self.value = value
-    }
+func += <T, R: Reference>(left: inout MulticastDelegate<T, R>?, right: T) where R.T == T {
+    left = MulticastDelegate<T, R>.add(delegate: right, toMulticastDelegate: left)
 }
 
-private func ==<T>(lhs: WeakRef<T>, rhs: WeakRef<T>) -> Bool {
-    return lhs.ref === rhs.ref
+func -= <T, R: Reference>(left: inout MulticastDelegate<T, R>?, right: T) where R.T == T {
+    left = MulticastDelegate<T, R>.removeDelegate(delegate: right, fromMulticastDelegate: left)
 }
 
-func += <T> (left: inout MulticastDelegate<T>?, right: T) {
-    left = MulticastDelegate<T>.add(delegate: right, toMulticastDelegate: left)
+func => <T, R: Reference>(left: MulticastDelegate<T, R>?, invocation: (T) -> ()) where R.T == T {
+    MulticastDelegate<T, R>.invoke(left, invocation: invocation)
 }
 
-func -= <T> (left: inout MulticastDelegate<T>?, right: T) {
-    left = MulticastDelegate<T>.removeDelegate(delegate: right, fromMulticastDelegate: left)
-}
-
-func => <T> (left: MulticastDelegate<T>?, invocation: (T) -> ()) {
-    MulticastDelegate.invoke(left, invocation: invocation)
-}
-
-func ~> <T, V> (left: MulticastDelegate<T>?, invocation: (V.Type, handler: (V) -> ())) {
-    MulticastDelegate.invoke(left, invocation: invocation.handler)
-}
-
-class MulticastDelegate<T> {
-    static func clean(_ multicastDelegate: MulticastDelegate<T>?) -> MulticastDelegate<T>? {
-        guard let multicastDelegate = multicastDelegate else {
+class MulticastDelegate<T, R: Reference> where R.T == T {
+    static func clean(_ multicastDelegate: MulticastDelegate<T, R>?) -> MulticastDelegate<T, R>? {
+        guard let md = multicastDelegate else {
             return nil
         }
         
-        var lost = [WeakRef<T>]()
-        for ref in multicastDelegate.delegates {
-            if ref.value == nil {
-                lost.append(ref)
-            }
-        }
-        
-        lost.forEach {
-            if let index = multicastDelegate.delegates.firstIndex(of: $0) {
-                multicastDelegate.delegates.remove(at: index)
-            }
-        }
-        
-        return multicastDelegate.delegates.isEmpty ? nil : multicastDelegate
+        md.delegates.removeAll { $0.ref == nil }
+        return md.delegates.isEmpty ? nil : md
     }
     
-    static func add(delegate: T, toMulticastDelegate multicastDelegate: MulticastDelegate<T>?) -> MulticastDelegate<T>? {
-        guard let multicastDelegate = MulticastDelegate.clean(multicastDelegate) else {
-            return MulticastDelegate<T>(delegate: delegate)
+    static func add(delegate: T, toMulticastDelegate multicastDelegate: MulticastDelegate<T, R>?) -> MulticastDelegate<T, R>? {
+        guard let md = MulticastDelegate.clean(multicastDelegate) else {
+            return MulticastDelegate<T, R>(delegate: delegate)
         }
         
-        if !multicastDelegate.constains(delegate: delegate) {
-            multicastDelegate.delegates.append(WeakRef(value: delegate))
+        if !md.constains(delegate: delegate) {
+            md.delegates.append(R(delegate))
         }
         
-        return multicastDelegate
+        return md
     }
     
-    static func removeDelegate(delegate: T, fromMulticastDelegate multicastDelegate: MulticastDelegate<T>?) -> MulticastDelegate<T>? {
-        guard let multicastDelegate = MulticastDelegate.clean(multicastDelegate) else {
+    static func removeDelegate(delegate: T, fromMulticastDelegate multicastDelegate: MulticastDelegate<T, R>?) -> MulticastDelegate<T, R>? {
+        guard let md = MulticastDelegate.clean(multicastDelegate) else {
             return nil
         }
         
-        if let position = multicastDelegate.position(of: delegate) {
-            if multicastDelegate.delegates.count == 1 {
-                return nil
-            } else {
-                multicastDelegate.delegates.remove(at: position)
-            }
-        }
-        
-        return multicastDelegate
+        md.delegates.removeAll { $0.ref === delegate }
+        return md.delegates.isEmpty ? nil : md
     }
     
-    static func invoke<V>(_ multicastDelegate: MulticastDelegate<T>?, invocation: (V) -> ()) {
-        (multicastDelegate?.delegates ?? []).forEach { ref in
-            if let delegate = ref.value as? V {
+    static func invoke(_ multicastDelegate: MulticastDelegate<T, R>?, invocation: (T) -> ()) {
+        (multicastDelegate?.delegates ?? []).forEach {
+            if let delegate = $0.ref {
                 invocation(delegate)
             }
         }
     }
     
-    fileprivate var delegates: [WeakRef<T>]
+    fileprivate var delegates: [R]
     
     fileprivate init(delegate: T) {
-        self.delegates = [WeakRef(value: delegate)]
+        delegates = [R(delegate)]
     }
     
-    fileprivate func position(of delegate: T) -> Int? {
-        for (index, ref) in delegates.enumerated() {
-            if let ref = ref.ref, ref === (delegate as AnyObject) {
-                return index
+    fileprivate func index(of delegate: T) -> Int? {
+        delegates.firstIndex(where: {
+            guard let ref = $0.ref else {
+                return false
             }
-        }
-        return nil
+            
+            return ref === delegate
+        })
     }
     
     func constains(delegate: T) -> Bool {
-        return position(of: delegate) != nil
+        return index(of: delegate) != nil
     }
 }

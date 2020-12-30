@@ -129,10 +129,7 @@ extension UIScrollView {
             innerScrollObsvervation = s.observeScrollSize { [weak self] in
                 if let s = self {
                     s.heightConstraint.constant = $0.height
-                    
-                    s.setNeedsLayout()
-                    s.layoutIfNeeded()
-                    
+                    s.outerScrollView?.layoutIfNeeded()
                     s.adjustOffset()
                 }
             }

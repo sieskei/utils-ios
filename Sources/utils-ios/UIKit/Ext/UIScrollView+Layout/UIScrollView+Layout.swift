@@ -33,12 +33,14 @@ public extension UIScrollView {
             container.rightAnchor.constraint(equalTo: rightAnchor),
             container.topAnchor.constraint(equalTo: topAnchor),
             container.widthAnchor.constraint(equalTo: widthAnchor),
-            container.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
+            container.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
-        
+
+        /*
         let a = container.heightAnchor.constraint(equalTo: heightAnchor)
         a.priority = .defaultHigh
         a.isActive = true
+        */
         
         elements.forEach {
             $0.view.translatesAutoresizingMaskIntoConstraints = false

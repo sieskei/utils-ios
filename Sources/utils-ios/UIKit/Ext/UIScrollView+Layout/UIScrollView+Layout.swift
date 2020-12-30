@@ -8,10 +8,18 @@
 import UIKit
 
 public extension UIScrollView {
+    typealias Element = (view: UIView, insets: UIEdgeInsets)
+    
     convenience init(views: [UIView], insets: UIEdgeInsets = .zero, spacing: CGFloat = .zero) {
+        self.init(elements: views.map { ($0, insets) }, spacing: spacing)
+    }
+    
+    convenience init(elements: [Element], spacing: CGFloat = .zero) {
         self.init(frame: .zero)
         
-        guard !views.isEmpty else {
+        alwaysBounceVertical = true
+        
+        guard !elements.isEmpty else {
             return
         }
         
@@ -32,43 +40,44 @@ public extension UIScrollView {
         a.priority = .defaultHigh
         a.isActive = true
         
-        views.forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            container.addSubview($0)
+        elements.forEach {
+            $0.view.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview($0.view)
             
             NSLayoutConstraint.activate([
-                $0.leftAnchor.constraint(equalTo: container.leftAnchor, constant: insets.left),
-                $0.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -insets.right)
+                $0.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: $0.insets.left),
+                $0.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -$0.insets.right)
             ])
         }
         
-        switch views.count {
+        switch elements.count {
         case 1:
-            let v = views[0]
+            let v = elements[0].view
+            let i = elements[0].insets
             NSLayoutConstraint.activate([
-                v.topAnchor.constraint(equalTo: container.topAnchor),
-                v.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+                v.topAnchor.constraint(equalTo: container.topAnchor, constant: i.top),
+                v.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -i.bottom)
             ])
         default:
-            let f = views[0] // first
+            let f = elements[0] // first
             NSLayoutConstraint.activate([
-                f.topAnchor.constraint(equalTo: container.topAnchor, constant: insets.top)
+                f.view.topAnchor.constraint(equalTo: container.topAnchor, constant: f.insets.top)
             ])
             
             // middle
-            if views.count > 2 {
-                for i in 1...views.count - 2 {
+            if elements.count > 2 {
+                for i in 1...elements.count - 2 {
                     NSLayoutConstraint.activate([
-                        views[i].topAnchor.constraint(equalTo: views[i - 1].bottomAnchor, constant: spacing)
+                        elements[i].view.topAnchor.constraint(equalTo: elements[i - 1].view.bottomAnchor, constant: spacing)
                     ])
                 }
             }
             
             // last
-            let l = views[views.count - 1] // last
+            let l = elements[elements.count - 1] // last
             NSLayoutConstraint.activate([
-                l.topAnchor.constraint(equalTo: views[views.count - 2].bottomAnchor, constant: spacing),
-                l.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -insets.bottom)
+                l.view.topAnchor.constraint(equalTo: elements[elements.count - 2].view.bottomAnchor, constant: spacing),
+                l.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -l.insets.bottom)
             ])
         }
         

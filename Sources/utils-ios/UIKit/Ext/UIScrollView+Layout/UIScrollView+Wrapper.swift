@@ -6,19 +6,22 @@
 //
 
 import UIKit
+import Material
 
-public protocol ScrollableView {
+public protocol ScrollingView {
     var view: UIView { get }
     var scrollView: UIScrollView { get }
+    var scrollSize: CGSize { get }
     
-    func observeContentSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation
+    func observeScrollSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation
 }
 
-extension ScrollableView where Self: UIScrollView {
+extension UIScrollView: ScrollingView {
     public var view: UIView { self }
     public var scrollView: UIScrollView { self }
+    public var scrollSize: CGSize { contentSize }
     
-    public func observeContentSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation {
+    public func observeScrollSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation {
         observe(\Self.contentSize, options: [.old, .new, .initial]) { [weak self] in
             if let s = self, $1.oldValue != $1.newValue {
                 callback(s.contentSize)
@@ -27,13 +30,11 @@ extension ScrollableView where Self: UIScrollView {
     }
 }
 
-extension UIScrollView: ScrollableView { }
-
-extension ScrollableView where Self: NIWebView {
+extension NIWebView: ScrollingView {
     public var view: UIView { self }
-    public var scrollView: UIScrollView { scrollView }
+    public var scrollSize: CGSize { bodySize }
     
-    public func observeContentSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation {
+    public func observeScrollSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation {
         observe(\Self.bodySize, options: [.old, .new, .initial]) { [weak self] in
             if let s = self, $1.oldValue != $1.newValue {
                 callback(s.bodySize)
@@ -42,10 +43,8 @@ extension ScrollableView where Self: NIWebView {
     }
 }
 
-extension NIWebView: ScrollableView { }
-
 extension UIScrollView {
-    public class Wrapper: UIView {
+    open class Wrapper: View {
         private var outerScrollObsvervation: NSKeyValueObservation? = nil
         private var innerScrollObsvervation: NSKeyValueObservation? = nil
         
@@ -63,28 +62,29 @@ extension UIScrollView {
             }
         }
         
-        
-        private let scrollable: ScrollableView
+        private let scrollable: ScrollingView
 
         private lazy var heightConstraint: NSLayoutConstraint = {
-            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: 0)
+            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: scrollable.scrollSize.height)
             c.isActive = true
             return c
         }()
         
         private lazy var innerTopConstraint: NSLayoutConstraint = {
             let c: NSLayoutConstraint = scrollable.view.topAnchor.constraint(equalTo: topAnchor, constant: 0)
+            c.priority = .init(999)
             c.isActive = true
             return c
         }()
         
         private lazy var innerHeightConstraint: NSLayoutConstraint = {
             let c: NSLayoutConstraint = scrollable.view.heightAnchor.constraint(equalToConstant: 0)
+            c.priority = .init(999)
             c.isActive = true
             return c
         }()
         
-        public init(_ s: ScrollableView) {
+        public init(_ s: ScrollingView, dualView: Bool = false) {
             scrollable = s
             
             let v = s.view
@@ -93,31 +93,52 @@ extension UIScrollView {
             
             super.init(frame: .zero)
             
-            clipsToBounds = true
-            
             v.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(v)
+            
+            if dualView {
+                let view = View()
+                view.backgroundColor = .clear
+                view.clipsToBounds = true
+                view.translatesAutoresizingMaskIntoConstraints = false
+                addSubview(view)
+                NSLayoutConstraint.activate([
+                    view.topAnchor.constraint(equalTo: topAnchor),
+                    view.bottomAnchor.constraint(equalTo: bottomAnchor),
+                    view.leftAnchor.constraint(equalTo: leftAnchor),
+                    view.rightAnchor.constraint(equalTo: rightAnchor)
+                ])
+                view.addSubview(v)
+            } else {
+                clipsToBounds = true
+                addSubview(v)
+            }
+            
             NSLayoutConstraint.activate([
                 v.leftAnchor.constraint(equalTo: leftAnchor),
-                v.rightAnchor.constraint(equalTo: rightAnchor)
+                v.rightAnchor.constraint(equalTo: rightAnchor),
+                
+                // betweeen top and bottom
+                v.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
+                v.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
             ])
             
-            heightConstraint.constant = sv.contentSize.height
+            let _ = heightConstraint
+            let _ = innerTopConstraint
+            let _ = innerHeightConstraint
             
-            innerTopConstraint.constant = 0
-            innerHeightConstraint.constant = 0
-            
-            innerScrollObsvervation = s.observeContentSize { [weak self] in
+            innerScrollObsvervation = s.observeScrollSize { [weak self] in
                 if let s = self {
                     s.heightConstraint.constant = $0.height
-                    DispatchQueue.main.async { // must be in next loop because frame is not updated yet
-                        s.adjustOffset()
-                    }
+                    
+                    s.setNeedsLayout()
+                    s.layoutIfNeeded()
+                    
+                    s.adjustOffset()
                 }
             }
         }
         
-        required init?(coder aDecoder: NSCoder) {
+        public required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
         
@@ -130,7 +151,6 @@ extension UIScrollView {
             guard let sv = outerScrollView else {
                 return
             }
-            
             
             let i = frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size))
 

@@ -30,11 +30,17 @@ public extension Fault.Keys.Utils {
 public extension Fault.Codes.Utils {
     struct Network {
         public static var responseFail = "utils.network.response.fail"
+        public static var downloadFail = "utils.network.download.missing.file"
     }
 }
 
 public extension Fault.Utils {
     struct Network {
+        public static var downloadFail: Fault {
+            .init(code: Fault.Codes.Utils.Network.downloadFail,
+                  messages: [.bg: "Неуспешно сваляне на файл.", .en: "Failed download."])
+        }
+        
         public static func fail(response: HTTPURLResponse) -> Fault {
             .init(code: Fault.Codes.Utils.Network.responseFail,
                   messages: [.bg: "Неуспешна заявка.", .en: "Failed request."],
@@ -70,6 +76,10 @@ extension Utils {
         
         open func request(for url: URLRequestConvertible) -> DataRequest {
             session.request(url).validate(validation)
+        }
+        
+        open func download(for url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> DownloadRequest {
+            return session.download(url, to: destination)
         }
     }
 }
@@ -144,12 +154,37 @@ public extension Reactive where Base: Utils.Network {
                     case .success(let data):
                         single(.success(data))
                     case .failure(let error):
-                        print("Utils.Network: unable to get data from url: \(url).")
-                        print(error)
-                        
+                        Utils.Log.error("Utils.Network: unable to get data from url.", url, error)
                         single(.error(error))
                     }
             }
+            
+            if !base.session.startRequestsImmediately {
+                request.resume()
+            }
+            
+            return Disposables.create {
+                request.cancel()
+            }
+        }
+    }
+    
+    func data(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
+        Single.create { single in
+            let request = base.download(for: url, to: destination)
+                .response(queue: Utils.Task.concurrentUtilityQueue) {
+                    switch $0.result {
+                    case .success(let url):
+                        if let url = url {
+                            single(.success(url))
+                        } else {
+                            single(.error(Fault.Utils.Network.downloadFail))
+                        }
+                    case .failure(let error):
+                        Utils.Log.error("Utils.Network: unable to get data from url.", url, error)
+                        single(.error(error))
+                    }
+                }
             
             if !base.session.startRequestsImmediately {
                 request.resume()
@@ -200,6 +235,10 @@ public extension Reactive where Base: Utils.Network {
     
     static func data(url: URLRequestConvertible) -> Single<Data> {
         Base.shared.rx.data(url: url)
+    }
+    
+    static func data(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
+        Base.shared.rx.data(url: url, to: destination)
     }
     
     static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {

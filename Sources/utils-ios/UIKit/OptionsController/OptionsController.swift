@@ -17,6 +17,7 @@ public class OptionsController: ViewController {
     
     public class ContentView:  Material.View { }
     public class FreeAreaView: Material.View { }
+    public class TableViewWrapper: Material.View { }
     
     private let disposeBag = DisposeBag()
     
@@ -54,7 +55,7 @@ public class OptionsController: ViewController {
         return v
     }()
     
-    fileprivate lazy var tableView: TableView = {
+    public private (set) lazy var tableView: TableView = {
         let view: TableView = .init()
         
         Observable.of(actions)
@@ -109,7 +110,9 @@ public class OptionsController: ViewController {
             .top(freeAreaView.anchor.bottom)
             .bottom()
         
-        contentView.layout(tableView)
+        let c: TableViewWrapper = .init()
+        c.layout(tableView).edges()
+        contentView.layout(c)
             .leftSafe(16)
             .rightSafe(16)
             .bottomSafe(16)
@@ -117,7 +120,7 @@ public class OptionsController: ViewController {
         contentView.layout(messageLabel)
             .leftSafe(16)
             .rightSafe(16)
-            .bottom(tableView.anchor.top, 8)
+            .bottom(c.anchor.top, 8)
         
         contentView.layout(titleLabel)
             .leftSafe(16)
@@ -145,9 +148,10 @@ extension OptionsController {
             Int.randomIdentifier
         }()
         
-        public init(name n: String, style s: Style = .normal) {
-            name = n
-            style = s
+        public init(ID: Int = .randomIdentifier, name n: String, style s: Style = .normal) {
+            self.ID = ID
+            self.name = n
+            self.style = s
         }
     }
 }

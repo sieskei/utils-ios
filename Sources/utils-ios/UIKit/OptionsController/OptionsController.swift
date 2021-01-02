@@ -43,9 +43,7 @@ public class OptionsController: ViewController {
     
     public private (set) lazy var freeAreaView: FreeAreaView = {
         let v: FreeAreaView = .init()
-        v.backgroundColor = .black
-        v.alpha = 0.5
-        
+        v.backgroundColor = .clear
         v.rx
             .tapGesture()
             .subscribeNext(weak: self) { this, _ in
@@ -82,19 +80,22 @@ public class OptionsController: ViewController {
     
     public var actions: [Action] = []
     
-    public override var modalTransitionStyle: UIModalTransitionStyle {
-        get { .crossDissolve }
-        set { }
+    public init() {
+        super.init(nibName: nil, bundle: nil)
+        
+        modalPresentationStyle = .custom
+        transitioningDelegate = self
     }
     
-    public override var modalPresentationStyle: UIModalPresentationStyle {
-        get { .overFullScreen }
-        set { }
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        
+        modalPresentationStyle = .custom
+        transitioningDelegate = self
     }
     
     public override func prepare() {
         super.prepare()
-        
         view.backgroundColor = .clear
         
         view.layout(freeAreaView)
@@ -168,5 +169,27 @@ public extension Reactive where Base: OptionsController {
                 }
             }
             .unwrap()
+    }
+}
+
+extension OptionsController: UIViewControllerTransitioningDelegate {
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return .none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none
+    }
+    
+    public func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
+        return presented == self ? DimmingPresentationController(presentedViewController: presented, presenting: presenting) : nil
+    }
+    
+    public func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return presented == self ? SlidePresentationAnimationController(isPresenting: true, duration: 0.35) : nil
+    }
+    
+    public func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return dismissed == self ? SlidePresentationAnimationController(isPresenting: false, duration: 0.5) : nil
     }
 }

@@ -23,7 +23,12 @@ public extension Utils.Storage {
         }
     }
     
-    fileprivate static let defaults = UserDefaults(suiteName: Configuration.group) ?? .standard
+    fileprivate static let defaults: UserDefaults = {
+        guard !Configuration.group.isEmpty else {
+            return .standard
+        }
+        return UserDefaults(suiteName: Configuration.group) ?? .standard
+    }()
 }
 
 public extension Utils.Storage {
@@ -46,12 +51,8 @@ public extension Utils.Storage {
     }
     
     static func get<T: Codable>(for key: String, default: T) -> T {
-        guard let data = defaults.data(forKey: Configuration.gen(key)) else {
-            set(key: key, value: `default`)
-            return `default`
-        }
-        
-        guard let value = try? JSONDecoder().decode(T.self, from: data) else {
+        guard let data = defaults.data(forKey: Configuration.gen(key)),
+              let value = try? JSONDecoder().decode(T.self, from: data) else {
             set(key: key, value: `default`)
             return `default`
         }
@@ -80,12 +81,8 @@ public extension Utils.Storage {
     }
     
     static func get<C: ControlType, V: ValueType>(for key: String, control: C, `default`: V) -> V {
-        guard let data = defaults.data(forKey: Configuration.gen(key)) else {
-            set(key: key, control: control, value: `default`)
-            return `default`
-        }
-        
-        guard let pair = try? JSONDecoder().decode(Pair<C, V>.self, from: data) else {
+        guard let data = defaults.data(forKey: Configuration.gen(key)),
+              let pair = try? JSONDecoder().decode(Pair<C, V>.self, from: data) else {
             set(key: key, control: control, value: `default`)
             return `default`
         }

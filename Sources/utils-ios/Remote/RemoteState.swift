@@ -18,7 +18,7 @@ public indirect enum RemoteState {
     case done
     case error(Error, last: RemoteState)
     
-    var last: RemoteState {
+    public var last: RemoteState {
         switch self {
         case .ongoing(_, let last):
             return last
@@ -29,12 +29,25 @@ public indirect enum RemoteState {
         }
     }
     
-    var ongoing: Bool {
+    public var ongoing: Bool {
         switch self {
         case .ongoing:
             return true
         default:
             return false
+        }
+    }
+    
+    public var done: Bool {
+        switch self {
+        case .not:
+            return false
+        case .ongoing(_, last: let last):
+            return last.done
+        case .done:
+            return true
+        case .error(_, last: let last):
+            return last.done
         }
     }
 }

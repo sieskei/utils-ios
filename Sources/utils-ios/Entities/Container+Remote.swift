@@ -10,9 +10,9 @@ import Foundation
 open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>: Container<Element>, RxRemotePageCompatible {
     
     // MAK: RxRemoteCompatible, RxRemotePageCompatible
-    public private (set) var remoteEndpoint: EndpointType
-    public private (set) var defaultRemoteState: RemoteState
-    public private (set) var remoteHasNextPage = true
+    open private (set) var remoteEndpoint: EndpointType
+    open private (set) var defaultRemoteState: RemoteState
+    open private (set) var remoteHasNextPage = true
     
     public required init(from decoder: Decoder) throws {
         self.remoteEndpoint = try decoder.endpoint()

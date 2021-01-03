@@ -57,12 +57,20 @@ public extension Reactive where Base: RxModelCompatible, Base.M: RxMultipleTimes
 
 // MARK: Reactive compatible for RxRemoteCompatible models.
 public extension Reactive where Base: RxModelCompatible, Base.M: RxRemoteCompatible {
-    var decoding: Observable<Bool> {
-        return base.valueModel.flatMapLatest {
-            return $0.map(.just(false)) { value -> Observable<Bool> in
-                value.rx.remoteState.map { $0.ongoing }.distinctUntilChanged()
+    var remoteState: Observable<RemoteState> {
+        base.valueModel.flatMapLatest {
+            $0.map(.just(.not)) { value -> Observable<RemoteState> in
+                value.rx.remoteState.distinctUntilChanged()
             }
         }
+    }
+    
+    var decoding: Observable<Bool> {
+        remoteState.map { $0.ongoing }
+    }
+    
+    var decoded: Observable<Bool> {
+        remoteState.map { $0.done }
     }
     
     var error: Observable<Error> {

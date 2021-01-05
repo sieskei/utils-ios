@@ -50,11 +50,26 @@ open class Container<Element: Decodable>: RxMultipleTimesDecodable {
 // MARK: Default factory - init new `Element`.
 extension Container {
     open class Factory {
+        // called from init
+        open class func items(from decoder: Decoder) throws -> [Element] {
+            return []
+        }
+        
+        // called from decode
+        open class func items(from decoder: Decoder, for container: Container) throws -> [Element] {
+            return []
+        }
+        
+        
+        
+        
+        
+        
         open class func unkeyedContainer(from decoder: Decoder) throws -> UnkeyedDecodingContainer {
             return try decoder.unkeyedContainer()
         }
         
-        open class func element( from container: inout UnkeyedDecodingContainer) throws -> Element {
+        open class func element(from container: inout UnkeyedDecodingContainer) throws -> Element {
             return try container.decode(Element.self)
         }
         
@@ -63,9 +78,7 @@ extension Container {
             do {
                 container = try unkeyedContainer(from: decoder)
             } catch (let error) {
-                print("Container.Factory: missing 'Unkeyed Container'.")
-                print(error)
-                
+                Utils.Log.error("Container.Factory: missing 'Unkeyed Container'.", error)
                 throw error
             }
             
@@ -75,8 +88,7 @@ extension Container {
                     let e = try element(from: &container)
                     elements.append(e)
                 } catch (let error) {
-                    print("Container.Factory: unable to decode element.")
-                    print(error)
+                    Utils.Log.error("Container.Factory: unable to decode element.", error)
                 }
             }
             return elements

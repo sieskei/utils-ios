@@ -56,13 +56,61 @@ public extension UnkeyedDecodingContainer {
 }
 
 public struct UnkeyedDecodingProperties {
-    private let container: UnkeyedDecodingContainer
+    private var container: UnkeyedDecodingContainer
+    private var lazyDecoder: LazyInit<Decoder> = .none
     
     public init(_ container: UnkeyedDecodingContainer) {
         self.container = container
     }
+    
+    public mutating func next() -> Bool {
+        lazyDecoder = .none
+        return !container.isAtEnd
+    }
+    
+    public mutating func decoder() throws -> Decoder {
+        switch lazyDecoder {
+        case .none:
+            do {
+                let d = try container.superDecoder()
+                lazyDecoder.set(d)
+                return d
+            } catch(let error) {
+                lazyDecoder.set(error)
+                throw error
+            }
+        case .value(let decoder):
+            return decoder
+        case .error(let error):
+            throw error
+        }
+    }
+    
+    public mutating func keyedProperties() -> DecodingProperty<KeyedDecodingProperties> {
+        do {
+             return .success(try decoder().keyedProperties())
+        } catch (let error) {
+            return .fail(error)
+        }
+    }
+    
+    public mutating func unkeyedProperties() -> DecodingProperty<UnkeyedDecodingProperties> {
+        do {
+            return .success(try decoder().unkeyedProperties())
+        } catch (let error) {
+            return .fail(error)
+        }
+    }
 }
 
 public extension UnkeyedDecodingContainer {
+    var properties: UnkeyedDecodingProperties {
+        .init(self)
+    }
+}
 
+public extension Decoder {
+    func unkeyedProperties() throws -> UnkeyedDecodingProperties {
+        try unkeyedContainer().properties
+    }
 }

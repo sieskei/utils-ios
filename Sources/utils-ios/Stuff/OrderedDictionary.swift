@@ -36,7 +36,7 @@ public class OrderedDictionary<K: Hashable, V> {
     public private (set) var keys: [K] = []
     
     public var values: [V] {
-        .init(key2value.values)
+        keys.map { key2value[$0]! }
     }
     
     public var count: Int {

@@ -8,29 +8,34 @@
 import UIKit
 
 public extension UITextView {
-    func setHTMLFromString(text: String) {
+    func setHTMLFromString(txt: String, font: UIFont, color: UIColor = .black, textAlignment: NSTextAlignment = .natural) {
+        text = txt
+        
         guard !text.isEmpty else {
             attributedText = nil
             return
         }
         
-        let source: String
-        if let font = font {
-            let color = textColor?.hexString(.RRGGBB) ?? "#000000"
-            source =
-            """
-            <span style=\"display: block; font-family: \(font.fontName); font-size: \(font.pointSize); color: \(color); text-align: \(textAlignment.description);\">\(text.trimmingCharacters(in: .whitespacesAndNewlines))</span>
-            """
-        } else {
-            source = text
-        }
+        let style =
+        """
+            <style>
+                html {
+                    font-family: \(font.fontName);
+                    font-size: \(font.pointSize);
+                    color: \(color);
+                    text-align: \(textAlignment.description);
+                }
+            </style>
+        """
+        
+        let source = style + text.trimmingCharacters(in: .whitespacesAndNewlines)
         
         let opts = [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html]
         if let data = source.data(using: String.Encoding.utf16, allowLossyConversion: true),
             let string = try? NSMutableAttributedString(data: data, options: opts, documentAttributes: nil) {
             attributedText = string.trimmed
         } else {
-            attributedText = NSAttributedString(string: source)
+            attributedText = NSAttributedString(string: txt)
         }
     }
 }

@@ -22,7 +22,7 @@ public extension UITextView {
                 html {
                     font-family: \(font.fontName);
                     font-size: \(font.pointSize);
-                    color: \(color);
+                    color: \(color.hexString(.RRGGBB));
                     text-align: \(textAlignment.description);
                 }
             </style>

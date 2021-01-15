@@ -20,6 +20,7 @@ public extension Fault {
 public protocol RemoteCompatible: Initable {
     associatedtype EndpointType: Endpoint
     
+    var network: Utils.Network { get }
     var remoteState: RemoteState { get }
     var remoteEndpoint: EndpointType { get }
 }
@@ -28,4 +29,9 @@ public protocol RemotePageCompatible: RemoteCompatible, Pageable where EndpointT
     var remoteHasNextPage: Bool { get }
 }
 
+public extension RemoteCompatible {
+    var network: Utils.Network {
+        Utils.Network.shared
+    }
+}
 

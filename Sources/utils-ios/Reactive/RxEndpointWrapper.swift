@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Alamofire
 import RxSwift
 
 public class RxEndpointWrapper: ReactiveCompatible {
@@ -25,6 +26,10 @@ public extension Reactive where Base: RxEndpointWrapper {
     
     func data(network: Utils.Network = .shared) -> Single<Data> {
         network.rx.data(url: base.origin)
+    }
+    
+    func download(to destination: @escaping DownloadRequest.Destination, network: Utils.Network = .shared) -> Single<URL> {
+        network.rx.download(url: base.origin, to: destination)
     }
     
     func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {

@@ -169,7 +169,7 @@ public extension Reactive where Base: Utils.Network {
         }
     }
     
-    func data(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
+    func download(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
         Single.create { single in
             let request = base.download(for: url, to: destination)
                 .response(queue: Utils.Task.concurrentUtilityQueue) {
@@ -237,8 +237,8 @@ public extension Reactive where Base: Utils.Network {
         Base.shared.rx.data(url: url)
     }
     
-    static func data(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
-        Base.shared.rx.data(url: url, to: destination)
+    static func download(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
+        Base.shared.rx.download(url: url, to: destination)
     }
     
     static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {

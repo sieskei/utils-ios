@@ -51,14 +51,14 @@ public protocol EndpointPageble: Endpoint {
 
 public extension Endpoint {
     var root: EndpointRoot {
-        return .none
+        .none
     }
     
     var decodeType: DecodeType {
-        return .replace
+        .replace
     }
     
     func prepare(response data: Data) -> Data {
-        return data
+        data
     }
 }

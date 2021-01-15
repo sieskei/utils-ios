@@ -7,12 +7,15 @@
 
 import Foundation
 
-open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>: Container<Element>, RxRemotePageCompatible {
-    
+open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>: Container<Element>, RemoteCompatible, RxRemotePageCompatible {
     // MAK: RxRemoteCompatible, RxRemotePageCompatible
     open private (set) var remoteEndpoint: EndpointType
     open private (set) var defaultRemoteState: RemoteState
     open private (set) var remoteHasNextPage = true
+    
+    open var network: Utils.Network {
+        .shared
+    }
     
     public required init(from decoder: Decoder) throws {
         self.remoteEndpoint = try decoder.endpoint()
@@ -26,7 +29,7 @@ open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>: C
         super.init(elements: elements)
     }
     
-    override public func decode(from decoder: Decoder) throws {
+    override open func decode(from decoder: Decoder) throws {
         let decodeType = decoder.decodeType
         let currentCount = count
         

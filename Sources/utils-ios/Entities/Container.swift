@@ -12,7 +12,11 @@ open class Container<Element: Decodable>: RxMultipleTimesDecodable {
         return Factory.self
     }
     
-    open private (set) var elements: [Element]
+    public var factory: Factory {
+        type(of: self).factory.init(self)
+    }
+    
+    open private (set) var elements: [Element] = []
     
     public var count: Int {
         return elements.count
@@ -24,8 +28,11 @@ open class Container<Element: Decodable>: RxMultipleTimesDecodable {
     }
     
     public required init(from decoder: Decoder) throws {
-        let factory = type(of: self).factory
-        self.elements = try factory.elements(from: decoder, current: [])
+        do {
+            elements = try factory.elements(from: decoder, current: [])
+        } catch (let error) {
+            Utils.Log.warning(type(of: self).factory, "Decode elements fail.", error)
+        }
     }
     
     public init(elements: [Element] = []) {
@@ -33,12 +40,15 @@ open class Container<Element: Decodable>: RxMultipleTimesDecodable {
     }
     
     public func decode(from decoder: Decoder) throws {
-        let factory = type(of: self).factory
-        switch decoder.decodeType {
-        case .replace:
-            elements = try factory.elements(from: decoder, current: elements)
-        case .append:
-            elements.append(contentsOf: try factory.elements(from: decoder, current: []))
+        do {
+            switch decoder.decodeType {
+            case .replace:
+                elements = try factory.elements(from: decoder, current: elements)
+            case .append:
+                elements.append(contentsOf: try factory.elements(from: decoder, current: []))
+            }
+        } catch (let error) {
+            Utils.Log.warning(type(of: self).factory, "Decode elements fail.", error)
         }
     }
     
@@ -50,37 +60,22 @@ open class Container<Element: Decodable>: RxMultipleTimesDecodable {
 // MARK: Default factory - init new `Element`.
 extension Container {
     open class Factory {
-        // called from init
-        open class func items(from decoder: Decoder) throws -> [Element] {
-            return []
+        public let container: Container<Element>
+        
+        required public init(_ container: Container<Element>) {
+            self.container = container
         }
         
-        // called from decode
-        open class func items(from decoder: Decoder, for container: Container) throws -> [Element] {
-            return []
-        }
-        
-        
-        
-        
-        
-        
-        open class func unkeyedContainer(from decoder: Decoder) throws -> UnkeyedDecodingContainer {
+        open func unkeyedContainer(from decoder: Decoder) throws -> UnkeyedDecodingContainer {
             return try decoder.unkeyedContainer()
         }
         
-        open class func element(from container: inout UnkeyedDecodingContainer) throws -> Element {
+        open func element(from container: inout UnkeyedDecodingContainer) throws -> Element {
             return try container.decode(Element.self)
         }
         
-        open class func elements(from decoder: Decoder, current: [Element]) throws -> [Element] {
-            var container: UnkeyedDecodingContainer
-            do {
-                container = try unkeyedContainer(from: decoder)
-            } catch (let error) {
-                Utils.Log.error("Container.Factory: missing 'Unkeyed Container'.", error)
-                throw error
-            }
+        open func elements(from decoder: Decoder, current: [Element]) throws -> [Element] {
+            var container: UnkeyedDecodingContainer = try unkeyedContainer(from: decoder)
             
             var elements = [Element]()
             while !container.isAtEnd {

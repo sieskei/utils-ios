@@ -51,7 +51,7 @@ fileprivate extension RxRemoteCompatible {
     }
     
     func serialize(endpoint: EndpointType) -> Single<Self> {
-        return endpoint.rx.serialize(to: self)
+        endpoint.rx.serialize(to: self, network: network)
             .do(onSuccess: {
                 // print("[T] serialize on success:", Thread.current)
                 $0.remoteState = .done

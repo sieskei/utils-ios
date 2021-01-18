@@ -64,8 +64,11 @@ public struct UnkeyedDecodingProperties {
     }
     
     public mutating func next() -> Bool {
-        lazyDecoder = .none
-        return !container.isAtEnd
+        let f = !container.isAtEnd
+        if f {
+            lazyDecoder = .none
+        }
+        return f
     }
     
     public mutating func decoder() throws -> Decoder {

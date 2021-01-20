@@ -110,11 +110,11 @@ open class VisualEffectView: UIVisualEffectView {
     
     /**
      Tint color alpha.
-     
+     Don't use it unless `colorTint` is not nil.
      The default value is 0.0.
      */
     open var colorTintAlpha: CGFloat {
-        get { return _value(forKey: .colorTintAlpha) }
+        get { return _value(forKey: .colorTintAlpha) ?? 0.0 }
         set {
             if #available(iOS 14, *) {
                 ios14_colorTint = ios14_colorTint?.withAlphaComponent(newValue)
@@ -134,7 +134,7 @@ open class VisualEffectView: UIVisualEffectView {
             if #available(iOS 14, *) {
                 return ios14_blurRadius
             } else {
-                return _value(forKey: .blurRadius)
+                return _value(forKey: .blurRadius) ?? 0.0
             }
         }
         set {
@@ -154,7 +154,7 @@ open class VisualEffectView: UIVisualEffectView {
      The default value is 1.0.
      */
     open var scale: CGFloat {
-        get { return _value(forKey: .scale) }
+        get { return _value(forKey: .scale) ?? 1.0 }
         set { _setValue(newValue, forKey: .scale) }
     }
     
@@ -180,14 +180,16 @@ open class VisualEffectView: UIVisualEffectView {
 // MARK: - Helpers
 private extension VisualEffectView {
     /// Returns the value for the key on the blurEffect.
-    func _value<T>(forKey key: Key) -> T {
-        return blurEffect.value(forKeyPath: key.rawValue) as! T
+    func _value<T>(forKey key: Key) -> T? {
+        return blurEffect.value(forKeyPath: key.rawValue) as? T
     }
     
     /// Sets the value for the key on the blurEffect.
-    func _setValue<T>(_ value: T, forKey key: Key) {
+    func _setValue<T>(_ value: T?, forKey key: Key) {
         blurEffect.setValue(value, forKeyPath: key.rawValue)
-        self.effect = blurEffect
+        if #available(iOS 14, *) {} else {
+            self.effect = blurEffect
+        }
     }
     
     enum Key: String {

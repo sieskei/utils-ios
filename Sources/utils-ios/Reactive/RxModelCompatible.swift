@@ -11,6 +11,7 @@ import RxSwift
 import RxCocoa
 import RxSwiftExt
 
+@available(*, deprecated, message: "Use @RxModel instead.")
 public protocol RxModelCompatible: class, ModelCompatible, AssociatedObjectCompatible, ReactiveCompatible { }
 
 internal extension RxModelCompatible {

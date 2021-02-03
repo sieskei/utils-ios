@@ -7,17 +7,21 @@
 
 import Foundation
 
+public extension Fault.Codes {
+    struct RemotePageCompatible {
+        static var noMorePages = "remote.page.compatible.no.more.pages"
+    }
+}
+
 public extension Fault {
     struct RemotePageCompatible {
-        static var noMorePagesCode = "remote.page.compatible.no.more.pages"
         static var noMorePages: Fault {
-            return Fault(code: noMorePagesCode, enMessage: "No more pages.")
+            return Fault(code: Fault.Codes.RemotePageCompatible.noMorePages, enMessage: "No more pages.")
         }
     }
 }
 
-
-public protocol RemoteCompatible: Initable {
+public protocol RemoteCompatible: Redecodable, Initable {
     associatedtype EndpointType: Endpoint
     
     var network: Utils.Network { get }

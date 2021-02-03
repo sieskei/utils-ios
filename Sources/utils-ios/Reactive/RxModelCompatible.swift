@@ -12,11 +12,13 @@ import RxCocoa
 import RxSwiftExt
 
 @available(*, deprecated, message: "Use @RxModel instead.")
-public protocol RxModelCompatible: class, ModelCompatible, AssociatedObjectCompatible, ReactiveCompatible { }
+public protocol RxModelCompatible: class, ModelCompatible, ReactiveCompatible { }
+
+fileprivate var ModelKey: UInt8 = 0
 
 internal extension RxModelCompatible {
     var valueModel: EquatableValue<Model<M>> {
-        return get(for: "valueModel") { .init(.empty) }
+        Utils.AssociatedObject.get(base: self, key: &ModelKey) { .init(.empty) }
     }
 }
 

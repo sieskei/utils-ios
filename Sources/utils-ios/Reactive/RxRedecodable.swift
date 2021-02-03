@@ -8,11 +8,15 @@
 import Foundation
 import RxSwift
 
-public protocol RxRedecodable: Redecodable, AssociatedObjectCompatible, ReactiveCompatible { }
+fileprivate var DecodeNotifierKey: UInt8 = 0
+
+public protocol RxRedecodable: Redecodable, ReactiveCompatible { }
 
 internal extension RxRedecodable {
     var decodeNotifier: Notifier<Self> {
-        return get(for: "decode.notifier") { .init() }
+        Utils.AssociatedObject.get(base: self, key: &DecodeNotifierKey) {
+            .init()
+        }
     }
 }
 

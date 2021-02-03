@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Utils+Network.swift
 //  
 //
 //  Created by Miroslav Yozov on 31.10.19.
@@ -49,12 +49,6 @@ public extension Fault.Utils {
     }
 }
 
-extension Session: AssociatedObjectCompatible {
-    public var network: Utils.Network? {
-        return get(for: "utils.network") { () -> Utils.Network? in return nil }
-    }
-}
-
 extension Utils {
     open class Network {
         public static let shared: Network = .init(factory: Factory.shared)
@@ -70,8 +64,6 @@ extension Utils {
         public init(session s: Session, validation v: @escaping DataRequest.Validation) {
             session = s
             validation = v
-            
-            session.set(value: self, for: "utils.network", policy: .weak)
         }
         
         open func request(for url: URLRequestConvertible) -> DataRequest {

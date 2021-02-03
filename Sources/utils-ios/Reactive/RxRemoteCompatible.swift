@@ -10,6 +10,8 @@ import Foundation
 import RxSwift
 import RxCocoa
 
+fileprivate var RemoteStateKey: UInt8 = 0
+
 public protocol RxRemoteCompatible: RemoteCompatible, RxRedecodable {
     /// Default remote state aka when constructed.
     var defaultRemoteState: RemoteState { get }
@@ -18,7 +20,9 @@ public protocol RxRemoteCompatible: RemoteCompatible, RxRedecodable {
 // MARK: Default implementation.
 public extension RxRemoteCompatible {
     fileprivate var valueRemoteState: EquatableValue<RemoteState> {
-        return get(for: "valueRemoteState") { .init(defaultRemoteState) }
+        Utils.AssociatedObject.get(base: self, key: &RemoteStateKey) {
+            .init(defaultRemoteState)
+        }
     }
     
     fileprivate (set) var remoteState: RemoteState {
@@ -44,10 +48,14 @@ public extension RxRemotePageCompatible {
     }
 }
 
+
+fileprivate var DisposeBagKey: UInt8 = 0
+
 fileprivate extension RxRemoteCompatible {
+    
     var disposeBag: DisposeBag {
-        get { get(for: "disposeBag") { .init() } }
-        set { set(value: newValue, for: "disposeBag") }
+        get { Utils.AssociatedObject.get(base: self, key: &DisposeBagKey) { .init() } }
+        set { Utils.AssociatedObject.set(base: self, key: &DisposeBagKey, value: newValue) }
     }
     
     func serialize(endpoint: EndpointType) -> Single<Self> {

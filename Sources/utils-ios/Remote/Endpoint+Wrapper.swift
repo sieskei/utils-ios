@@ -36,7 +36,7 @@ public class EndpointPagebleWrapper: EndpointWrapper, EndpointPageble {
         super.init(origin)
     }
     
-    public func next<T>(for object: T) -> Self where T : Redecodable {
+    public func next(for object: Redecodable) -> Self {
         let o: EndpointPageble = Utils.castOrFatalError(origin)
         let n = o.next(for: object)
         return .init(n)

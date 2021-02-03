@@ -46,7 +46,7 @@ public protocol Endpoint: URLRequestConvertible {
 }
 
 public protocol EndpointPageble: Endpoint {
-    func next<T: Redecodable>(for object: T) -> Self
+    func next(for object: Redecodable) -> Self
 }
 
 public extension Endpoint {

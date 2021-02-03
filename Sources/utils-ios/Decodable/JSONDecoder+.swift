@@ -7,6 +7,21 @@
 
 import Foundation
 
+public extension Fault.Codes {
+    struct Decoder {
+        public static let missing = "object.missing"
+    }
+}
+
+public extension Fault {
+    struct Decoder {
+        static var missingObject: Fault {
+            .init(code: Fault.Codes.Decoder.missing, enMessage: "Missing redecodable object.")
+        }
+    }
+}
+
+
 public extension CodingUserInfoKey {
     struct Decoder {
         static let root = CodingUserInfoKey(rawValue: "ios.utils.Decoder.root")!
@@ -32,38 +47,12 @@ extension Decoder {
 }
 
 private extension Decoder {
-    func object<T>() -> T? {
-        guard let object = userInfo[CodingUserInfoKey.Decoder.object] else {
-            return nil
-        }
-        
-        if var objects = object as? [T] {
-            return objects.isEmpty ? nil : objects.removeFirst()
-        } else {
-            return object as? T
-        }
+    func object<T>() throws -> T {
+        try Utils.castOrThrow(userInfo[CodingUserInfoKey.Decoder.object], Fault.Decoder.missingObject)
     }
 }
 
 extension JSONDecoder {
-    private enum MultipleTimesDecodableResult<T: MultipleTimesDecodable>: Decodable {
-        case success(T)
-        case failure(Error)
-        
-        init(from decoder: Decoder) throws {
-            do {
-                if let object: T = decoder.object() {
-                    try object.runDecode(from: decoder.rootDecoder())
-                    self = .success(object)
-                } else {
-                    self = .success(try T.init(from: decoder.rootDecoder()))
-                }
-            } catch (let error) {
-                self = .failure(error)
-            }
-        }
-    }
-    
     private enum Result<T: Decodable>: Decodable {
         case success(T)
         case failure(Error)
@@ -71,6 +60,21 @@ extension JSONDecoder {
         init(from decoder: Decoder) throws {
             do {
                 self = .success(try T.init(from: decoder.rootDecoder()))
+            } catch (let error) {
+                self = .failure(error)
+            }
+        }
+    }
+    
+    private enum RedecodableResult<T: Redecodable>: Decodable {
+        case success(T)
+        case failure(Error)
+        
+        init(from decoder: Decoder) throws {
+            do {
+                let object: T = try decoder.object()
+                try object.runDecode(from: decoder.rootDecoder())
+                self = .success(object)
             } catch (let error) {
                 self = .failure(error)
             }
@@ -85,7 +89,7 @@ public extension JSONDecoder {
     }
     
     @discardableResult
-    static func decode<T: MultipleTimesDecodable>(to object: T, from data: Data, with info: [CodingUserInfoKey: Any] = [:]) throws -> T {
+    static func decode<T: Redecodable>(to object: T, from data: Data, with info: [CodingUserInfoKey: Any] = [:]) throws -> T {
         let decoder: JSONDecoder = .init(userInfo: info)
         return try decoder.decode(to: object, from: data)
     }
@@ -95,10 +99,10 @@ public extension JSONDecoder {
         self.userInfo = userInfo
     }
     
-    func decode<T: MultipleTimesDecodable>(to object: T, from data: Data) throws -> T {
+    func decode<T: Redecodable>(to object: T, from data: Data) throws -> T {
         userInfo[CodingUserInfoKey.Decoder.object] = object
         
-        switch try decode(MultipleTimesDecodableResult<T>.self, from: data) {
+        switch try decode(RedecodableResult<T>.self, from: data) {
         case .success(let obj):
             return obj
         case .failure(let error):

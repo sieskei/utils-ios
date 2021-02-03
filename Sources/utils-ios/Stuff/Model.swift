@@ -38,9 +38,9 @@ public enum Model<M: Equatable>: ModelType {
         }
     }
     
-    public var projectedValue: Self {
-        self
-    }
+//    public var projectedValue: Self {
+//        self
+//    }
     
     public init(_ model: M?) {
         if let model = model {

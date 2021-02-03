@@ -40,7 +40,7 @@ public extension Reactive where Base: RxEndpointWrapper {
         network.rx.serialize(interval: interval, url: base.origin, userInfo: prepeare(userInfo: ui))
     }
 
-    func serialize<T: MultipleTimesDecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {
+    func serialize<T: Redecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {
         network.rx.serialize(url: base.origin, to: object, userInfo: prepeare(userInfo: ui))
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-open class Container<Element: Decodable>: RxMultipleTimesDecodable {
+open class Container<Element: Decodable>: Decodable, RxRedecodable {
     open class var factory: Factory.Type {
         return Factory.self
     }

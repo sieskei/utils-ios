@@ -11,14 +11,14 @@ import RxCocoa
 
 @propertyWrapper
 public class RxProperty<P: Equatable> {
-    fileprivate let v: EquatableValue<P>
+    internal let v: EquatableValue<P>
     
     public var wrappedValue: P {
         get { v.value }
         set { v.value = newValue }
     }
     
-    public var projectedValue: Rx {
+    public var projectedValue: Utils {
         .init(base: self)
     }
     
@@ -28,13 +28,17 @@ public class RxProperty<P: Equatable> {
 }
 
 public extension RxProperty {
-    struct Rx {
-        fileprivate let base: RxProperty<P>
+    class Utils {
+        public private (set) var base: RxProperty<P>
+        
+        init(base: RxProperty<P>) {
+            self.base = base
+        }
     }
 }
 
 // MARK: Reactive compatible.
-public extension RxProperty.Rx {
+public extension RxProperty.Utils {
     var value: ControlProperty<P> {
         let origin = base.v.asObservable()
         let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {

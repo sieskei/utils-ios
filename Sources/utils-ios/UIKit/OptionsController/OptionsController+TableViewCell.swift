@@ -17,7 +17,7 @@ extension OptionsController {
         
         private lazy var nameLabel: Label = {
             let l: Label = .init()
-            rx.model.map { $0.name }.bind(to: l.rx.text).disposed(by: disposeBag)
+            $model.value.map { $0.name }.bind(to: l.rx.text).disposed(by: disposeBag)
             return l
         }()
         
@@ -26,6 +26,9 @@ extension OptionsController {
             v.backgroundColor = .black
             return v
         }()
+        
+        @RxModel
+        public var model: Model<OptionsController.Action> = .empty
         
         public override func prepare() {
             super.prepare()
@@ -46,10 +49,6 @@ extension OptionsController {
                 .bottom(separatorView.anchor.top, 8)
         }
     }
-}
-
-extension OptionsController.TableViewCell: RxModelCompatible {
-    public typealias M = OptionsController.Action
 }
 
 fileprivate extension Model where M: OptionsController.Action {

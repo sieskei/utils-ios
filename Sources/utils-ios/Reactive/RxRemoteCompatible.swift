@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-public protocol RxRemoteCompatible: RemoteCompatible, RxMultipleTimesDecodable {
+public protocol RxRemoteCompatible: RemoteCompatible, RxRedecodable {
     /// Default remote state aka when constructed.
     var defaultRemoteState: RemoteState { get }
 }

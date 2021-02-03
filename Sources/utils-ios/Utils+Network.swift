@@ -203,7 +203,7 @@ public extension Reactive where Base: Utils.Network {
         }
     }
     
-    func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+    func serialize<T: Redecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         data(url: url).map {
             // print("[T] serialize to:", Thread.current)
             try JSONDecoder(userInfo: userInfo).decode(to: object, from: $0)
@@ -245,7 +245,7 @@ public extension Reactive where Base: Utils.Network {
         Base.shared.rx.serialize(url: url, userInfo: userInfo)
     }
     
-    static func serialize<T: MultipleTimesDecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
+    static func serialize<T: Redecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         Base.shared.rx.serialize(url: url, to: object, userInfo: userInfo)
     }
     

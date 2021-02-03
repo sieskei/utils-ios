@@ -44,8 +44,8 @@ public extension RxModel.Rx {
     }
 }
 
-// MARK: Reactive compatible for RxMultipleTimesDecodable models.
-public extension RxModel.Rx where M: RxMultipleTimesDecodable {
+// MARK: Reactive compatible for RxRedecodable models.
+public extension RxModel.Rx where M: RxRedecodable {
     var decode: ControlProperty<Model<M>> {
         let values: Observable<Model<M>> = base.v.flatMapLatest {
             $0.map(.just(.empty)) { value -> Observable<Model<M>> in

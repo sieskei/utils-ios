@@ -142,6 +142,18 @@ public class OrderedDictionary<K: Hashable, V> {
         }
     }
     
+    public func append(all: [(key: K, value: V)]) {
+        defer {
+            delegates => {
+                $0.orderedDictionary(didChanged: self)
+            }
+        }
+        
+        all.forEach {
+            set(value: $0.value, for: $0.key)
+        }
+    }
+    
     public func set<D: OrderedDictionaryDelegate>(delegate: D) where D.K == K, D.V == V {
         delegates += .init(delegate)
     }

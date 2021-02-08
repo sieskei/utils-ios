@@ -10,42 +10,27 @@ import RxSwift
 import RxCocoa
 
 @propertyWrapper
-public class RxModel<M: Equatable> {
-    fileprivate let v: EquatableValue<Model<M>>
-    
-    public var wrappedValue: Model<M> {
-        get { v.value }
-        set { v.value = newValue }
+public class RxModel<M: Equatable>: RxProperty<Model<M>> {
+    public override var wrappedValue: Model<M> {
+        get { super.wrappedValue }
+        set { super.wrappedValue = newValue }
     }
     
-    public var projectedValue: Rx {
+    public override var projectedValue: Tools {
         .init(base: self)
     }
     
-    public init(wrappedValue: Model<M>) {
-        v = .init(wrappedValue)
+    public override init(wrappedValue: Model<M>) {
+        super.init(wrappedValue: wrappedValue)
     }
 }
 
 public extension RxModel {
-    struct Rx {
-        fileprivate let base: RxModel<M>
-    }
-}
-
-// MARK: Reactive compatible.
-public extension RxModel.Rx {
-    var value: ControlProperty<Model<M>> {
-        let origin = base.v.asObservable()
-        let bindingObserver: Binder<Model<M>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
-            $0.wrappedValue = $1
-        }
-        return .init(values: origin, valueSink: bindingObserver)
-    }
+    class Tools: RxProperty<Model<M>>.Tools { }
 }
 
 // MARK: Reactive compatible for RxRedecodable models.
-public extension RxModel.Rx where M: RxRedecodable {
+public extension RxModel.Tools where M: RxRedecodable {
     var decode: ControlProperty<Model<M>> {
         let values: Observable<Model<M>> = base.v.flatMapLatest {
             $0.map(.just(.empty)) { value -> Observable<Model<M>> in
@@ -60,7 +45,7 @@ public extension RxModel.Rx where M: RxRedecodable {
 }
 
 // MARK: Reactive compatible for RxRemoteCompatible models.
-public extension RxModel.Rx where M: RxRemoteCompatible {
+public extension RxModel.Tools where M: RxRemoteCompatible {
     var remoteState: Observable<RemoteState> {
         base.v.flatMapLatest {
             $0.map(.just(.not)) { value -> Observable<RemoteState> in
@@ -100,7 +85,7 @@ public extension RxModel.Rx where M: RxRemoteCompatible {
 }
 
 // MARK: Reactive compatible for RxRemoteCompatible models.
-public extension RxModel.Rx where M: RxRemotePageCompatible {
+public extension RxModel.Tools where M: RxRemotePageCompatible {
     func next() -> Single<Model<M>> {
         base.wrappedValue.map(.just(base.wrappedValue)) {
             $0.rx.next().map { .value($0) }

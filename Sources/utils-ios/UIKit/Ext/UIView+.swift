@@ -78,6 +78,13 @@ public extension UIView {
         maskLayer.path = path.cgPath
         layer.mask = maskLayer
     }
+    
+    func randomBackground() {
+        backgroundColor = .random
+        subviews.forEach {
+            $0.randomBackground()
+        }
+    }
 }
 
 public extension UIView {

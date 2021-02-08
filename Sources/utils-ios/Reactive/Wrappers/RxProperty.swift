@@ -18,7 +18,7 @@ public class RxProperty<P: Equatable> {
         set { v.value = newValue }
     }
     
-    public var projectedValue: Utils {
+    public var projectedValue: Tools {
         .init(base: self)
     }
     
@@ -28,7 +28,7 @@ public class RxProperty<P: Equatable> {
 }
 
 public extension RxProperty {
-    class Utils {
+    class Tools {
         public private (set) var base: RxProperty<P>
         
         init(base: RxProperty<P>) {
@@ -38,7 +38,7 @@ public extension RxProperty {
 }
 
 // MARK: Reactive compatible.
-public extension RxProperty.Utils {
+public extension RxProperty.Tools {
     var value: ControlProperty<P> {
         let origin = base.v.asObservable()
         let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {

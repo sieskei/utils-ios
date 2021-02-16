@@ -7,68 +7,61 @@
 
 import UIKit
 import Material
+import RxSwift
+import RxSwiftExt
 
-public protocol ScrollingView {
+public protocol RxScrollable: NSObject {
     var view: UIView { get }
     var scrollView: UIScrollView { get }
-    var scrollSize: CGSize { get }
     
-    func observeScrollSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation
+    var scrollSizeKeyPath: String { get }
 }
 
-extension UIScrollView: ScrollingView {
+extension UIScrollView: RxScrollable {
     public var view: UIView { self }
     public var scrollView: UIScrollView { self }
-    public var scrollSize: CGSize { contentSize }
     
-    public func observeScrollSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation {
-        observe(\Self.contentSize, options: [.old, .new, .initial]) { [weak self] in
-            if let s = self, $1.oldValue != $1.newValue {
-                callback(s.contentSize)
-            }
-        }
+    public var scrollSizeKeyPath: String {
+        return "contentSize"
     }
 }
 
-extension NIWebView: ScrollingView {
+extension NIWebView: RxScrollable {
     public var view: UIView { self }
-    public var scrollSize: CGSize { bodySize }
     
-    public func observeScrollSize(_ callback: @escaping (CGSize) -> Void) -> NSKeyValueObservation {
-        observe(\Self.bodySize, options: [.old, .new, .initial]) { [weak self] in
-            if let s = self, $1.oldValue != $1.newValue {
-                callback(s.bodySize)
-            }
-        }
+    public var scrollSizeKeyPath: String {
+        return "bodySize"
     }
 }
 
 extension UIScrollView {
-    open class Wrapper: View {
-        private var outerScrollObsvervation: NSKeyValueObservation? = nil
-        private var innerScrollObsvervation: NSKeyValueObservation? = nil
+    open class Wrapper<T: RxScrollable>: View {
+        private var outerDisposeBag: DisposeBag = .init()
+        private var innerDisposeBag: DisposeBag = .init()
         
         private weak var outerScrollView: UIScrollView? {
             didSet {
-                outerScrollObsvervation = nil
-                
-                if let sv = outerScrollView {
-                    outerScrollObsvervation = sv.observe(\UIScrollView.contentOffset, options: [.old, .new, .initial]) { [weak self] in
-                        if let s = self, $1.oldValue != $1.newValue {
-                            s.adjustOffset()
-                        }
-                    }
+                outerDisposeBag = .init()
+                guard let sv = outerScrollView else {
+                    return
                 }
+                
+                sv.rx.methodInvoked(#selector(UIScrollView.layoutSubviews))
+                    .observeOn(MainScheduler.asyncInstance)
+                    .subscribeNext(weak: self) { this, _ in
+                        let i = this.frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size))
+                        
+                        let h = i.height
+                        let m = i.origin.y - this.frame.origin.y
+                        
+                        this.innerHeightConstraint.constant = h
+                        this.innerTopConstraint.constant = m.isInfinite ? 0 : m
+                        this.scrollable.scrollView.contentOffset.y = this.innerTopConstraint.constant
+                    }.disposed(by: outerDisposeBag)
             }
         }
         
-        private let scrollable: ScrollingView
-
-        private lazy var heightConstraint: NSLayoutConstraint = {
-            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: scrollable.scrollSize.height)
-            c.isActive = true
-            return c
-        }()
+        private let scrollable: T
         
         private lazy var innerTopConstraint: NSLayoutConstraint = {
             let c: NSLayoutConstraint = scrollable.view.topAnchor.constraint(equalTo: topAnchor, constant: 0)
@@ -84,7 +77,7 @@ extension UIScrollView {
             return c
         }()
         
-        public init(_ s: ScrollingView, dualView: Bool = false) {
+        public init(_ s: T, dualView: Bool = false) {
             scrollable = s
             
             let v = s.view
@@ -122,17 +115,23 @@ extension UIScrollView {
                 v.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
             ])
             
-            let _ = heightConstraint
             let _ = innerTopConstraint
             let _ = innerHeightConstraint
             
-            innerScrollObsvervation = s.observeScrollSize { [weak self] in
-                if let s = self {
-                    s.heightConstraint.constant = $0.height
-                    s.outerScrollView?.layoutIfNeeded()
-                    s.adjustOffset()
-                }
-            }
+            let size: CGSize = Utils.castOrFatalError(scrollable.value(forKeyPath: scrollable.scrollSizeKeyPath))
+            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: size.height)
+            c.isActive = true
+            
+            s.rx.observe(CGSize.self, s.scrollSizeKeyPath)
+                .unwrap()
+                .observeOn(MainScheduler.instance)
+                .map { $0.height }
+                .distinctUntilChanged()
+                .do(weak: self, afterNext: { this, _ in
+                    this.outerScrollView?.setNeedsLayout()
+                })
+                .bind(to: c.rx.constant)
+                .disposed(by: innerDisposeBag)
         }
         
         public required init?(coder aDecoder: NSCoder) {
@@ -142,26 +141,6 @@ extension UIScrollView {
         public override func didMoveToSuperview() {
             super.didMoveToSuperview()
             outerScrollView = superview?.traverseViewHierarchyForClassType()
-        }
-        
-        private func adjustOffset() {
-            guard let sv = outerScrollView else {
-                return
-            }
-            
-            let i = frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size))
-
-            let h = i.height
-            let m = i.origin.y - frame.origin.y
-
-            innerHeightConstraint.constant = h
-            innerTopConstraint.constant = m.isInfinite ? 0 : m
-            scrollable.scrollView.contentOffset.y = innerTopConstraint.constant
-        }
-        
-        deinit {
-            outerScrollObsvervation = nil
-            innerScrollObsvervation = nil
         }
     }
 }

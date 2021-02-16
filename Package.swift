@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -26,14 +26,15 @@ let package = Package(
         // .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .revision("52c76a07a82cdc61494bf9e6871dbf99e4685cf7")),
         // .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .revision("808ac0cf1b67c5e4163ee867dd6c056836fcbc58")),
         .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .branch("development")),
-        .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .branch("development"))
+        .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .branch("development")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["RxSwift", "RxCocoa", "RxDataSources", "RxSwiftExt", "RxGesture", "Alamofire", "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
+            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture",
+                           "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),

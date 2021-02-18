@@ -11,7 +11,7 @@ let package = Package(
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
-            name: "utils-ios", type: .dynamic,   
+            name: "utils-ios", type: .static,
             targets: ["utils-ios"]),
     ],
     dependencies: [
@@ -23,8 +23,6 @@ let package = Package(
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.2.0"),
         .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "4.1.0"),
         .package(url: "https://github.com/Kitura/HeliumLogger.git", from: "1.9.0"),
-        // .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .revision("52c76a07a82cdc61494bf9e6871dbf99e4685cf7")),
-        // .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .revision("808ac0cf1b67c5e4163ee867dd6c056836fcbc58")),
         .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .branch("development")),
         .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .branch("development")),
     ],

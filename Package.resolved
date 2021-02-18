@@ -42,7 +42,7 @@
         "repositoryURL": "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git",
         "state": {
           "branch": "development",
-          "revision": "1a29634e3590942ec0ce256a9cb206e93d651b3f",
+          "revision": "8dcc517cf7c0c6d32bb63a82194f1b389b764000",
           "version": null
         }
       },
@@ -51,7 +51,7 @@
         "repositoryURL": "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git",
         "state": {
           "branch": "development",
-          "revision": "cdd750ca5f7df1df70d59b5c232747da5b82f017",
+          "revision": "b4e72bda29205d2cef558f57e3821c3e577ff286",
           "version": null
         }
       },

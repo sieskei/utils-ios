@@ -12,7 +12,7 @@ import RxCocoa
 /// Value is a wrapper for `BehaviorSubject`.
 ///
 /// Unlike `BehaviorSubject` it can't terminate with error or completed.
-public class Value<Element>: ObservableType {
+public class NonEquatableValue<Element>: ObservableType {
     private let subject: BehaviorSubject<Element>
     
     /// Current value of behavior subject
@@ -43,7 +43,7 @@ public class Value<Element>: ObservableType {
 }
 
 /// Value with Element type that confirm Equatable.
-public class EquatableValue<Element: Equatable>: Value<Element> {
+public class Value<Element: Equatable>: NonEquatableValue<Element> {
     public override var value: Element {
         get { return super.value }
         set {

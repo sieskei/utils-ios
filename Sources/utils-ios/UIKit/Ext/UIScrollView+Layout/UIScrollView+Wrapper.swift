@@ -10,32 +10,8 @@ import Material
 import RxSwift
 import RxSwiftExt
 
-public protocol RxScrollable: NSObject {
-    var view: UIView { get }
-    var scrollView: UIScrollView { get }
-    
-    var scrollSizeKeyPath: String { get }
-}
-
-extension UIScrollView: RxScrollable {
-    public var view: UIView { self }
-    public var scrollView: UIScrollView { self }
-    
-    public var scrollSizeKeyPath: String {
-        return "contentSize"
-    }
-}
-
-extension NIWebView: RxScrollable {
-    public var view: UIView { self }
-    
-    public var scrollSizeKeyPath: String {
-        return "bodySize"
-    }
-}
-
 extension UIScrollView {
-    open class Wrapper<T: RxScrollable>: View {
+    open class Wrapper<T: Scrollable>: View {
         private var outerDisposeBag: DisposeBag = .init()
         private var innerDisposeBag: DisposeBag = .init()
         
@@ -47,7 +23,7 @@ extension UIScrollView {
                 }
                 
                 sv.rx.methodInvoked(#selector(UIScrollView.layoutSubviews))
-                    .observeOn(MainScheduler.asyncInstance)
+                    .observe(on: MainScheduler.asyncInstance)
                     .subscribeNext(weak: self) { this, _ in
                         let i = this.frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size))
                         
@@ -124,7 +100,7 @@ extension UIScrollView {
             
             s.rx.observe(CGSize.self, s.scrollSizeKeyPath)
                 .unwrap()
-                .observeOn(MainScheduler.instance)
+                .observe(on: MainScheduler.instance)
                 .map { $0.height }
                 .distinctUntilChanged()
                 .do(weak: self, afterNext: { this, _ in

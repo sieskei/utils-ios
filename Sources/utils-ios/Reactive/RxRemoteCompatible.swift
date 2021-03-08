@@ -19,7 +19,7 @@ public protocol RxRemoteCompatible: RemoteCompatible, RxRedecodable {
 
 // MARK: Default implementation.
 public extension RxRemoteCompatible {
-    fileprivate var valueRemoteState: EquatableValue<RemoteState> {
+    fileprivate var valueRemoteState: Value<RemoteState> {
         Utils.AssociatedObject.get(base: self, key: &RemoteStateKey) {
             .init(defaultRemoteState)
         }
@@ -92,13 +92,13 @@ internal extension RxRemoteCompatible {
             // print("[T] reinit create:", Thread.current)
             
             let access = this.permission(for: this.remoteState)
-            print(access)
+            Utils.Log.debug(access)
             
             switch access {
             case .already:
-                $0(.error(Fault.RemotePermission.already))
+                $0(.failure(Fault.RemotePermission.already))
             case .notAllowed:
-                $0(.error(Fault.RemotePermission.notAllowed))
+                $0(.failure(Fault.RemotePermission.notAllowed))
             case .interrupt:
                 this.disposeBag = .init()
                 fallthrough
@@ -110,7 +110,7 @@ internal extension RxRemoteCompatible {
         }
         
         return permission
-            .subscribeOn(Utils.Task.rx.serialScheduler)
+            .subscribe(on: Utils.Task.rx.serialScheduler)
             .do(onSuccess: {
                 // print("[T] reinit create after success:", Thread.current)
                 $0.remoteState = .ongoing(.reinit, last: $0.remoteState.last)
@@ -162,13 +162,13 @@ internal extension RxRemotePageCompatible {
         
         let permission: Single<Self> = Single.create { [this = self] in
             let access = this.permission(for: this.remoteState)
-            print(access)
+            Utils.Log.debug(access)
             
             switch access {
             case .already:
-                $0(.error(Fault.RemotePermission.already))
+                $0(.failure(Fault.RemotePermission.already))
             case .notAllowed:
-                $0(.error(Fault.RemotePermission.notAllowed))
+                $0(.failure(Fault.RemotePermission.notAllowed))
             case .interrupt:
                 this.disposeBag = .init()
                 fallthrough
@@ -176,7 +176,7 @@ internal extension RxRemotePageCompatible {
                 if this.remoteHasNextPage {
                     $0(.success(this))
                 } else {
-                    $0(.error(Fault.RemotePageCompatible.noMorePages))
+                    $0(.failure(Fault.RemotePageCompatible.noMorePages))
                 }
             }
             
@@ -184,7 +184,7 @@ internal extension RxRemotePageCompatible {
         }
         
         return permission
-            .subscribeOn(Utils.Task.rx.serialScheduler)
+            .subscribe(on: Utils.Task.rx.serialScheduler)
             .do(onSuccess: {
                 $0.remoteState = .ongoing(.other, last: $0.remoteState.last)
             })

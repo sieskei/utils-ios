@@ -340,8 +340,8 @@ fileprivate extension SliderView {
     
     func prepareGestures() {
         let pan = rx.panGesture {
-            $1.beginPolicy = .custom({ [weak self] gesture in
-                guard let this = self, let pan = gesture as? UIPanGestureRecognizer else {
+            $1.beginPolicy = .custom({ [weak self] pan in
+                guard let this = self else {
                     return false
                 }
                 

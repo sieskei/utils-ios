@@ -147,14 +147,14 @@ public extension PrimitiveSequenceType where Trait == SingleTrait {
         })
     }
     
-    func subscribe<A: AnyObject>(weak obj: A?, onSuccess: ((A, Element) -> Void)? = nil, onError: ((A, Error) -> Void)? = nil) -> Disposable {
+    func subscribe<A: AnyObject>(weak obj: A?, onSuccess: ((A, Element) -> Void)? = nil, onFailure: ((A, Error) -> Void)? = nil) -> Disposable {
         return subscribe(
             onSuccess: { [weak obj] in
                 if let o = obj, let c = onSuccess {
                     c(o, $0)
                 }
-            }, onError: { [weak obj] in
-                if let o = obj, let c = onError {
+            }, onFailure: { [weak obj] in
+                if let o = obj, let c = onFailure {
                     c(o, $0)
                 }
             })

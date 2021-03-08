@@ -110,7 +110,7 @@ extension Utils.Network {
 
 // MARK: Reachable helper.
 public extension Utils.Network {
-    fileprivate static var isReachableValue: EquatableValue<Bool> = {
+    fileprivate static var isReachableValue: Value<Bool> = {
         guard let manager = NetworkReachabilityManager() else {
             return .init(true)
         }
@@ -147,7 +147,7 @@ public extension Reactive where Base: Utils.Network {
                         single(.success(data))
                     case .failure(let error):
                         Utils.Log.error("Utils.Network: unable to get data from url.", url, error)
-                        single(.error(error))
+                        single(.failure(error))
                     }
             }
             
@@ -170,11 +170,11 @@ public extension Reactive where Base: Utils.Network {
                         if let url = url {
                             single(.success(url))
                         } else {
-                            single(.error(Fault.Utils.Network.downloadFail))
+                            single(.failure(Fault.Utils.Network.downloadFail))
                         }
                     case .failure(let error):
                         Utils.Log.error("Utils.Network: unable to get data from url.", url, error)
-                        single(.error(error))
+                        single(.failure(error))
                     }
                 }
             
@@ -203,7 +203,7 @@ public extension Reactive where Base: Utils.Network {
     }
     
     func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {
-        let serializing: EquatableValue<Bool> = .init(false)
+        let serializing: Value<Bool> = .init(false)
         return Utils.rx.interval(interval)
             .pausable(Utils.Network.rx.isReachable)
             .pausable(serializing.map { !$0 })

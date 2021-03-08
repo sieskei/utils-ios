@@ -15,9 +15,9 @@ import RxCocoa
 open class WebView: WKWebView {
     private let disposeBag = DisposeBag()
     
-    private var isReady: EquatableValue<Bool> = .init(false)
+    private var isReady: Value<Bool> = .init(false)
     
-    public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
+    public let headerBoundsPauser: Value<Bool> = .init(true)
     
     public private (set) lazy var headerContainerView: UIView = {
         return headerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))

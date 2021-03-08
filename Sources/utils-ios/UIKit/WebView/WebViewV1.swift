@@ -31,8 +31,8 @@ open class WebViewV1: WKWebView {
     
     private let disposeBag = DisposeBag()
     
-    public let loadingState: EquatableValue<NavigationState> = .init(.not)
-    public let headerBoundsPauser: EquatableValue<Bool> = .init(true)
+    public let loadingState: Value<NavigationState> = .init(.not)
+    public let headerBoundsPauser: Value<Bool> = .init(true)
     
     public private (set) lazy var headerContainerView: UIView = {
         let view = UIView()

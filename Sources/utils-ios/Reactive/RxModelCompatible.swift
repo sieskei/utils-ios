@@ -17,7 +17,7 @@ public protocol RxModelCompatible: class, ModelCompatible, ReactiveCompatible { 
 fileprivate var ModelKey: UInt8 = 0
 
 internal extension RxModelCompatible {
-    var valueModel: EquatableValue<Model<M>> {
+    var valueModel: Value<Model<M>> {
         Utils.AssociatedObject.get(base: self, key: &ModelKey) { .init(.empty) }
     }
 }

@@ -50,6 +50,15 @@ public extension Utils.Storage {
         defaults.set(value, forKey: Configuration.gen(key))
     }
     
+    static func get<T: RawRepresentable>(for key: String, default: T) -> T where T.RawValue: PrimitiveType {
+        let raw: T.RawValue = get(for: key) { `default`.rawValue }
+        return T(rawValue: raw) ?? `default`
+    }
+    
+    static func set<T: RawRepresentable>(key: String, value: T) where T.RawValue: PrimitiveType {
+        defaults.set(value.rawValue, forKey: Configuration.gen(key))
+    }
+    
     static func get<T: Codable>(for key: String, default: T) -> T {
         guard let data = defaults.data(forKey: Configuration.gen(key)),
               let value = try? JSONDecoder().decode(T.self, from: data) else {
@@ -110,5 +119,24 @@ public extension Reactive where Base == Utils.Storage {
         Base.defaults.rx.observe(T.self, Base.Configuration.gen(key)).map { $0 ?? `default` }
     }
 }
+
+//extension Utils.Storage {
+//    @propertyWrapper
+//    public struct RawProperty<T: RawRepresentable>: RxNonEquatableProperty where T.RawValue: PrimitiveType {
+//        public let key: String
+//        public let `default`: T
+//        
+//        public var wrappedValue: T {
+//            get { Utils.Storage.get(for: key, default: `default`) }
+//            set { Utils.Storage.set(key: key, value: newValue) }
+//        }
+//        
+//        public init(wrappedValue: T, key k: String) {
+//            key = k
+//            `default` = wrappedValue
+//        }
+//    }
+//}
+
 
 

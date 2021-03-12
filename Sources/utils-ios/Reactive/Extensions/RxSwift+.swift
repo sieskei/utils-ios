@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 
 public extension ObservableType {
-    func filter<A: AnyObject>(weak obj: A?, _ predicate: @escaping (A, Element) -> Bool) -> Observable<Element> {
+    func filter<A: AnyObject>(with obj: A?, _ predicate: @escaping (A, Element) -> Bool) -> Observable<Element> {
         return filter { [weak obj] element in
             guard let obj = obj else {
                 return false

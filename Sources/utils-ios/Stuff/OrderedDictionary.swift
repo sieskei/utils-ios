@@ -65,7 +65,10 @@ public class OrderedDictionary<K: Hashable, V> {
     }
     
     public func get(at index: Int) -> V? {
-        key2value[keys[index]]
+        guard !keys.isEmpty, index >= 0 && index < keys.count else {
+            return nil
+        }
+        return key2value[keys[index]]
     }
     
     public func get(for key: K) -> V? {

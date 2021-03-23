@@ -1,9 +1,8 @@
 //
 //  BoolCounter.swift
-//  vbox7-ios
+//
 //
 //  Created by Miroslav Yozov on 13.04.18.
-//  Copyright © 2018 Net Info.BG EAD. All rights reserved.
 //
 
 import Foundation
@@ -14,7 +13,7 @@ public class BoolCounter<T: AnyObject> {
     
     private var count: Int = 0 {
         didSet {
-            if oldValue == 0, count == 1 {
+            if oldValue == 0, count > 0 {
                 object[keyPath: keyPath] = true
             } else if oldValue > 0, count == 0 {
                 object[keyPath: keyPath] = false
@@ -46,8 +45,9 @@ public extension BoolCounter {
     
     @discardableResult
     static postfix func --(counter: inout BoolCounter) -> BoolCounter {
-        guard counter.count > 0 else { return counter }
-        counter.count -= 1
+        if counter.count > 0 {
+            counter.count -= 1
+        }
         return counter
     }
 }

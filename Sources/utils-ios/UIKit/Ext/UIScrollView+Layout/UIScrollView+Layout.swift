@@ -10,13 +10,14 @@ import UIKit
 public extension UIScrollView {
     typealias Element = (view: UIView, insets: UIEdgeInsets)
     
+    private static var containerTag: Int = .randomIdentifier
+    
     convenience init(views: [UIView], insets: UIEdgeInsets = .zero) {
         self.init(elements: views.map { ($0, insets) })
     }
     
     convenience init(elements: [Element]) {
         self.init(frame: .zero)
-        alwaysBounceVertical = true
         set(elements: elements)
     }
     
@@ -25,8 +26,8 @@ public extension UIScrollView {
     }
     
     func set(elements: [Element]) {
-        subviews.forEach {
-            $0.removeFromSuperview()
+        if let view = subviews.first(where: { $0.tag == UIScrollView.containerTag }) {
+            view.removeFromSuperview()
         }
         
         guard !elements.isEmpty else {
@@ -34,6 +35,7 @@ public extension UIScrollView {
         }
         
         let container: UIView = .init()
+        container.tag = UIScrollView.containerTag
         container.backgroundColor = .clear
         container.translatesAutoresizingMaskIntoConstraints = false
         addSubview(container)

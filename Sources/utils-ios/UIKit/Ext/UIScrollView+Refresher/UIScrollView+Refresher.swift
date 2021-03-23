@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxSwift
 
 public protocol UIScrollViewRefresher {
     func start(by object: AnyObject) -> String
@@ -47,6 +48,8 @@ fileprivate extension UIScrollView {
         let owner: Owner = .init()
         let action: (UIScrollViewRefresher, AnyObject, String) -> Void
         
+        private var disposeBag: DisposeBag = .init()
+        
         init(action: @escaping (UIScrollViewRefresher, AnyObject, String) -> Void) {
             self.action = action
             super.init(frame: .zero)
@@ -83,7 +86,7 @@ fileprivate extension UIScrollView {
         }
         
         private lazy var refreshingCount: BoolCounter = {
-            return BoolCounter(object: self, keyPath: \UIScrollView.RefresherView.refreshingFlag)
+            .init(object: self, keyPath: \.refreshingFlag)
         }()
         
         // When 'true' ignore scrollview's content offset changes during start/stop animation.
@@ -104,38 +107,31 @@ fileprivate extension UIScrollView {
         override func willMove(toSuperview newSuperview: UIView?) {
             super.willMove(toSuperview: newSuperview)
             
-            if let view = scrollView {
-                view.removeObserver(self, forKeyPath: #keyPath(UIScrollView.contentOffset))
-            }
+            disposeBag = .init()
             
-            if let view = newSuperview as? UIScrollView {
-                view.addObserver(self, forKeyPath: #keyPath(UIScrollView.contentOffset), options: [.old], context: &KVOContext)
-            }
-        }
-        
-        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-            guard context == &KVOContext else {
-                super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+            guard let view = newSuperview as? UIScrollView else {
                 return
             }
             
-            guard let scrollView = object as? UIScrollView, scrollView == self.scrollView, !stopObserving else { return }
-            
-            if keyPath == #keyPath(UIScrollView.contentOffset) {
-                guard let oldOffset = change?[.oldKey] as? CGPoint, scrollView.contentOffset != oldOffset else {
-                    return
+            view.rx.contentOffset
+                .observe(on: MainScheduler.asyncInstance)
+                .distinctUntilChanged()
+                .withUnretained(self)
+                .ignoreWhen { this, _ in
+                    this.stopObserving
                 }
-                
-                if !isRefreshing {
-                    self.alpha = min(-(scrollView.contentOffset.y + scrollView.contentInset.top) / Constants.trigger, 1)
-                }
-                
-                if scrollView.contentOffset.y + scrollView.contentInset.top < -Constants.trigger {
-                    if !scrollView.isDragging {
-                        doStart(programmatically: false)
+                .subscribe(onNext: { this, point in
+                    if !this.isRefreshing {
+                        this.alpha = min(-(point.y + view.contentInset.top) / Constants.trigger, 1)
                     }
-                }
-            }
+                    
+                    if point.y + view.contentInset.top < -Constants.trigger {
+                        if !view.isDragging {
+                            this.doStart(programmatically: false)
+                        }
+                    }
+                })
+                .disposed(by: disposeBag)
         }
         
         func doStart(programmatically: Bool) {

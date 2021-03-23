@@ -61,20 +61,20 @@ public enum Model<M: Equatable>: ModelType {
         }
     }
     
-    public func onValue(_ action: (M) -> Void) {
+    public func onValue(_ action: (M) throws -> Void) rethrows {
         switch self {
         case .empty:
             return
         case .value(let model):
-            action(model)
+            try action(model)
         }
     }
     
-    public func onValue<R>(_ transform: (M) -> R?, action: (R) -> Void) {
+    public func onValue<R>(_ transform: (M) throws -> R?, action: (R) throws -> Void) rethrows {
         switch self {
         case .value(let model):
-            guard let r = transform(model) else { fallthrough }
-            action(r)
+            guard let r = try transform(model) else { fallthrough }
+            try action(r)
         default:
             return
         }

@@ -1,6 +1,6 @@
 //
 //  WebView.swift
-//  
+//
 //
 //  Created by Miroslav Yozov on 15.01.20.
 //
@@ -12,7 +12,7 @@ import RxSwift
 import RxSwiftExt
 import RxCocoa
 
-open class WebView: WKWebView {
+open class WebViewV2: WKWebView {
     private let disposeBag = DisposeBag()
     
     @RxProperty
@@ -41,18 +41,25 @@ open class WebView: WKWebView {
         /*
          Follow vertical scroll content offset.
         */
-        scrollView.rx.contentOffset.map { -$0.y }
+        scrollView.rx.contentOffset.map(unowned: self) { -($0.scrollView.contentInset.top + $1.y) }
     }
     
     open var footerTopConstraintConstant: Observable<CGFloat> {
         /*
-         Follow body size (see top constraint).
-        */
-        $bodySize.value.map { $0.height }
+         Scroll view content size.
+         */
+        let cs = scrollView.rx.observeWeakly(CGSize.self, #keyPath(UIScrollView.contentSize))
+            .map { $0?.height ?? 0 }
+            .do(onNext: {
+                print("CCC", $0, self.scrollView.bounds.height)
+            })
+        
+        return cs
+        
+//        return Observable.combineLatest(cs).map {
+//            return max(0, $0)
+//        }
     }
-    
-    @RxProperty
-    public private (set) var bodySize: CGSize = .zero
     
     public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
         configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
@@ -130,7 +137,7 @@ open class WebView: WKWebView {
 // -------------------------------------------
 // MARK: Prepeare header and footer containrs.
 // -------------------------------------------
-fileprivate extension WebView {
+fileprivate extension WebViewV2 {
     func prepareHeaderContainerView() {
         let view = headerContainerView
         
@@ -156,10 +163,10 @@ fileprivate extension WebView {
         let view = footerContainerView
         
         view.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.insertSubview(view, at: 1)
+        scrollView.addSubview(view)
         
         // dynamic top constraint
-        let topConstraint = view.topAnchor.constraint(equalTo: headerContainerView.bottomAnchor)
+        let topConstraint = view.topAnchor.constraint(equalTo: topAnchor)
         footerTopConstraintConstant
             .distinctUntilChanged()
             .bind(to: topConstraint.rx.constant)
@@ -178,15 +185,11 @@ fileprivate extension WebView {
 // -----------------------------
 // MARK: Prepeare configuration.
 // -----------------------------
-extension WebView {
-    private static var messageLogging = "logging"
-    private static var messageReady = "ready"
-    private static var messageBodySize = "bodysize"
-    
+extension WebViewV2 {
     private class ScriptMessageHandler: NSObject, WKScriptMessageHandler {
-        private weak var view: WebView?
+        private weak var view: WebViewV2?
         
-        init(_ view: WebView) {
+        init(_ view: WebViewV2) {
             self.view = view
         }
         
@@ -196,16 +199,10 @@ extension WebView {
             }
             
             switch message.name {
-            case WebView.messageLogging:
+            case WebViewV2.messageLogging:
                 print("[WebView.console.log]:", message.body)
-            case WebView.messageReady:
+            case WebViewV2.messageReady:
                 view.ready()
-            case WebView.messageBodySize:
-                if let sizeMap = message.body as? [String: CGFloat],
-                   let w = sizeMap["width"],
-                   let h = sizeMap["height"] {
-                    view.bodySize = .init(width: w, height: h)
-                }
             default:
                 break
             }
@@ -226,14 +223,14 @@ extension WebView {
         }
     }
     
+    private static var messageLogging = "logging"
+    private static var messageReady = "ready"
+    
     internal func prepareConfiguration() {
         let ucc = configuration.userContentController
-        let smh = ScriptMessageHandler(self)
-        ucc.add(smh, name: WebView.messageLogging)
-        ucc.add(smh, name: WebView.messageReady)
-        ucc.add(smh, name: WebView.messageBodySize)
+        ucc.add(ScriptMessageHandler(self), name: WebViewV2.messageLogging)
+        ucc.add(ScriptMessageHandler(self), name: WebViewV2.messageReady)
 
-        // logging
         ucc.addUserScript(.init(source:
             """
                 var console = {
@@ -244,7 +241,6 @@ extension WebView {
             """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
         
-        // body display
         ucc.addUserScript(.init(source:
             """
                 document.body.style.display = "none";
@@ -252,23 +248,6 @@ extension WebView {
             """,
         injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         
-        // resize sensor
-        ucc.addUserScript(.init(source: ResizeSensor.source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        
-        // body resize notifier
-        ucc.addUserScript(.init(source:
-            """
-                notify = function() {
-                    var rect = document.body.getBoundingClientRect();
-                    window.webkit.messageHandlers.bodysize.postMessage({ width: rect.width, height: rect.height });
-                }
-
-                new ResizeSensor(document.body, function() {
-                    notify();
-                });
-
-                notify();
-            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         
         typealias O = Observable<Margin>
                 
@@ -291,7 +270,12 @@ extension WebView {
         Observable.merge(hh, hf)
             .pausableBuffered($isReady.value, limit: 1)
             .subscribe(with: self, onNext: {
-                $0.evaluateJavaScript($1.script)
+                switch $1 {
+                case .top(let v):
+                    $0.scrollView.contentInset.top = v
+                case .bottom(let v):
+                    $0.scrollView.contentInset.bottom = v
+                }
             })
             .disposed(by: disposeBag)
     }
@@ -306,8 +290,6 @@ extension WebView {
          */
         evaluateJavaScript(
             """
-                \(Margin.top(headerContainerView.bounds.height).script)
-                \(Margin.bottom(footerContainerView.bounds.height).script)
                 document.body.style.display = "initial";
             """
         )

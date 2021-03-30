@@ -63,6 +63,16 @@ class MulticastDelegate<T, R: Reference> where R.T == T {
     
     fileprivate var delegates: [R]
     
+    public var references: [R.T] {
+        var refs: [R.T] = []
+        delegates.forEach {
+            if let r = $0.ref {
+                refs.append(r)
+            }
+        }
+        return refs
+    }
+    
     fileprivate init(delegate: T) {
         delegates = [R(delegate)]
     }

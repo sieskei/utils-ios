@@ -15,16 +15,31 @@ public protocol OrderedDictionaryDelegate: class {
 }
 
 fileprivate class AnyOrderedDictionaryDelegate<K: Hashable, V>: OrderedDictionaryDelegate {
-    private var didChanged: (OrderedDictionary<K, V>) -> Void
+    private let hash: Int
+    private let didChanged: (OrderedDictionary<K, V>) -> Void
+    
+    private let isAlive: () -> Bool
+    
+    var alive: Bool {
+        isAlive()
+    }
 
     init<D: OrderedDictionaryDelegate>(_ delegate: D) where D.K == K, D.V == V {
+        hash = ObjectIdentifier(delegate).hashValue
         didChanged = { [weak delegate] in
             delegate?.orderedDictionary(didChanged: $0)
+        }
+        isAlive = { [weak delegate] in
+            delegate != nil
         }
     }
     
     func orderedDictionary(didChanged dictionary: OrderedDictionary<K, V>) {
         didChanged(dictionary)
+    }
+    
+    func `is`<D: OrderedDictionaryDelegate>(delegate: D) -> Bool {
+        hash == ObjectIdentifier(delegate).hashValue
     }
 }
 
@@ -162,7 +177,10 @@ public class OrderedDictionary<K: Hashable, V> {
     }
     
     public func remove<D: OrderedDictionaryDelegate>(delegate: D) where D.K == K, D.V == V {
-        // delegates -= delegate
+        guard let anyDelegate = delegates?.references.first(where: { $0.is(delegate: delegate) }) else {
+            return
+        }
+        delegates -= anyDelegate
     }
 }
 

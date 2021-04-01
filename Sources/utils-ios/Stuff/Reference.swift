@@ -10,11 +10,18 @@ import Foundation
 @dynamicMemberLookup
 public protocol Reference {
     associatedtype T: AnyObject
+    
     var ref: T? { get }
     
     init(_ ref: T)
     
-    subscript<V>(dynamicMember keyPath: KeyPath<T, V>) -> V? { get }
+    subscript<V>(dynamicMember keyPath: ReferenceWritableKeyPath<T, V>) -> V? { get }
+}
+
+public extension Reference {
+    subscript<V>(dynamicMember keyPath: ReferenceWritableKeyPath<T, V>) -> V? {
+        ref?[keyPath: keyPath]
+    }
 }
 
 public class WeakReferance<T: AnyObject>: Reference {
@@ -23,10 +30,6 @@ public class WeakReferance<T: AnyObject>: Reference {
     public required init(_ ref: T) {
         self.ref = ref
     }
-    
-    public subscript<V>(dynamicMember keyPath: KeyPath<T, V>) -> V? {
-        ref?[keyPath: keyPath]
-    }
 }
 
 public class StrongReference<T: AnyObject>: Reference {
@@ -34,9 +37,5 @@ public class StrongReference<T: AnyObject>: Reference {
     
     public required init(_ ref: T) {
         self.ref = ref
-    }
-    
-    public subscript<V>(dynamicMember keyPath: KeyPath<T, V>) -> V? {
-        ref?[keyPath: keyPath]
     }
 }

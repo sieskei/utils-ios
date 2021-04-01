@@ -12,7 +12,7 @@ import RxSwift
 /// Notifier is a wrapper for `PublishSubject`.
 ///
 /// Unlike `PublishSubject` it can't terminate with error or completed.
-public class Notifier<Event>: ObservableType {
+open class Notifier<Event>: ObservableType {
     private let subject: PublishSubject<Event>
     
     /// Public constructor.

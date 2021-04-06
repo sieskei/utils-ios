@@ -7,11 +7,11 @@
 
 import UIKit
 
-class SlidePresentationAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+public class SlidePresentationAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
     let isPresenting: Bool
     let duration: TimeInterval
     
-    init(isPresenting: Bool, duration: TimeInterval) {
+    public init(isPresenting: Bool, duration: TimeInterval) {
         self.isPresenting = isPresenting
         self.duration = duration
         super.init()
@@ -52,11 +52,11 @@ class SlidePresentationAnimationController: NSObject, UIViewControllerAnimatedTr
         })
     }
     
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+    public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return duration
     }
     
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning)  {
+    public func animateTransition(using transitionContext: UIViewControllerContextTransitioning)  {
         if isPresenting {
             animatePresentationWithTransitionContext(transitionContext)
         } else {

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class DimmingPresentationController: UIPresentationController {
+public class DimmingPresentationController: UIPresentationController {
     private lazy var dimmingView: UIView = {
         let container = UIView(frame: self.containerView?.bounds ?? CGRect.zero)
         container.alpha = 0.00
@@ -20,7 +20,7 @@ class DimmingPresentationController: UIPresentationController {
     var insetX: CGFloat = 0.00
     var insetY: CGFloat = 0.00
     
-    override var frameOfPresentedViewInContainerView: CGRect {
+    public override var frameOfPresentedViewInContainerView: CGRect {
         guard let containerView = containerView else {
             return super.frameOfPresentedViewInContainerView
         }
@@ -28,7 +28,7 @@ class DimmingPresentationController: UIPresentationController {
         return containerView.bounds.insetBy(dx: insetX, dy: insetY)
     }
     
-    override func presentationTransitionWillBegin() {
+    public override func presentationTransitionWillBegin() {
         guard let containerView = containerView else {
             return
         }
@@ -47,14 +47,14 @@ class DimmingPresentationController: UIPresentationController {
         }
     }
     
-    override func presentationTransitionDidEnd(_ completed: Bool)  {
+    public override func presentationTransitionDidEnd(_ completed: Bool)  {
         // If the presentation didn't complete, remove the dimming view
         if !completed {
             dimmingView.removeFromSuperview()
         }
     }
     
-    override func dismissalTransitionWillBegin()  {
+    public override func dismissalTransitionWillBegin()  {
         // Fade out the dimming view alongside the transition
         if let transitionCoordinator = self.presentingViewController.transitionCoordinator {
             transitionCoordinator.animate(alongsideTransition: { _ in
@@ -65,7 +65,7 @@ class DimmingPresentationController: UIPresentationController {
         }
     }
     
-    override func dismissalTransitionDidEnd(_ completed: Bool) {
+    public override func dismissalTransitionDidEnd(_ completed: Bool) {
         // If the dismissal completed, remove the dimming view
         if completed {
             self.dimmingView.removeFromSuperview()

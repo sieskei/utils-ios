@@ -7,4 +7,5 @@
 
 import Foundation
 
+@available(*, deprecated, message: "Use Decodable & Redecodable instead.")
 public protocol MultipleTimesDecodable: Decodable, Redecodable { }

@@ -2,7 +2,7 @@
 //  Model.swift
 //  
 //
-//  Created by Miroslav Yozov on 30.10.19.
+//  Created by Miroslav Yozov on 7.04.21.
 //
 
 import Foundation
@@ -19,10 +19,29 @@ public protocol ModelType {
 // ----------- //
 // MARK: Model //
 // ----------- //
+@dynamicMemberLookup
 @propertyWrapper
 public enum Model<M: Equatable>: ModelType {
     case empty
     case value(M)
+    
+    // getter for non nil properties
+    public subscript<T>(dynamicMember keyPath: KeyPath<M, T>) -> T? {
+        if case .value(let value) = self {
+            return value[keyPath: keyPath]
+        } else {
+            return nil
+        }
+    }
+    
+    // getter for optional properties
+    public subscript<T>(dynamicMember keyPath: KeyPath<M, T?>) -> T? {
+        if case .value(let value) = self {
+            return value[keyPath: keyPath]
+        } else {
+            return nil
+        }
+    }
     
     public var wrappedValue: M? {
         get {
@@ -37,10 +56,6 @@ public enum Model<M: Equatable>: ModelType {
             self = .init(newValue)
         }
     }
-    
-//    public var projectedValue: Self {
-//        self
-//    }
     
     public init(_ model: M?) {
         if let model = model {
@@ -80,51 +95,39 @@ public enum Model<M: Equatable>: ModelType {
         }
     }
     
-    public func map<R: AnyObject>(_ default: R?,_ transform: (M) -> R?) -> Model<R> {
+    public func map<R: AnyObject>(_ default: R?,_ transform: (M) throws -> R?) rethrows -> Model<R> {
         switch self {
         case .empty:
-            if let model = `default` {
-                return .value(model)
-            } else {
-                return .empty
-            }
+            return .init(`default`)
         case .value(let model):
-            if let model = transform(model) {
-                return .value(model)
-            } else {
-                return .empty
-            }
+            return .init(try transform(model))
         }
     }
     
-    public func map<R: AnyObject>(_ transform: (M) -> R?) -> Model<R> {
+    public func map<R: AnyObject>(_ transform: (M) throws -> R?) rethrows -> Model<R> {
         switch self {
         case .empty:
             return .empty
         case .value(let model):
-            if let model = transform(model) {
-                return .value(model)
-            } else {
-                return .empty
-            }
+            return .init(try transform(model))
         }
     }
     
-    public func map<R>(_ default: R, _ transform: (M) -> R) -> R {
+    public func map<R>(_ default: R, _ transform: (M) throws -> R) rethrows -> R {
         switch self {
         case .empty:
             return `default`
         case .value(let model):
-            return transform(model)
+            return try transform(model)
         }
     }
     
-    public func mapIf<R>(_ if: (M) -> Bool, _ default: R, _ transform: (M) -> R) -> R {
+    public func mapIf<R>(_ if: (M) -> Bool, _ default: R, _ transform: (M) throws -> R) rethrows -> R {
         switch self {
         case .empty:
             return `default`
         case .value(let model):
-            return `if`(model) ? transform(model) : `default`
+            return `if`(model) ? try transform(model) : `default`
         }
     }
 }
@@ -158,9 +161,4 @@ extension Model: Equatable {
             return lhsValue == rhs
         }
     }
-}
-
-public protocol ModelCompatible {
-    associatedtype M: Equatable
-    var model: Model<M> { get set }
 }

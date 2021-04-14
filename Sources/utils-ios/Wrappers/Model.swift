@@ -25,24 +25,6 @@ public enum Model<M: Equatable>: ModelType {
     case empty
     case value(M)
     
-    // getter for non nil properties
-    public subscript<T>(dynamicMember keyPath: KeyPath<M, T>) -> T? {
-        if case .value(let value) = self {
-            return value[keyPath: keyPath]
-        } else {
-            return nil
-        }
-    }
-    
-    // getter for optional properties
-    public subscript<T>(dynamicMember keyPath: KeyPath<M, T?>) -> T? {
-        if case .value(let value) = self {
-            return value[keyPath: keyPath]
-        } else {
-            return nil
-        }
-    }
-    
     public var wrappedValue: M? {
         get {
             switch self {
@@ -94,7 +76,11 @@ public enum Model<M: Equatable>: ModelType {
             return
         }
     }
-    
+}
+
+
+// MARK: map method variations
+extension Model {
     public func map<R: AnyObject>(_ default: R?,_ transform: (M) throws -> R?) rethrows -> Model<R> {
         switch self {
         case .empty:
@@ -133,10 +119,7 @@ public enum Model<M: Equatable>: ModelType {
 }
 
 
-// --------------- //
-// MARK: Equatable //
-// --------------- //
-
+// MARK: Equatable implementation
 extension Model: Equatable {
     public static func == (lhs: Model<M>, rhs: Model<M>) -> Bool {
         switch lhs {
@@ -159,6 +142,56 @@ extension Model: Equatable {
             return rhs == nil
         case .value(let lhsValue):
             return lhsValue == rhs
+        }
+    }
+}
+
+
+// MARK: @dynamicMemberLookup implementation
+extension Model {
+    private func get<T>(for keyPath: KeyPath<M, T?>) -> T? {
+        if case .value(let value) = self {
+            return value[keyPath: keyPath]
+        } else {
+            return nil
+        }
+    }
+    
+    private func get<T>(for keyPath: KeyPath<M, T>) -> T? {
+        if case .value(let value) = self {
+            return value[keyPath: keyPath]
+        } else {
+            return nil
+        }
+    }
+    
+    // getter for read-only non nil properties
+    public subscript<T>(dynamicMember keyPath: KeyPath<M, T>) -> T? {
+        `get`(for: keyPath)
+    }
+    
+    // getter for read-only optional properties
+    public subscript<T>(dynamicMember keyPath: KeyPath<M, T?>) -> T? {
+        `get`(for: keyPath)
+    }
+    
+    // getter/setter for writable non nil properties
+    public subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T? {
+        get { `get`(for: keyPath) }
+        set {
+            if case .value(var value) = self, let newValue = newValue {
+                value[keyPath: keyPath] = newValue
+            }
+        }
+    }
+    
+    // getter/setter for writable optional properties
+    public subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T?>) -> T? {
+        get { `get`(for: keyPath) }
+        set {
+            if case .value(var value) = self {
+                value[keyPath: keyPath] = newValue
+            }
         }
     }
 }

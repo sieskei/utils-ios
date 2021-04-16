@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RxSwift
 
 public protocol TrackCompatibleSource {
     var trackingScreen: TrackCompatibleItem { get }
@@ -27,22 +28,41 @@ public protocol TrackCompatible {
 }
 
 public struct TrackSystems {
-    public static var instances: [TrackCompatible] = {
-        return []
+    private static let disposeBag: DisposeBag = .init()
+    
+    @RxProperty
+    private static var initialized: Bool = false
+    
+    private static var trackQueue: Notifier<TrackCompatibleEvent> = {
+        let queue: Notifier<TrackCompatibleEvent> = .init()
+        
+        let pauser = Observable.combineLatest($initialized.value.asObservable(), Utils.Tracking.rx.isRequested.observe(on: MainScheduler.instance))
+            .map { $0 && $1 }
+        
+        queue
+            .pausableBuffered(pauser, limit: nil)
+            .subscribe(onNext: { meta in
+                var params = meta.params
+                params["event"] = meta.eventName
+                
+                TrackSystems.instances.forEach {
+                    $0.track(params: params)
+                }
+            }).disposed(by: disposeBag)
+        
+        return queue
     }()
     
+    public static var instances: [TrackCompatible] = []
+    
     public static func initialize() {
-        instances.forEach {
-            $0.initialize()
+        if !initialized {
+            instances.forEach { $0.initialize() }
+            initialized = true
         }
     }
     
     public static func track(meta: TrackCompatibleEvent) {
-        var params = meta.params
-        params["event"] = meta.eventName
-        
-        instances.forEach {
-            $0.track(params: params)
-        }
+        trackQueue.notify(meta)
     }
 }

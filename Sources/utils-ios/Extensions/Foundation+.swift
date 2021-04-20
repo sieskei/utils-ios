@@ -107,4 +107,10 @@ public extension Optional {
             return try transform(wrapped)
         }
     }
+    
+    func onValue(_ action: (Wrapped) throws -> Void) rethrows {
+        if let value = self {
+            try action(value)
+        }
+    }
 }

@@ -1,18 +1,17 @@
 //
-//  RxModel.swift
+//  RxOptional.swift
 //  
 //
-//  Created by Miroslav Yozov on 25.12.20.
+//  Created by Miroslav Yozov on 19.04.21.
 //
 
 import Foundation
 import RxSwift
 import RxCocoa
 
-@available(*, deprecated, message: "Use @RxOptional instead.")
 @propertyWrapper
-public class RxModel<M: Equatable>: RxProperty<Model<M>> {
-    public override var wrappedValue: Model<M> {
+public class RxOptional<W>: RxNonEquatableProperty<Optional<W>> {
+    public override var wrappedValue: Optional<W> {
         get { super.wrappedValue }
         set { super.wrappedValue = newValue }
     }
@@ -21,32 +20,32 @@ public class RxModel<M: Equatable>: RxProperty<Model<M>> {
         .init(base: self)
     }
     
-    public override init(wrappedValue: Model<M>) {
+    public override init(wrappedValue: Optional<W>) {
         super.init(wrappedValue: wrappedValue)
     }
 }
 
-public extension RxModel {
-    class Tools: RxProperty<Model<M>>.Tools { }
+public extension RxOptional {
+    class Tools: RxNonEquatableProperty<Optional<W>>.Tools { }
 }
 
-// MARK: Reactive compatible for RxRedecodable models.
-public extension RxModel.Tools where M: RxRedecodable {
-    var decode: ControlProperty<Model<M>> {
-        let values: Observable<Model<M>> = base.v.flatMapLatest {
-            $0.map(.just(.empty)) { value -> Observable<Model<M>> in
-                value.rx.decode.map { .value($0) }.startWith(.value(value))
+// MARK: Reactive tools for RxRedecodable optionals.
+public extension RxOptional.Tools where W: RxRedecodable {
+    var decode: ControlProperty<Optional<W>> {
+        let values: Observable<Optional<W>> = base.v.flatMapLatest {
+            $0.map(.just(.none)) { value -> Observable<Optional<W>> in
+                value.rx.decode.map { .some($0) }.startWith(.some(value))
             }
         }
-        let bindingObserver: Binder<Model<M>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
+        let bindingObserver: Binder<Optional<W>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
             $0.wrappedValue = $1
         }
         return .init(values: values, valueSink: bindingObserver)
     }
 }
 
-// MARK: Reactive compatible for RxRemoteCompatible models.
-public extension RxModel.Tools where M: RxRemoteCompatible {
+// MARK: Reactive tools for RxRemoteCompatible optionals.
+public extension RxOptional.Tools where W: RxRemoteCompatible {
     var remoteState: Observable<RemoteState> {
         base.v.flatMapLatest {
             $0.map(.just(.not)) { value -> Observable<RemoteState> in
@@ -78,18 +77,18 @@ public extension RxModel.Tools where M: RxRemoteCompatible {
         }
     }
 
-    func reinit() -> Single<Model<M>> {
+    func reinit() -> Single<Optional<W>> {
         base.wrappedValue.map(.just(base.wrappedValue)) {
-            $0.rx.reinit().map { .value($0) }
+            $0.rx.reinit().map { .some($0) }
         }
     }
 }
 
-// MARK: Reactive compatible for RxRemoteCompatible models.
-public extension RxModel.Tools where M: RxRemotePageCompatible {
-    func next() -> Single<Model<M>> {
+// MARK: Reactive tools for RxRemoteCompatible optionals.
+public extension RxOptional.Tools where W: RxRemotePageCompatible {
+    func next() -> Single<Optional<W>> {
         base.wrappedValue.map(.just(base.wrappedValue)) {
-            $0.rx.next().map { .value($0) }
+            $0.rx.next().map { .some($0) }
         }
     }
 }

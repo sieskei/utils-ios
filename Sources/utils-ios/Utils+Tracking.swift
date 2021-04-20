@@ -21,7 +21,7 @@ public protocol TrackingPlatform {
 
 extension Utils {
     public struct Tracking: ReactiveCompatible {
-        enum Initialized {
+        private enum Initialized {
             case `true`
             case `false`
             case running

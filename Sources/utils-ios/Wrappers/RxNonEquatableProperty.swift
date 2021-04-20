@@ -37,7 +37,7 @@ public extension RxNonEquatableProperty {
     }
 }
 
-// MARK: Reactive compatible.
+// MARK: Reactive tools.
 public extension RxNonEquatableProperty.Tools {
     var value: ControlProperty<P> {
         let origin = base.v.asObservable()

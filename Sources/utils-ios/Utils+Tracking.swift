@@ -42,13 +42,15 @@ extension Utils {
             }
             
             switch ATTrackingManager.trackingAuthorizationStatus {
-            case .authorized, .denied:
+            case .authorized, .denied, .restricted:
                 return true
-            case .notDetermined, .restricted:
+            case .notDetermined:
                 fallthrough
             @unknown default:
-                ATTrackingManager.requestTrackingAuthorization { _ in
-                    Tracking.isRequestedProperty = true
+                Task.async {
+                    ATTrackingManager.requestTrackingAuthorization { _ in
+                        Tracking.isRequestedProperty = true
+                    }
                 }
                 return false
             }

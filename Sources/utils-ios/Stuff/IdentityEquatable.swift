@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol IdentityEquatable: class, Equatable { }
+public protocol IdentityEquatable: AnyObject, Equatable { }
 
 public extension IdentityEquatable {
     static func == (lhs: Self, rhs: Self) -> Bool {

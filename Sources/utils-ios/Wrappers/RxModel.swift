@@ -20,10 +20,6 @@ public class RxModel<M: Equatable>: RxProperty<Model<M>> {
     public override var projectedValue: Tools {
         .init(base: self)
     }
-    
-    public override init(wrappedValue: Model<M>) {
-        super.init(wrappedValue: wrappedValue)
-    }
 }
 
 public extension RxModel {

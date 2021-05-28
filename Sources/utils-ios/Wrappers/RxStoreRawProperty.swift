@@ -10,7 +10,7 @@ import RxSwift
 import RxCocoa
 
 @propertyWrapper
-public class RxStoreRawProperty<P: RawRepresentable>: RxNonEquatableProperty<P> where P.RawValue: PrimitiveType {
+public class RxStoreRawProperty<P: RawRepresentable>: RxProperty<P> where P.RawValue: PrimitiveType {
     public let key: String
     
     public override var wrappedValue: P {
@@ -32,5 +32,5 @@ public class RxStoreRawProperty<P: RawRepresentable>: RxNonEquatableProperty<P> 
 }
 
 public extension RxStoreRawProperty {
-    class Tools: RxNonEquatableProperty<P>.Tools { }
+    class Tools: RxProperty<P>.Tools { }
 }

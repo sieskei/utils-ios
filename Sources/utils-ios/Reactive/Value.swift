@@ -12,25 +12,41 @@ import RxCocoa
 /// Value is a wrapper for `BehaviorSubject`.
 ///
 /// Unlike `BehaviorSubject` it can't terminate with error or completed.
-public class NonEquatableValue<Element>: ObservableType {
+public class Value<Element> {
+    public typealias Comparator = (Element, Element) -> Bool
+    
     private let subject: BehaviorSubject<Element>
+    private let areEqual: Comparator
     
     /// Current value of behavior subject
     public var value: Element {
         // this try! is ok because subject can't error out or be disposed
         get { return try! subject.value() }
-        set { subject.onNext(newValue) }
+        set {
+            if !areEqual(try! subject.value(), newValue) {
+                subject.onNext(newValue)
+            }
+        }
     }
     
+    /// Initializes with initial value and default comparator (allways false).
+    public init(_ value: Element, _ areEqual: @escaping Comparator = { _, _ in false }) {
+        self.subject = .init(value: value)
+        self.areEqual = areEqual
+    }
+    
+    /// Initializes with equatable initial value and default comparator (==).
+    public init(_ value: Element, _ areEqual: @escaping Comparator = { $0 == $1 }) where Element: Equatable {
+        self.subject = .init(value: value)
+        self.areEqual = areEqual
+    }
+}
+
+extension Value: ObservableType {
     public var binder: Binder<Element> {
-        return .init(self, scheduler: CurrentThreadScheduler.instance) { $0.value = $1 }
+        .init(self, scheduler: CurrentThreadScheduler.instance) { $0.value = $1 }
     }
-
-    /// Initializes behavior relay with initial value.
-    public init(_ value: Element) {
-        subject = BehaviorSubject(value: value)
-    }
-
+    
     /// Subscribes observer
     public func subscribe<Observer: ObserverType>(_ observer: Observer) -> Disposable where Observer.Element == Element {
         return subject.subscribe(observer)
@@ -39,16 +55,5 @@ public class NonEquatableValue<Element>: ObservableType {
     /// - returns: Canonical interface for push style sequence
     public func asObservable() -> Observable<Element> {
         return subject.asObservable()
-    }
-}
-
-/// Value with Element type that confirm Equatable.
-public class Value<Element: Equatable>: NonEquatableValue<Element> {
-    public override var value: Element {
-        get { return super.value }
-        set {
-            guard newValue != super.value else { return }
-            super.value = newValue
-        }
     }
 }

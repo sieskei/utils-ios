@@ -10,7 +10,7 @@ import RxSwift
 import RxCocoa
 
 @propertyWrapper
-public class RxOptional<W>: RxNonEquatableProperty<Optional<W>> {
+public class RxOptional<W>: RxProperty<Optional<W>> {
     public override var wrappedValue: Optional<W> {
         get { super.wrappedValue }
         set { super.wrappedValue = newValue }
@@ -19,14 +19,10 @@ public class RxOptional<W>: RxNonEquatableProperty<Optional<W>> {
     public override var projectedValue: Tools {
         .init(base: self)
     }
-    
-    public override init(wrappedValue: Optional<W>) {
-        super.init(wrappedValue: wrappedValue)
-    }
 }
 
 public extension RxOptional {
-    class Tools: RxNonEquatableProperty<Optional<W>>.Tools { }
+    class Tools: RxProperty<Optional<W>>.Tools { }
 }
 
 // MARK: Reactive tools for RxRedecodable optionals.

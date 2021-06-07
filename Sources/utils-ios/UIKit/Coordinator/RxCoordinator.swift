@@ -5,15 +5,14 @@
 //  Created by Miroslav Yozov on 7.04.21.
 //
 
-import Foundation
+import UIKit
 import RxSwift
 
 /// Base abstract coordinator generic over the return type of the `start` method.
 open class RxCoordinator<ResultType> {
-
     /// Typealias which will allows to access a ResultType of the Coordainator by `CoordinatorName.CoordinationResult`.
-    typealias CoordinationResult = ResultType
-
+    public typealias CoordinationResult = ResultType
+    
     /// Utility `DisposeBag` used by the subclasses.
     public let disposeBag = DisposeBag()
 
@@ -42,18 +41,22 @@ open class RxCoordinator<ResultType> {
         childCoordinators[coordinator.identifier] = nil
     }
 
-    /// 1. Stores coordinator in a dictionary of child coordinators.
-    /// 2. Calls method `start()` on that coordinator.
-    /// 3. On the `onNext:` of returning observable of method `start()` removes coordinator from the dictionary.
+    /// 1. Calls method `start()` on that coordinator.
+    /// 2. On the `onSubscribe:` of returning observable of method `start()` stores coordinator in a dictionary of child coordinators.
+    /// 3. On the `afterCompleted:` of returning observable of method `start()` removes coordinator from the dictionary.
     ///
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
     public func coordinate<T>(to coordinator: RxCoordinator<T>) -> Observable<T> {
-        store(coordinator: coordinator)
-        return coordinator.start()
-            .do(onNext: { [weak self] _ in self?.free(coordinator: coordinator) })
+        coordinator
+            .start()
+            .do(weak: self, afterCompleted: {
+                $0.free(coordinator: coordinator)
+            }, onSubscribe: {
+                $0.store(coordinator: coordinator)
+            })
     }
-
+    
     /// Starts job of the coordinator.
     ///
     /// - Returns: Result of coordinator job.

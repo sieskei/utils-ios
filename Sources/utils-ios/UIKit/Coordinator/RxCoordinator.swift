@@ -105,6 +105,8 @@ public extension RxCoordinator.LifeCycle {
         switch self {
         case .event(let r):
             return .map(.event(r))
+        case .dismiss:
+            return .map(.dismiss)
         default:
             return .ignore
         }

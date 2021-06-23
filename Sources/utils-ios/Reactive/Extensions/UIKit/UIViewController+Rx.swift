@@ -73,4 +73,28 @@ public extension Reactive where Base: UIViewController {
         let source = self.sentMessage(#selector(Base.dismiss)).map { $0.first as? Bool ?? false }
         return ControlEvent(events: source)
     }
+    
+    func present<T: UIViewController>(_ viewControllerToPresent: T, animated flag: Bool) -> Observable<T> {
+        .create({ [weak base] observer in
+            if let base = base {
+                base.present(viewControllerToPresent, animated: flag) {
+                    observer.onNext((viewControllerToPresent))
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create { }
+        })
+    }
+    
+    func dismiss(animated flag: Bool) -> Observable<Void> {
+        .create({ [weak base] observer in
+            if let base = base {
+                base.dismiss(animated: flag) {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create { }
+        })
+    }
 }

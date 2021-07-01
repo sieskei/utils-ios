@@ -12,8 +12,8 @@ import RxSwift
 /// Notifier is a wrapper for `PublishSubject`.
 ///
 /// Unlike `PublishSubject` it can't terminate with error or completed.
-open class Notifier<Event>: ObservableType {
-    private let subject: PublishSubject<Event>
+open class Notifier<E>: ObservableType, ObserverType {
+    private let subject: PublishSubject<E>
     
     /// Public constructor.
     public init() {
@@ -21,17 +21,21 @@ open class Notifier<Event>: ObservableType {
     }
     
     /// Publish event.
-    public func notify(_ element: Event) {
+    public func notify(_ element: E) {
         subject.onNext(element)
     }
     
     /// Subscribes observer
-    public func subscribe<Observer: ObserverType>(_ observer: Observer) -> Disposable where Observer.Element == Event {
+    public func subscribe<Observer: ObserverType>(_ observer: Observer) -> Disposable where Observer.Element == E {
         return subject.subscribe(observer)
     }
 
     /// - returns: Canonical interface for push style sequence
-    public func asObservable() -> Observable<Event> {
+    public func asObservable() -> Observable<E> {
         return subject.asObservable()
+    }
+    
+    public func on(_ event: Event<E>) {
+        subject.on(event)
     }
 }

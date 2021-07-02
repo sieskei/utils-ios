@@ -22,7 +22,7 @@ public extension Decoder {
     }
 }
 
-public protocol Redecodable: class, Synchronized {
+public protocol Redecodable: AnyObject, Synchronized {
     func runDecode(fromJson data: Data) throws
     func runDecode(from decoder: Decoder) throws
     

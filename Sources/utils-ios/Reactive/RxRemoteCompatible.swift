@@ -12,7 +12,7 @@ import RxCocoa
 
 fileprivate var RemoteStateKey: UInt8 = 0
 
-public protocol RxRemoteCompatible: RemoteCompatible, RxRedecodable {
+public protocol RxRemoteCompatible: RemoteCompatible, RxRedecodable, DisposeContext {
     /// Default remote state aka when constructed.
     var defaultRemoteState: RemoteState { get }
 }
@@ -52,12 +52,6 @@ public extension RxRemotePageCompatible {
 fileprivate var DisposeBagKey: UInt8 = 0
 
 fileprivate extension RxRemoteCompatible {
-    
-    var disposeBag: DisposeBag {
-        get { Utils.AssociatedObject.get(base: self, key: &DisposeBagKey) { .init() } }
-        set { Utils.AssociatedObject.set(base: self, key: &DisposeBagKey, value: newValue) }
-    }
-    
     func serialize(endpoint: EndpointType) -> Single<Self> {
         endpoint.rx.serialize(to: self, network: network)
             .do(onSuccess: {
@@ -100,7 +94,7 @@ internal extension RxRemoteCompatible {
             case .notAllowed:
                 $0(.failure(Fault.RemotePermission.notAllowed))
             case .interrupt:
-                this.disposeBag = .init()
+                this.contextDispose()
                 fallthrough
             case .allowed:
                  $0(.success(this))
@@ -123,7 +117,7 @@ internal extension RxRemoteCompatible {
     func runReinit() {
         serializeReinit()
             .subscribe()
-            .disposed(by: disposeBag)
+            .disposed(by: self)
     }
 }
 
@@ -170,7 +164,7 @@ internal extension RxRemotePageCompatible {
             case .notAllowed:
                 $0(.failure(Fault.RemotePermission.notAllowed))
             case .interrupt:
-                this.disposeBag = .init()
+                this.contextDispose()
                 fallthrough
             case .allowed:
                 if this.remoteHasNextPage {
@@ -194,7 +188,7 @@ internal extension RxRemotePageCompatible {
     func runNext() {
         serializeNext()
             .subscribe()
-            .disposed(by: disposeBag)
+            .disposed(by: self)
     }
 }
 

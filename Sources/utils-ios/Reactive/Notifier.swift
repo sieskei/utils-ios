@@ -36,6 +36,8 @@ open class Notifier<E>: ObservableType, ObserverType {
     }
     
     public func on(_ event: Event<E>) {
-        subject.on(event)
+        if case .next(let e) = event {
+            subject.onNext(e)
+        }
     }
 }

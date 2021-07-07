@@ -8,8 +8,4 @@
 import Foundation
 import Alamofire
 
-extension AFError: ErrorContainer {
-    public var errorOrSelf: Error {
-        underlyingError ?? self
-    }
-}
+extension AFError: ErrorWrapper { }

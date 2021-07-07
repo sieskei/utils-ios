@@ -15,17 +15,11 @@ open class RxIOCoordinator<InputType, ResultType>: RxCoordinator<ResultType> {
     /// Typealias which will allows to access a ResultType of the Coordainator by `CoordinatorName.CoordinationInput`.
     public typealias CoordinationInput = InputType
     
-    private let input: Observable<InputType>
-    
-    public init(input: Observable<InputType>) {
-        self.input = input
-        super.init()
-    }
+    private let input: PublishSubject<InputType> = .init()
     
     public final override func start() -> CoordinationStart {
         start(input: input)
     }
-    
     
     /// Starts job of the coordinator.
     ///
@@ -33,5 +27,17 @@ open class RxIOCoordinator<InputType, ResultType>: RxCoordinator<ResultType> {
     /// - Returns: Controller and events of coordinator job.
     open func start(input: Observable<InputType>) -> CoordinationStart {
         fatalError("Start(input:) method should be implemented.")
+    }
+}
+
+extension RxIOCoordinator: ObserverType {
+    public typealias Element = InputType
+    
+    public func on(_ event: RxSwift.Event<Element>) {
+        input.on(event)
+    }
+    
+    public func on(_ event: InputType) {
+        input.onNext(event)
     }
 }

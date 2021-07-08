@@ -14,8 +14,10 @@ import RxCocoa
 /// Unlike `BehaviorSubject` it can't terminate with error or completed.
 public class Value<Element> {
     public typealias Comparator = (Element, Element) -> Bool
+    public typealias Setter = (Element) -> Element
     
     private let subject: BehaviorSubject<Element>
+    private let willSet: Setter
     private let areEqual: Comparator
     
     /// Current value of behavior subject
@@ -23,6 +25,7 @@ public class Value<Element> {
         // this try! is ok because subject can't error out or be disposed
         get { return try! subject.value() }
         set {
+            let newValue = willSet(newValue)
             if !areEqual(try! subject.value(), newValue) {
                 subject.onNext(newValue)
             }
@@ -30,21 +33,25 @@ public class Value<Element> {
     }
     
     /// Initializes with initial value and default comparator (allways false).
-    public init(_ value: Element, _ areEqual: @escaping Comparator = { _, _ in false }) {
-        self.subject = .init(value: value)
+    public init(_ value: Element, willSet: @escaping Setter = { $0 }, areEqual: @escaping Comparator = { _, _ in false }) {
+        self.subject = .init(value: willSet(value))
+        self.willSet = willSet
         self.areEqual = areEqual
     }
     
     /// Initializes with equatable initial value and default comparator (==).
-    public init(_ value: Element, _ areEqual: @escaping Comparator = { $0 == $1 }) where Element: Equatable {
-        self.subject = .init(value: value)
+    public init(_ value: Element, willSet: @escaping Setter = { $0 }, areEqual: @escaping Comparator = { $0 == $1 }) where Element: Equatable {
+        self.subject = .init(value: willSet(value))
+        self.willSet = willSet
         self.areEqual = areEqual
     }
 }
 
-extension Value: ObservableType {
-    public var binder: Binder<Element> {
-        .init(self, scheduler: CurrentThreadScheduler.instance) { $0.value = $1 }
+extension Value: ObservableType, ObserverType {
+    public func on(_ event: Event<Element>) {
+        if case .next(let element) = event {
+            value = element
+        }
     }
     
     /// Subscribes observer

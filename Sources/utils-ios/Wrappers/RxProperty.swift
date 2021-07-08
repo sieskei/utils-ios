@@ -22,12 +22,12 @@ public class RxProperty<P> {
         .init(base: self)
     }
     
-    public init(wrappedValue: P, _ areEqual: @escaping Value<P>.Comparator = { _, _ in false }) {
-        v = .init(wrappedValue, areEqual)
+    public init(wrappedValue: P, willSet: @escaping Value<P>.Setter = { $0 }, areEqual: @escaping Value<P>.Comparator = { _, _ in false }) {
+        v = .init(wrappedValue, willSet: willSet, areEqual: areEqual)
     }
     
-    public init(wrappedValue: P, _ areEqual: @escaping Value<P>.Comparator = { $0 == $1 }) where P: Equatable {
-        v = .init(wrappedValue, areEqual)
+    public init(wrappedValue: P, willSet: @escaping Value<P>.Setter = { $0 }, areEqual: @escaping Value<P>.Comparator = { $0 == $1 }) where P: Equatable {
+        v = .init(wrappedValue, willSet: willSet, areEqual: areEqual)
     }
 }
 

@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-@available(*, deprecated, message: "Use @RxOptional instead.")
+@available(*, deprecated, message: "Use @RxProperty instead.")
 @propertyWrapper
 public class RxModel<M: Equatable>: RxProperty<Model<M>> {
     public override var wrappedValue: Model<M> {

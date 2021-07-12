@@ -97,20 +97,3 @@ public extension URL {
         return urlComponents.url
     }
 }
-
-public extension Optional {
-    func map<U>(_ default: U, transform: (Wrapped) throws -> U) rethrows -> U {
-        switch self {
-        case .none:
-            return `default`
-        case .some(let wrapped):
-            return try transform(wrapped)
-        }
-    }
-    
-    func onValue(_ action: (Wrapped) throws -> Void) rethrows {
-        if let value = self {
-            try action(value)
-        }
-    }
-}

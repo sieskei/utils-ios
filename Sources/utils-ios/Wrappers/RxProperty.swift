@@ -1,9 +1,9 @@
-////
-////  RxNonEquatableProperty.swift
-////
-////
-////  Created by Miroslav Yozov on 8.03.21.
-////
+//
+//  RxProperty.swift
+//
+//
+//  Created by Miroslav Yozov on 8.03.21.
+//
 
 import Foundation
 import RxSwift
@@ -38,16 +38,13 @@ public extension RxProperty {
         init(base: RxProperty<P>) {
             self.base = base
         }
-    }
-}
-
-// MARK: Reactive tools.
-public extension RxProperty.Tools {
-    var value: ControlProperty<P> {
-        let origin = base.v.asObservable()
-        let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {
-            $0.wrappedValue = $1
+        
+        public var value: ControlProperty<P> {
+            let origin = base.v.asObservable()
+            let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {
+                $0.wrappedValue = $1
+            }
+            return .init(values: origin, valueSink: bindingObserver)
         }
-        return .init(values: origin, valueSink: bindingObserver)
     }
 }

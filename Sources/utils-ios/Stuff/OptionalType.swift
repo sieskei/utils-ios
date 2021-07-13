@@ -7,10 +7,9 @@
 
 import Foundation
 
-public protocol OptionalType {
-    static var `nil`: Self { get }
-    
+public protocol OptionalType: ExpressibleByNilLiteral {
     associatedtype Wrapped
+    
     var wrapped: Optional<Wrapped> { get }
     init(_ wrapped: Wrapped)
 }
@@ -34,8 +33,4 @@ public extension OptionalType {
 // MARK: Implement OptionalType.
 extension Optional: OptionalType {
     public var wrapped: Optional<Wrapped> { self }
-    
-    public static var `nil`: Self {
-        .none
-    }
 }

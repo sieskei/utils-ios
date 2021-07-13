@@ -13,7 +13,7 @@ import RxCocoa
 public extension RxProperty.Tools where P: OptionalType, P.Wrapped: RxRedecodable {
     var decode: ControlProperty<P> {
         let values: Observable<P> = base.v.flatMapLatest {
-            $0.wrapped.map(.just(P.nil)) { value -> Observable<P> in
+            $0.wrapped.map(.just(nil)) { value -> Observable<P> in
                 value.rx.decode.map { .init($0) }.startWith(.init(value))
             }
         }

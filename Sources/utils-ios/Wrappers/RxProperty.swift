@@ -32,6 +32,7 @@ public class RxProperty<P> {
 }
 
 public extension RxProperty {
+    @dynamicMemberLookup
     class Tools {
         public private (set) var base: RxProperty<P>
 
@@ -39,12 +40,18 @@ public extension RxProperty {
             self.base = base
         }
         
+        private var src: Observable<P> {
+            base.v.asObservable()
+        }
+        
         public var value: ControlProperty<P> {
-            let origin = base.v.asObservable()
-            let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {
+            .init(values: src, valueSink: Binder(base, scheduler: CurrentThreadScheduler.instance) {
                 $0.wrappedValue = $1
-            }
-            return .init(values: origin, valueSink: bindingObserver)
+            })
+        }
+        
+        public subscript<Property>(dynamicMember keyPath: KeyPath<P, Property>) -> Observable<Property> {
+            src.map { $0[keyPath: keyPath] }
         }
     }
 }

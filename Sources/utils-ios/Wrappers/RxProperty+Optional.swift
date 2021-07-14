@@ -11,16 +11,26 @@ import RxCocoa
 
 // MARK: Reactive tools for optional RxRedecodable.
 public extension RxProperty.Tools where P: OptionalType, P.Wrapped: RxRedecodable {
-    var decode: ControlProperty<P> {
-        let values: Observable<P> = base.v.flatMapLatest {
+    private var src: Observable<P> {
+        base.v.flatMapLatest {
             $0.wrapped.map(.just(nil)) { value -> Observable<P> in
                 value.rx.decode.map { .init($0) }.startWith(.init(value))
             }
         }
-        let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {
+    }
+    
+    var decode: ControlProperty<P> {
+        .init(values: src, valueSink: Binder(base, scheduler: CurrentThreadScheduler.instance) {
             $0.wrappedValue = $1
-        }
-        return .init(values: values, valueSink: bindingObserver)
+        })
+    }
+    
+    subscript<Property>(dynamicMember keyPath: KeyPath<P.Wrapped, Property>) -> Observable<Property?> {
+        src.map { $0.wrapped?[keyPath: keyPath] }
+    }
+    
+    subscript<Property>(dynamicMember keyPath: KeyPath<P.Wrapped, Property?>) -> Observable<Property?> {
+        src.map { $0.wrapped?[keyPath: keyPath] }
     }
 }
 

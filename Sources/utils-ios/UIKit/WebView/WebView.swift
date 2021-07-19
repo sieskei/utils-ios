@@ -16,7 +16,33 @@ open class WebView: WKWebView {
     private let disposeBag = DisposeBag()
     
     @RxProperty
-    private var isReady: Bool = false
+    private var isReady: Bool = false {
+        didSet {
+            guard isReady else {
+                return
+            }
+            
+            /*
+             Set body margins and display.
+             */
+            evaluateJavaScript(
+                """
+                    \(Margin.top(headerContainerView.bounds.height).script(for: scrollView.zoomScale))
+                    \(Margin.bottom(footerContainerView.bounds.height).script(for: scrollView.zoomScale))
+                    document.body.style.display = "block";
+                """
+            )
+        }
+    }
+    
+    private lazy var zoomScale: Observable<CGFloat> = {
+        scrollView.rx.didZoom
+            .withUnretained(self)
+            .map { this, _ in this.scrollView.zoomScale }
+            .startWith(scrollView.zoomScale)
+            .map { round($0 * 1000) / 1000.0 }
+            .distinctUntilChanged()
+    }()
     
     @RxProperty
     public var freezeHeaderBounds: Bool = false
@@ -46,9 +72,9 @@ open class WebView: WKWebView {
     
     open var footerTopConstraintConstant: Observable<CGFloat> {
         /*
-         Follow body size (see top constraint).
+         Follow body size + scale (see top constraint).
         */
-        $bodySize.value.map { $0.height }
+        Observable.combineLatest($bodySize.height, zoomScale).map { $0 * $1 }
     }
     
     @RxProperty
@@ -80,16 +106,17 @@ open class WebView: WKWebView {
         backgroundColor = .clear
         scrollView.backgroundColor = .clear
         
-        prepareConfiguration()
-        
         prepareHeaderContainerView()
         prepareFooterContainerView()
+        
+        prepareConfiguration()
+        prepareRx()
     }
     
     open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        return headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ??
-               footerContainerView.hitTest(convert(point, to: footerContainerView), with: event) ??
-               super.hitTest(point, with: event)
+        headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ??
+            footerContainerView.hitTest(convert(point, to: footerContainerView), with: event) ??
+            super.hitTest(point, with: event)
     }
     
     
@@ -122,7 +149,7 @@ open class WebView: WKWebView {
     }
     
     deinit {
-        print(self, "called ...")
+        Utils.Log.debug(self)
     }
 }
 
@@ -183,6 +210,20 @@ extension WebView {
     private static var messageReady = "ready"
     private static var messageBodySize = "bodysize"
     
+    private enum Margin: Equatable {
+        case top(CGFloat)
+        case bottom(CGFloat)
+        
+        func script(for scale: CGFloat) -> String {
+            switch self {
+            case .top(let v):
+                return "document.body.style.setProperty(\"margin-top\", \"\(v / scale)px\", \"important\")"
+            case .bottom(let v):
+                return "document.body.style.setProperty(\"margin-bottom\", \"\(v / scale)px\", \"important\")"
+            }
+        }
+    }
+    
     private class ScriptMessageHandler: NSObject, WKScriptMessageHandler {
         private weak var view: WebView?
         
@@ -199,7 +240,7 @@ extension WebView {
             case WebView.messageLogging:
                 print("[WebView.console.log]:", message.body)
             case WebView.messageReady:
-                view.ready()
+                view.isReady = true
             case WebView.messageBodySize:
                 if let sizeMap = message.body as? [String: CGFloat],
                    let w = sizeMap["width"],
@@ -208,20 +249,6 @@ extension WebView {
                 }
             default:
                 break
-            }
-        }
-    }
-    
-    private enum Margin: Equatable {
-        case top(CGFloat)
-        case bottom(CGFloat)
-        
-        var script: String {
-            switch self {
-            case .top(let v):
-                return "document.body.style.marginTop = \"\(v)px\";"
-            case .bottom(let v):
-                return "document.body.style.marginBottom = \"\(v)px\";"
             }
         }
     }
@@ -238,8 +265,8 @@ extension WebView {
             """
                 var console = {
                     log: function(msg) {
-                            window.webkit.messageHandlers.logging.postMessage(msg)
-                         }
+                        window.webkit.messageHandlers.logging.postMessage(msg)
+                    }
                 };
             """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
@@ -248,7 +275,12 @@ extension WebView {
         ucc.addUserScript(.init(source:
             """
                 document.body.style.display = "none";
-                webkit.messageHandlers.ready.postMessage(\"\");
+                document.onreadystatechange = function () {
+                    if (document.readyState === 'complete') {
+                        webkit.messageHandlers.ready.postMessage(\"\");
+                    }
+                }
+                
             """,
         injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         
@@ -258,18 +290,14 @@ extension WebView {
         // body resize notifier
         ucc.addUserScript(.init(source:
             """
-                notify = function() {
-                    var rect = document.body.getBoundingClientRect();
-                    window.webkit.messageHandlers.bodysize.postMessage({ width: rect.width, height: rect.height });
-                }
-
                 new ResizeSensor(document.body, function() {
-                    notify();
+                    var rect = document.body.getBoundingClientRect();
+                    window.webkit.messageHandlers.bodysize.postMessage({ width: Math.round(rect.width), height: Math.round(rect.height) });
                 });
-
-                notify();
             """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-        
+    }
+    
+    internal func prepareRx() {
         typealias O = Observable<Margin>
                 
         let hv = headerContainerView
@@ -288,28 +316,18 @@ extension WebView {
         let hf: O = fv.rx.observeWeakly(CGRect.self, #keyPath(UIView.bounds), options: [.new])
             .map { .bottom($0?.height ?? 0) }
         
-        Observable.merge(hh, hf)
-            .pausableBuffered($isReady.value, limit: 1)
-            .subscribe(with: self, onNext: {
-                $0.evaluateJavaScript($1.script)
-            })
-            .disposed(by: disposeBag)
-    }
-    
-    private func ready() {
-        defer {
-            isReady = true
+        [hh, hf].forEach {
+            // combine with zoom scalee
+            Observable.combineLatest(zoomScale, $0)
+                .pausableBuffered($isReady.value, limit: 1)
+                .subscribe(with: self, onNext: {
+                    $0.evaluateJavaScript($1.1.script(for: $1.0))
+                })
+                .disposed(by: disposeBag)
         }
         
-        /*
-         Set body margins and display.
-         */
-        evaluateJavaScript(
-            """
-                \(Margin.top(headerContainerView.bounds.height).script)
-                \(Margin.bottom(footerContainerView.bounds.height).script)
-                document.body.style.display = "initial";
-            """
-        )
+//        zoomScale.subscribe(onNext: {
+//            self.evaluateJavaScript("Utils.setScale(\($0))")
+//        }).disposed(by: disposeBag)
     }
 }

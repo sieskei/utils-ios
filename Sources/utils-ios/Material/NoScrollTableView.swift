@@ -8,16 +8,6 @@
 import UIKit
 import Material
 
-fileprivate extension UIEdgeInsets {
-    var vertical: CGFloat {
-        return top + bottom
-    }
-    
-    var horizontal: CGFloat {
-        return left + right
-    }
-}
-
 open class NoScrollTableView: TableView {
     private lazy var heightConstraint: NSLayoutConstraint = {
         let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: contentSize.height + contentInset.vertical)

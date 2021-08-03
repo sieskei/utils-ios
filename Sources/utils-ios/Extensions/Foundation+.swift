@@ -8,6 +8,17 @@
 import Foundation
 import CommonCrypto
 
+public extension StringProtocol  {
+    func substring<S: StringProtocol, T: StringProtocol>(from start: S, to end: T, options: String.CompareOptions = []) -> SubSequence? {
+        guard let lower = range(of: start, options: options)?.upperBound,
+              let upper = self[lower...].range(of: end, options: options)?.lowerBound else {
+            return nil
+        }
+        
+        return self[lower..<upper]
+    }
+}
+
 public extension String {
     var fromBase64: String? {
         guard let data = Data(base64Encoded: self) else {
@@ -35,6 +46,14 @@ public extension String {
         return (0 ..< length).reduce("") {
             $0 + String(format: "%02x", digest[$1])
         }
+    }
+    
+    var trimmed: String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    mutating func trim() {
+        self = trimmed
     }
 }
 

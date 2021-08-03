@@ -325,9 +325,5 @@ extension WebView {
                 })
                 .disposed(by: disposeBag)
         }
-        
-//        zoomScale.subscribe(onNext: {
-//            self.evaluateJavaScript("Utils.setScale(\($0))")
-//        }).disposed(by: disposeBag)
     }
 }

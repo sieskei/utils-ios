@@ -140,9 +140,11 @@ public extension Utils {
         }
         
         public static func batchSync(operations: () -> Void ...) {
-            concurrentOperationQueue.addOperations(operations.map {
-                return BlockOperation(block: $0)
-            }, waitUntilFinished: true)
+            concurrentOperationQueue.addOperations(operations.map { BlockOperation(block: $0) }, waitUntilFinished: true)
+        }
+        
+        public static func sync(_ operation: @escaping () -> Void) {
+            batchSync(operations: operation)
         }
     }
 }

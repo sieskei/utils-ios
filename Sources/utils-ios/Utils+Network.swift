@@ -51,15 +51,11 @@ public extension Fault.Utils {
 
 extension Utils {
     open class Network {
-        public static let shared: Network = .init(factory: Factory.shared)
+        public static let shared: Network = .init(session: .init(configuration: .default, startRequestsImmediately: false),
+                                                  validation: Network.status200Validation)
         
         public let session: Session
         public let validation: DataRequest.Validation
-        
-        public init(factory: Factory) {
-            session = factory.session
-            validation = factory.validation
-        }
         
         public init(session s: Session, validation v: @escaping DataRequest.Validation) {
             session = s
@@ -70,8 +66,8 @@ extension Utils {
             session.request(url).validate(validation)
         }
         
-        open func download(for url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> DownloadRequest {
-            return session.download(url, to: destination)
+        open func download(for url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
+            session.download(url, to: destination)
         }
     }
 }
@@ -84,27 +80,22 @@ extension Utils.Network {
     public typealias Parameters = [String: Any]
     public typealias Map = [AnyHashable: Any]
     
-    open class Factory {
-        // Can be project dependancy factory.
-        public static var shared: Factory = .init()
-        
-        open var session: Session {
-            .init(configuration: .default, startRequestsImmediately: false)
-        }
-        
-        open var validation: DataRequest.Validation {
-            { _, r, _ in
-                switch r.statusCode {
-                case 200:
-                    return .success(())
-                default:
-                    return .failure(Fault.Utils.Network.fail(response: r))
-                }
+    public enum DownloadEvent {
+        case start
+        case progress(Double)
+        case done(URL)
+    }
+    
+    public static let status200Validation: DataRequest.Validation = {
+        { _, r, _ in
+            switch r.statusCode {
+            case 200:
+                return .success(())
+            default:
+                return .failure(Fault.Utils.Network.fail(response: r))
             }
         }
-        
-        public init() { }
-    }
+    }()
 }
 
 
@@ -161,20 +152,28 @@ public extension Reactive where Base: Utils.Network {
         }
     }
     
-    func download(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
-        Single.create { single in
-            let request = base.download(for: url, to: destination)
+    func download(url source: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes: Int64 = -1) -> Observable<Base.DownloadEvent> {
+        Observable.create { observer in
+            observer.onNext(.start)
+            
+            let request = base.download(for: source, to: destination)
+                .downloadProgress(closure: { progress in
+                    observer.onNext(.progress(progress.totalUnitCount > 0 ? progress.fractionCompleted :
+                                                min(1, Double(progress.completedUnitCount) / Double(estimatedSizeInBytes))))
+                })
                 .response(queue: Utils.Task.concurrentUtilityQueue) {
                     switch $0.result {
                     case .success(let url):
                         if let url = url {
-                            single(.success(url))
+                            observer.onNext(.done(url))
+                            observer.onCompleted()
                         } else {
-                            single(.failure(Fault.Utils.Network.downloadFail))
+                            Utils.Log.error("Utils.Network: download failure, missing destination url.", source)
+                            observer.onError(Fault.Utils.Network.downloadFail)
                         }
                     case .failure(let error):
-                        Utils.Log.error("Utils.Network: unable to get data from url.", url, error)
-                        single(.failure(error))
+                        Utils.Log.error("Utils.Network: download failure.", source, error)
+                        observer.onError(error)
                     }
                 }
             
@@ -186,6 +185,20 @@ public extension Reactive where Base: Utils.Network {
                 request.cancel()
             }
         }
+    }
+    
+    func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil) -> Single<URL> {
+        download(url: url, to: destination)
+            .filterMap {
+                switch $0 {
+                case .done(let url):
+                    return .map(url)
+                default:
+                    return .ignore
+                }
+            }
+            .take(1)
+            .asSingle()
     }
     
     func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
@@ -229,8 +242,12 @@ public extension Reactive where Base: Utils.Network {
         Base.shared.rx.data(url: url)
     }
     
-    static func download(url: URLRequestConvertible, to destination: @escaping DownloadRequest.Destination) -> Single<URL> {
+    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil) -> Single<URL> {
         Base.shared.rx.download(url: url, to: destination)
+    }
+    
+    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int64 = -1) -> Observable<Base.DownloadEvent> {
+        Base.shared.rx.download(url: url, to: destination, estimatedSizeInBytes: size)
     }
     
     static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {

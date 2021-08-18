@@ -28,8 +28,12 @@ public extension Reactive where Base: RxEndpointWrapper {
         network.rx.data(url: base.origin)
     }
     
-    func download(to destination: @escaping DownloadRequest.Destination, network: Utils.Network = .shared) -> Single<URL> {
+    func download(to destination: DownloadRequest.Destination? = nil, network: Utils.Network = .shared) -> Single<URL> {
         network.rx.download(url: base.origin, to: destination)
+    }
+    
+    func download(to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int64 = -1, network: Utils.Network = .shared) -> Observable<Utils.Network.DownloadEvent> {
+        network.rx.download(url: base.origin, to: destination, estimatedSizeInBytes: size)
     }
     
     func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {

@@ -51,8 +51,14 @@ public extension Fault.Utils {
 
 extension Utils {
     open class Network {
-        public static let shared: Network = .init(session: .init(configuration: .default, startRequestsImmediately: false),
-                                                  validation: Network.status200Validation)
+        public struct Configuration {
+            public static var session: Session = .init(configuration: .default, startRequestsImmediately: false)
+            public static var validation: DataRequest.Validation = Network.status200Validation
+        }
+        
+        public static let shared: Network = {
+            .init(session: Configuration.session, validation: Configuration.validation)
+        }()
         
         public let session: Session
         public let validation: DataRequest.Validation

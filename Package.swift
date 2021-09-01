@@ -20,6 +20,7 @@ let package = Package(
         .package(url: "https://github.com/RxSwiftCommunity/RxDataSources.git", from: "5.0.0"),
         .package(url: "https://github.com/RxSwiftCommunity/RxSwiftExt.git", from: "6.0.0"),
         .package(url: "https://github.com/RxSwiftCommunity/RxGesture.git", from: "4.0.0"),
+        .package(url: "https://github.com/RxSwiftCommunity/RxKeyboard.git", from: "2.0.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.2.0"),
         .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "4.1.0"),
         .package(url: "https://github.com/Kitura/HeliumLogger.git", from: "1.9.0"),
@@ -31,7 +32,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture",
+            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", 
                            "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
         .testTarget(
             name: "utils-iosTests",

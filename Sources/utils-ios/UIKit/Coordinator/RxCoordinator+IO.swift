@@ -11,8 +11,8 @@ import UIKit
 import RxSwift
 import RxSwiftExt
 
-open class RxIOCoordinator<InputType, ResultType>: RxCoordinator<ResultType> {
-    /// Typealias which will allows to access a ResultType of the Coordainator by `CoordinatorName.CoordinationInput`.
+open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
+    /// Typealias which will allows to access a InputType of the Coordainator by `CoordinatorName.CoordinationInput`.
     public typealias CoordinationInput = InputType
     
     private let input: PublishSubject<InputType> = .init()

@@ -10,9 +10,9 @@ import RxSwift
 import RxSwiftExt
 
 /// Base abstract coordinator generic over the return type of the `start` method.
-open class RxCoordinator<ResultType> {
-    /// Typealias which will allows to access a ResultType of the Coordainator by `CoordinatorName.CoordinationResult`.
-    public typealias CoordinationResult = ResultType
+open class RxCoordinator<OutputType> {
+    /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationResult`.
+    public typealias CoordinationOutput = OutputType
     
     /// Typealias for controller and job events.
     public typealias CoordinationStart = (controller: UIViewController, events: Observable<Event>)
@@ -20,13 +20,13 @@ open class RxCoordinator<ResultType> {
     /// Coordinator's life cycle.
     public enum LifeCycle {
         case present(UIViewController)
-        case event(ResultType)
+        case event(OutputType)
         case dismiss(UIViewController)
     }
     
     /// Coordinator's job events.
     public enum Event {
-        case event(ResultType)
+        case event(OutputType)
         case dismiss
     }
     
@@ -64,7 +64,9 @@ open class RxCoordinator<ResultType> {
     /// - Returns: Result of `start()` method.
     public func move<T>(to coordinator: RxCoordinator<T>) -> Observable<RxCoordinator<T>.LifeCycle> {
         let start: RxCoordinator<T>.CoordinationStart = coordinator.start()
+        
         return start.events
+            .take(until: start.controller.rx.didMoveToParentViewController.filterMap { $0 == nil ? .map(Event.dismiss) : .ignore })
             .take(until: { $0.isDismiss }, behavior: .inclusive)
             .map {
                 switch $0 {
@@ -101,7 +103,7 @@ public extension RxCoordinator.LifeCycle {
         }
     }
     
-    var mapToEvent: FilterMap<RxCoordinator<ResultType>.Event> {
+    var mapToEvent: FilterMap<RxCoordinator<OutputType>.Event> {
         switch self {
         case .event(let r):
             return .map(.event(r))
@@ -118,7 +120,7 @@ public extension RxCoordinator.LifeCycle {
         }
     }
     
-    func on(event call: (ResultType) -> Void) {
+    func on(event call: (OutputType) -> Void) {
         if case .event(let r) = self {
             call(r)
         }
@@ -142,7 +144,7 @@ public extension RxCoordinator.Event {
         }
     }
     
-    func on(event call: (ResultType) -> Void) {
+    func on(event call: (OutputType ) -> Void) {
         if case .event(let r) = self {
             call(r)
         }

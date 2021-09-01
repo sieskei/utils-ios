@@ -55,6 +55,11 @@ public extension Reactive where Base: UIViewController {
         let source = self.methodInvoked(#selector(Base.didMove)).map { $0.first as? UIViewController }
         return ControlEvent(events: source)
     }
+    
+    var didRemoveFromParent: ControlEvent<Void> {
+        let source = didMoveToParentViewController.filter { $0 == nil }.map { _ in }
+        return ControlEvent(events: source)
+    }
 
     var didReceiveMemoryWarning: ControlEvent<Void> {
         let source = self.methodInvoked(#selector(Base.didReceiveMemoryWarning)).map { _ in }

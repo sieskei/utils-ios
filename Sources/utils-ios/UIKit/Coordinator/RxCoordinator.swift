@@ -21,7 +21,7 @@ open class RxCoordinator<OutputType> {
     public enum LifeCycle {
         case present(UIViewController)
         case event(OutputType)
-        case dismiss(UIViewController)
+        case dismiss(UIViewController, isEvent: Bool = true)
     }
     
     /// Coordinator's job events.
@@ -64,19 +64,26 @@ open class RxCoordinator<OutputType> {
     /// - Returns: Result of `start()` method.
     public func move<T>(to coordinator: RxCoordinator<T>) -> Observable<RxCoordinator<T>.LifeCycle> {
         let start: RxCoordinator<T>.CoordinationStart = coordinator.start()
+        let controller = start.controller
         
         return start.events
-            .take(until: start.controller.rx.didMoveToParentViewController.filterMap { $0 == nil ? .map(Event.dismiss) : .ignore })
-            .take(until: { $0.isDismiss }, behavior: .inclusive)
+            .withUnretained(controller)
             .map {
-                switch $0 {
+                switch $0.1 {
                 case .event(let r):
                     return .event(r)
                 case .dismiss:
-                    return .dismiss(start.controller)
+                    return .dismiss($0.0, isEvent: true)
                 }
             }
-            .startWith(.present(start.controller))
+            .merge(with: {
+                controller.rx.viewDidDisappear
+                    .withUnretained(controller)
+                    .filter { $0.0.isMovingFromParent || $0.0.isBeingDismissed }
+                    .map { .dismiss($0.0, isEvent: false) }
+            }())
+            .take(until: { $0.isDismiss }, behavior: .inclusive)
+            .startWith(.present(controller))
             .do(weak: self, onCompleted: { this in
                 this.free(coordinator: coordinator)
             }, onSubscribe: { this in
@@ -103,14 +110,12 @@ public extension RxCoordinator.LifeCycle {
         }
     }
     
-    var mapToEvent: FilterMap<RxCoordinator<OutputType>.Event> {
+    var isDismiss: Bool {
         switch self {
-        case .event(let r):
-            return .map(.event(r))
         case .dismiss:
-            return .map(.dismiss)
+            return true
         default:
-            return .ignore
+            return false
         }
     }
     
@@ -126,9 +131,9 @@ public extension RxCoordinator.LifeCycle {
         }
     }
     
-    func on(dismiss call: (UIViewController) -> Void) {
-        if case .dismiss(let vc) = self {
-            call(vc)
+    func on(dismiss call: (UIViewController, Bool) -> Void) {
+        if case .dismiss(let vc, let flag) = self {
+            call(vc, flag)
         }
     }
 }

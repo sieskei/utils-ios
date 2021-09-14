@@ -8,6 +8,7 @@
 import UIKit
 
 public extension NSLayoutConstraint {
+    @discardableResult
     func activate() -> Self {
         isActive = true
         return self

@@ -17,16 +17,17 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     
     private let input: PublishSubject<InputType> = .init()
     
-    public final override func start() -> CoordinationStart {
-        start(input: input)
+    public final override func start(output: AnyObserver<OutputType>) -> UIViewController {
+        start(input: input, output: output)
     }
     
     /// Starts job of the coordinator.
     ///
-    /// - Parameter input: input events from init method.
-    /// - Returns: Controller and events of coordinator job.
-    open func start(input: Observable<InputType>) -> CoordinationStart {
-        fatalError("Start(input:) method should be implemented.")
+    /// - Parameter input: Input events from init method.
+    /// - Parameter output: Output events of coordinator job.
+    /// - Returns: Controller of coordinator.
+    open func start(input: Observable<InputType>, output: AnyObserver<OutputType>) -> UIViewController {
+        fatalError("Start(input:output:) method should be implemented.")
     }
 }
 

@@ -11,11 +11,8 @@ import RxSwiftExt
 
 /// Base abstract coordinator generic over the return type of the `start` method.
 open class RxCoordinator<OutputType> {
-    /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationResult`.
+    /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
-    
-    /// Typealias for controller and job events.
-    public typealias CoordinationStart = (controller: UIViewController, events: Observable<Event>)
     
     /// Coordinator's life cycle.
     public enum LifeCycle {
@@ -25,7 +22,8 @@ open class RxCoordinator<OutputType> {
     }
     
     /// Coordinator's job events.
-    public enum Event {
+    
+    fileprivate enum Event {
         case event(OutputType)
         case dismiss
     }
@@ -63,10 +61,10 @@ open class RxCoordinator<OutputType> {
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
     public func move<T>(to coordinator: RxCoordinator<T>) -> Observable<RxCoordinator<T>.LifeCycle> {
-        let start: RxCoordinator<T>.CoordinationStart = coordinator.start()
-        let controller = start.controller
+        let queue: RxCoordinator<T>.Queue = .init()
+        let controller = coordinator.start(output: queue.input)
         
-        return start.events
+        return queue.output
             .withUnretained(controller)
             .map {
                 switch $0.1 {
@@ -93,9 +91,43 @@ open class RxCoordinator<OutputType> {
     
     /// Starts job of the coordinator.
     ///
-    /// - Returns: Controller and events of coordinator job.
-    open func start() -> CoordinationStart {
+    /// - Parameter output: Output events of coordinator job.
+    /// - Returns: Controller of coordinator.
+    open func start(output: AnyObserver<OutputType>) -> UIViewController {
         fatalError("Start method should be implemented.")
+    }
+}
+
+fileprivate extension RxCoordinator {
+    /// IO events queue.
+    /// Used for internal purposes.
+    class Queue {
+        private class Observer: ObserverType {
+            typealias Element = OutputType
+            
+            fileprivate let subject: PublishSubject<Event> = .init()
+            
+            func on(_ event: RxSwift.Event<Element>) {
+                switch event {
+                case .next(let e):
+                    subject.on(.next(.event(e)))
+                case .error(let error):
+                    subject.on(.error(error))
+                case .completed: // convert completed to dismiss
+                    subject.on(.next(.dismiss))
+                }
+            }
+        }
+        
+        private let observer: Observer = .init()
+        
+        var input: AnyObserver<OutputType> {
+            observer.asObserver()
+        }
+        
+        var output: Observable<Event> {
+            observer.subject.asObservable()
+        }
     }
 }
 
@@ -116,48 +148,6 @@ public extension RxCoordinator.LifeCycle {
             return true
         default:
             return false
-        }
-    }
-    
-    func on(present call: (UIViewController) -> Void) {
-        if case .present(let vc) = self {
-            call(vc)
-        }
-    }
-    
-    func on(event call: (OutputType) -> Void) {
-        if case .event(let r) = self {
-            call(r)
-        }
-    }
-    
-    func on(dismiss call: (UIViewController, Bool) -> Void) {
-        if case .dismiss(let vc, let flag) = self {
-            call(vc, flag)
-        }
-    }
-}
-
-/// Coordinator job event utilities.
-public extension RxCoordinator.Event {
-    var isDismiss: Bool {
-        switch self {
-        case .dismiss:
-            return true
-        default:
-            return false
-        }
-    }
-    
-    func on(event call: (OutputType ) -> Void) {
-        if case .event(let r) = self {
-            call(r)
-        }
-    }
-    
-    func on(dismiss call: () -> Void) {
-        if case .dismiss = self {
-            call()
         }
     }
 }

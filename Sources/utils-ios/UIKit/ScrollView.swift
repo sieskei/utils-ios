@@ -195,17 +195,27 @@ fileprivate extension ScrollView {
         
         func onResize(_ callback: @escaping (Element) -> Void) {
             let ops: NSKeyValueObservingOptions = [.old, .new, .initial]
-            let handler:  (UIView, NSKeyValueObservedChange<CGSize>) -> Void = { [weak self] in
-                guard let this = self, $1.oldValue != $1.newValue else {
-                    return
-                }
-                callback(this)
-            }
+//            let handler:  (UIView, NSKeyValueObservedChange<CGSize>) -> Void = { [weak self] in
+//                guard let this = self, $1.oldValue != $1.newValue else {
+//                    return
+//                }
+//                callback(this)
+//            }
             
             if let sv = view as? UIScrollView {
-                observation = sv.observe(\UIScrollView.contentSize, options: ops, changeHandler: handler)
+                observation = sv.observe(\UIScrollView.contentSize, options: ops) { [weak self] in
+                    guard let this = self, $1.oldValue != $1.newValue else {
+                        return
+                    }
+                    callback(this)
+                }
             } else if let wv = view as? NIWebView {
-                observation = wv.observe(\NIWebView.bodySize, options: ops, changeHandler: handler)
+                observation = wv.observe(\NIWebView.bodySize, options: ops) { [weak self] _, pair in
+                    guard let this = self, pair.oldValue?.value != pair.newValue?.value else {
+                        return
+                    }
+                    callback(this)
+                }
             }
         }
         
@@ -213,7 +223,7 @@ fileprivate extension ScrollView {
             if let sv = view as? UIScrollView {
                 return sv.contentInset.top + sv.contentSize.height + sv.contentInset.bottom
             } else if let wv = view as? NIWebView {
-                return wv.scrollView.contentInset.top + wv.bodySize.height + wv.scrollView.contentInset.bottom
+                return wv.scrollView.contentInset.top + wv.bodySize.value.height + wv.scrollView.contentInset.bottom
             } else {
                 return view.systemLayoutSizeFitting(.init(width: bounds.width, height: 0),
                                                     withHorizontalFittingPriority: .required,

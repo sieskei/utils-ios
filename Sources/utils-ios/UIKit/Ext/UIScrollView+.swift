@@ -8,6 +8,10 @@
 import UIKit
 
 public extension UIScrollView {
+    var visibleRect: CGRect {
+        .init(origin: contentOffset, size: bounds.size)
+    }
+    
     var maxContentOffset: CGPoint {
         return .init(x: contentSize.width - bounds.width + contentInset.right,
                      y: contentSize.height - bounds.height + contentInset.bottom)

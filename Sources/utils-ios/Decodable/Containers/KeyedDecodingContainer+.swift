@@ -132,6 +132,14 @@ public struct KeyedDecodingProperties {
             return .fail(error)
         }
     }
+    
+    public subscript(dynamicMember member: String) -> DecodingProperty<Decoder> {
+        do {
+            return .success(try container.superDecoder(forKey: .custom(named: member)))
+        } catch (let error) {
+            return .fail(error)
+        }
+    }
 }
 
 public extension KeyedDecodingContainer where K == CustomCodingKey {

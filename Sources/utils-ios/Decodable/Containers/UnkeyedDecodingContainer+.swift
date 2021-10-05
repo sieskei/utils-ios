@@ -104,6 +104,14 @@ public struct UnkeyedDecodingProperties {
             return .fail(error)
         }
     }
+    
+    public mutating func decode<T: Decodable>(to type: T.Type = T.self) -> DecodingProperty<T> {
+        do {
+            return .success(try T.init(from: try decoder()))
+        } catch (let error) {
+            return .fail(error)
+        }
+    }
 }
 
 public extension UnkeyedDecodingContainer {

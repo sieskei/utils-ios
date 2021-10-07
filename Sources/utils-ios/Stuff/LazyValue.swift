@@ -1,5 +1,5 @@
 //
-//  LazyInit.swift
+//  LazyValue.swift
 //  
 //
 //  Created by Miroslav Yozov on 5.01.21.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum LazyInit<V> {
+public enum LazyValue<V> {
     case none
     case value(V)
     case error(Error)

@@ -11,11 +11,11 @@ import WebKit
 open class NIWebView: WKWebView {
     public enum BodySize {
         case ready(CGSize)
-        case senor(CGSize)
+        case sensor(CGSize)
         
         public var value: CGSize {
             switch self {
-            case .ready(let s), .senor(let s):
+            case .ready(let s), .sensor(let s):
                 return s
             }
         }
@@ -146,7 +146,7 @@ extension NIWebView {
         if resizeSensor {
             ucc.addScriptMessageHandler(name: "bodysize") { [weak self] message in
                 if let this = self, let size = message.size {
-                    this.bodySize = .senor(size)
+                    this.bodySize = .sensor(size)
                 }
             }
             
@@ -169,8 +169,8 @@ extension NIWebView {
 fileprivate extension WKScriptMessage {
     var size: CGSize? {
         if let sizeMap = body as? [String: CGFloat],
-           let w = sizeMap["width"],
-           let h = sizeMap["height"] {
+           let w = sizeMap["width"], w.isFinite,
+           let h = sizeMap["height"], h.isFinite {
             return .init(width: w, height: h)
         } else {
             return nil

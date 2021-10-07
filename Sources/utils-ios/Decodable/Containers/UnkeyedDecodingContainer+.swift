@@ -57,7 +57,7 @@ public extension UnkeyedDecodingContainer {
 
 public struct UnkeyedDecodingProperties {
     private var container: UnkeyedDecodingContainer
-    private var lazyDecoder: LazyInit<Decoder> = .none
+    private var lazyDecoder: LazyValue<Decoder> = .none
     
     public init(_ container: UnkeyedDecodingContainer) {
         self.container = container

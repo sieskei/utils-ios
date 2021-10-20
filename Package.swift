@@ -32,8 +32,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", 
-                           "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
+            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),

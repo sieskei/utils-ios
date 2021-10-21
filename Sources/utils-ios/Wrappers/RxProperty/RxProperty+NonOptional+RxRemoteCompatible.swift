@@ -1,30 +1,16 @@
 //
-//  RxProperty+NonOptional.swift
+//  RxProperty+NonOptional+RxRemoteCompatible.swift
+//  
 //
-//
-//  Created by Miroslav Yozov on 13.07.21.
+//  Created by Miroslav Yozov on 21.10.21.
 //
 
 import Foundation
 import RxSwift
 import RxCocoa
 
-// MARK: Reactive tools for non-optional RxRedecodable.
-public extension RxProperty.Tools where P: RxRedecodable {
-    var decode: ControlProperty<P> {
-        let values: Observable<P> = base.v.flatMapLatest {
-            $0.rx.decode.startWith($0)
-        }
-        let bindingObserver: Binder<P> = .init(base, scheduler: CurrentThreadScheduler.instance) {
-            $0.wrappedValue = $1
-        }
-        return .init(values: values, valueSink: bindingObserver)
-    }
-}
-
-
 // MARK: Reactive tools for non-optional RxRemoteCompatible.
-public extension RxProperty.Tools where P: RxRemoteCompatible {
+public extension RxProperty.Projection where P: RxRemoteCompatible {
     var remoteState: Observable<RemoteState> {
         base.v.flatMapLatest {
             $0.rx.remoteState.distinctUntilChanged()
@@ -59,7 +45,7 @@ public extension RxProperty.Tools where P: RxRemoteCompatible {
 
 
 // MARK: Reactive tools for non-optional RxRemotePageCompatible.
-public extension RxProperty.Tools where P: RxRemotePageCompatible {
+public extension RxProperty.Projection where P: RxRemotePageCompatible {
     func next() -> Single<P> {
         base.wrappedValue.rx.next()
     }

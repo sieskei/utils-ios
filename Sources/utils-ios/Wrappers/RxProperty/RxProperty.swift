@@ -18,7 +18,7 @@ public class RxProperty<P> {
         set { v.value = newValue }
     }
 
-    public var projectedValue: Tools {
+    public var projectedValue: Projection {
         .init(base: self)
     }
     
@@ -33,7 +33,7 @@ public class RxProperty<P> {
 
 public extension RxProperty {
     @dynamicMemberLookup
-    class Tools {
+    class Projection {
         public private (set) var base: RxProperty<P>
 
         init(base: RxProperty<P>) {

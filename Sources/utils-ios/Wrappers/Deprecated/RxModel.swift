@@ -1,17 +1,18 @@
 //
-//  RxOptional.swift
+//  RxModel.swift
 //  
 //
-//  Created by Miroslav Yozov on 19.04.21.
+//  Created by Miroslav Yozov on 25.12.20.
 //
 
 import Foundation
 import RxSwift
 import RxCocoa
 
+@available(*, deprecated, message: "Use @RxProperty instead.")
 @propertyWrapper
-public class RxOptional<W>: RxProperty<Optional<W>> {
-    public override var wrappedValue: Optional<W> {
+public class RxModel<M: Equatable>: RxProperty<Model<M>> {
+    public override var wrappedValue: Model<M> {
         get { super.wrappedValue }
         set { super.wrappedValue = newValue }
     }
@@ -21,27 +22,27 @@ public class RxOptional<W>: RxProperty<Optional<W>> {
     }
 }
 
-public extension RxOptional {
-    class Tools: RxProperty<Optional<W>>.Tools { }
+public extension RxModel {
+    class Tools: RxProperty<Model<M>>.Projection { }
 }
 
-// MARK: Reactive tools for RxRedecodable optionals.
-public extension RxOptional.Tools where W: RxRedecodable {
-    var decode: ControlProperty<Optional<W>> {
-        let values: Observable<Optional<W>> = base.v.flatMapLatest {
-            $0.map(.just(.none)) { value -> Observable<Optional<W>> in
-                value.rx.decode.map { .some($0) }.startWith(.some(value))
+// MARK: Reactive compatible for RxRedecodable models.
+public extension RxModel.Tools where M: RxRedecodable {
+    var decode: ControlProperty<Model<M>> {
+        let values: Observable<Model<M>> = base.v.flatMapLatest {
+            $0.map(.just(.empty)) { value -> Observable<Model<M>> in
+                value.rx.decode.map { .value($0) }.startWith(.value(value))
             }
         }
-        let bindingObserver: Binder<Optional<W>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
+        let bindingObserver: Binder<Model<M>> = .init(base, scheduler: CurrentThreadScheduler.instance) {
             $0.wrappedValue = $1
         }
         return .init(values: values, valueSink: bindingObserver)
     }
 }
 
-// MARK: Reactive tools for RxRemoteCompatible optionals.
-public extension RxOptional.Tools where W: RxRemoteCompatible {
+// MARK: Reactive compatible for RxRemoteCompatible models.
+public extension RxModel.Tools where M: RxRemoteCompatible {
     var remoteState: Observable<RemoteState> {
         base.v.flatMapLatest {
             $0.map(.just(.not)) { value -> Observable<RemoteState> in
@@ -73,18 +74,18 @@ public extension RxOptional.Tools where W: RxRemoteCompatible {
         }
     }
 
-    func reinit() -> Single<Optional<W>> {
+    func reinit() -> Single<Model<M>> {
         base.wrappedValue.map(.just(base.wrappedValue)) {
-            $0.rx.reinit().map { .some($0) }
+            $0.rx.reinit().map { .value($0) }
         }
     }
 }
 
-// MARK: Reactive tools for RxRemoteCompatible optionals.
-public extension RxOptional.Tools where W: RxRemotePageCompatible {
-    func next() -> Single<Optional<W>> {
+// MARK: Reactive compatible for RxRemoteCompatible models.
+public extension RxModel.Tools where M: RxRemotePageCompatible {
+    func next() -> Single<Model<M>> {
         base.wrappedValue.map(.just(base.wrappedValue)) {
-            $0.rx.next().map { .some($0) }
+            $0.rx.next().map { .value($0) }
         }
     }
 }

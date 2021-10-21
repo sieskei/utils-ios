@@ -32,5 +32,5 @@ public class RxStoreRawProperty<P: RawRepresentable>: RxProperty<P> where P.RawV
 }
 
 public extension RxStoreRawProperty {
-    class Tools: RxProperty<P>.Tools { }
+    class Tools: RxProperty<P>.Projection { }
 }

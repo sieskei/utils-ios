@@ -14,11 +14,27 @@ open class RxCoordinator<OutputType> {
     /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
     
+    /// Coordinator's dissmiss trigger action.
+    public enum DismissTrigger {
+        case output
+        case disappear
+        case error(Error)
+        
+        public var isDisappear: Bool {
+            switch self {
+            case .disappear:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+    
     /// Coordinator's life cycle.
     public enum LifeCycle {
         case present(UIViewController)
         case event(OutputType)
-        case dismiss(UIViewController, isEvent: Bool = true)
+        case dismiss(UIViewController, trigger: DismissTrigger = .output)
     }
     
     /// Coordinator's job events.
@@ -71,15 +87,18 @@ open class RxCoordinator<OutputType> {
                 case .event(let r):
                     return .event(r)
                 case .dismiss:
-                    return .dismiss($0.0, isEvent: true)
+                    return .dismiss($0.0, trigger: .output)
                 }
             }
-            .merge(with: {
+            .merge(with: { // convert disappear in dismiss
                 controller.rx.viewDidDisappear
                     .withUnretained(controller)
                     .filter { $0.0.isMovingFromParent || $0.0.isBeingDismissed }
-                    .map { .dismiss($0.0, isEvent: false) }
+                    .map { .dismiss($0.0, trigger: .disappear) }
             }())
+            .catch { // convert error in dismiss
+                .just(.dismiss(controller, trigger: .error($0)))
+            }
             .take(until: { $0.isDismiss }, behavior: .inclusive)
             .startWith(.present(controller))
             .do(weak: self, onCompleted: { this in

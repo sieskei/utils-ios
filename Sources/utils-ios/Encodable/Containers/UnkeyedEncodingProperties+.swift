@@ -18,8 +18,26 @@ public class UnkeyedEncodingProperties {
         try container.encode(value)
     }
     
+    public func encode<T: Encodable>(forEach value: [T]) {
+        value.forEach {
+            do {
+                try container.encode($0)
+            } catch(let error) {
+                Utils.Log.error($0, "encode fail.", error)
+            }
+        }
+    }
+    
     public func encodeNil() throws {
         try container.encodeNil()
+    }
+    
+    public func nestedUnkeyedProperties() -> UnkeyedEncodingProperties {
+        .init(container.nestedUnkeyedContainer())
+    }
+    
+    public func nestedKeyedProperties() -> KeyedEncodingProperties {
+        .init(container.nestedContainer(keyedBy: CustomCodingKey.self))
     }
 }
 

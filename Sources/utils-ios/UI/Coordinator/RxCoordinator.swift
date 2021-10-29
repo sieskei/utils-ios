@@ -76,7 +76,7 @@ open class RxCoordinator<OutputType> {
     ///
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
-    public func move<T>(to coordinator: RxCoordinator<T>) -> Observable<RxCoordinator<T>.LifeCycle> {
+    public func move<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
         let queue: RxCoordinator<T>.Queue = .init()
         let controller = coordinator.start(output: queue.input)
         
@@ -93,7 +93,7 @@ open class RxCoordinator<OutputType> {
             .merge(with: { // convert disappear in dismiss
                 controller.rx.viewDidDisappear
                     .withUnretained(controller)
-                    .filter { $0.0.isMovingFromParent || $0.0.isBeingDismissed }
+                    .filter { ($0.0.isMovingFromParent || $0.0.isBeingDismissed) && untilDismiss }
                     .map { .dismiss($0.0, trigger: .disappear) }
             }())
             .catch { // convert error in dismiss

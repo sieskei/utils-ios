@@ -74,13 +74,14 @@ public extension Fault {
     struct Codes { }
 }
 
-// MARK: Basic `Fault` instances.
+// MARK: Basic `Fault` codes.
 public extension Fault.Codes {
     static let cancelled = "cancelled"
     static let notConnectedToInternet = "notConnectedToInternet"
     static let error = "error"
 }
 
+// MARK: Basic `Fault` instances.
 public extension Fault {
     static var cancelled: Fault {
         .init(code: Codes.cancelled, messages: [.bg: "Спряна операция.", .en: "Operation cancelled."])

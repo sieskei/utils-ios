@@ -14,20 +14,11 @@ open class RxCoordinator<OutputType> {
     /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
     
-    /// Coordinator's dissmiss trigger action.
+    /// Coordinator's dismiss trigger.
     public enum DismissTrigger {
         case output
         case disappear
         case error(Error)
-        
-        public var isDisappear: Bool {
-            switch self {
-            case .disappear:
-                return true
-            default:
-                return false
-            }
-        }
     }
     
     /// Coordinator's life cycle.
@@ -146,6 +137,18 @@ fileprivate extension RxCoordinator {
         
         var output: Observable<Event> {
             observer.subject.asObservable()
+        }
+    }
+}
+
+/// Coordinator dismiss trigger utilities.
+public extension RxCoordinator.DismissTrigger {
+    var isDisappear: Bool {
+        switch self {
+        case .disappear:
+            return true
+        default:
+            return false
         }
     }
 }

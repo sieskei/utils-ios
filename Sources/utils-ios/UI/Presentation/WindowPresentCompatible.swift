@@ -19,15 +19,24 @@ public protocol WindowPresentCompatible {
 
 fileprivate class Window: UIWindow {
     class ViewController: UIViewController, DisposeContext {
+//        override func loadView() {
+//            view = PassthroughView()
+//        }
+        
         override func viewDidLoad() {
             super.viewDidLoad()
-            view.backgroundColor = .blue
+            view.backgroundColor = .clear
         }
         
         deinit {
             Utils.Log.debug("deinit", self)
         }
     }
+    
+//    override public func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+//        let view = super.hitTest(point, with: event)
+//        return view == self ? nil : view
+//    }
     
     deinit {
         Utils.Log.debug("deinit", self)
@@ -56,19 +65,14 @@ public extension WindowPresentCompatible where Self: UIViewController {
         
         let rootViewController: Window.ViewController = .init()
         window.rootViewController = rootViewController
-        window.backgroundColor = .red
+        window.backgroundColor = .clear
         
         
-        
-        // window.rootViewController?.present(self, animated: true)
-        
-//        if let root = window.rootViewController as? Window.Root {
-//            root.rx.viewDidAppear
-//                .subscribe(with: self, onNext: { this, _ in
-//                    root.present(this, animated: true)
-//                })
-//                .disposed(by: root)
-//        }
+        rootViewController.rx.viewDidAppear
+            .subscribe(with: self, onNext: { this, _ in
+                rootViewController.present(this, animated: true)
+            })
+            .disposed(by: rootViewController)
     }
     
     func windowDismiss(animated: Bool, completion: (() -> Void)? = nil) {

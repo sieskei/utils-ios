@@ -93,13 +93,15 @@ open class RxCoordinator<OutputType> {
             .merge(with: { // convert disappear in dismiss
                 controller.rx.viewDidDisappear
                     .withUnretained(controller)
-                    .filter { ($0.0.isMovingFromParent || $0.0.isBeingDismissed) && untilDismiss }
+                    .filter {
+                        $0.0.isMovingFromParent || $0.0.isBeingDismissed
+                    }
                     .map { .dismiss($0.0, trigger: .disappear) }
             }())
             .catch { // convert error in dismiss
                 .just(.dismiss(controller, trigger: .error($0)))
             }
-            .take(until: { $0.isDismiss }, behavior: .inclusive)
+            .take(until: { $0.isDismiss && untilDismiss }, behavior: .inclusive)
             .startWith(.present(controller))
             .do(weak: self, onCompleted: { this in
                 this.free(coordinator: coordinator)

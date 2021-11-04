@@ -15,10 +15,16 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     /// Typealias which will allows to access a InputType of the Coordainator by `CoordinatorName.CoordinationInput`.
     public typealias CoordinationInput = InputType
     
-    private let input: PublishSubject<InputType> = .init()
+    fileprivate let subject: PublishSubject<InputType> = .init()
+    
+    public final var input: Binder<InputType> {
+        .init(self, scheduler: CurrentThreadScheduler.instance) { this, input in
+            this.subject.onNext(input)
+        }
+    }
     
     public final override func start(output: AnyObserver<OutputType>) -> UIViewController {
-        start(input: input, output: output)
+        start(input: subject, output: output)
     }
     
     /// Starts job of the coordinator.
@@ -28,17 +34,5 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     /// - Returns: Controller of coordinator.
     open func start(input: Observable<InputType>, output: AnyObserver<OutputType>) -> UIViewController {
         fatalError("Start(input:output:) method should be implemented.")
-    }
-}
-
-extension RxIOCoordinator: ObserverType {
-    public typealias Element = InputType
-    
-    public func on(_ event: RxSwift.Event<Element>) {
-        input.on(event)
-    }
-    
-    public func on(_ event: InputType) {
-        input.onNext(event)
     }
 }

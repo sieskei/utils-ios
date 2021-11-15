@@ -10,26 +10,34 @@ import RxSwift
 import RxSwiftExt
 
 /// Base abstract coordinator generic over the return type of the `start` method.
-open class RxCoordinator<OutputType> {
+open class RxCoordinator<OutputType>: ReactiveCompatible {
     /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
     
-    /// Coordinator's dismiss trigger.
-    public enum DismissTrigger {
-        case output
-        case disappear
-        case error(Error)
-    }
-    
     /// Coordinator's life cycle.
     public enum LifeCycle {
+        /// Coordinator's dismiss trigger.
+        public enum DismissTrigger {
+            /// Coordinator's view controller is still presented and want to be dismissed.
+            case completed
+            
+            /// When coordinator's view controller is removed from the hierarchy without an outgoing event.
+            case disappear
+            
+            /// When the parent-child reference is gone without an outgoing event.
+            /// Method disconnect is called.
+            case disconnect
+            
+            /// When an error occurs in the output.
+            case error(Error)
+        }
+        
         case present(UIViewController)
         case event(OutputType)
-        case dismiss(UIViewController, trigger: DismissTrigger = .output)
+        case dismiss(UIViewController, trigger: DismissTrigger = .completed)
     }
     
     /// Coordinator's job events.
-    
     fileprivate enum Event {
         case event(OutputType)
         case dismiss
@@ -40,11 +48,13 @@ open class RxCoordinator<OutputType> {
 
     /// Unique identifier.
     private let identifier = UUID()
+    
+    /// Connection to parent.
+    private var connection: Connection? = nil
 
     /// Dictionary of the child coordinators. Every child coordinator should be added
     /// to that dictionary in order to keep it in memory.
     /// Key is an `identifier` of the child coordinator and value is the coordinator itself.
-    /// Value type is `Any` because Swift doesn't allow to store generic types in the array.
     private var childCoordinators = [UUID: Any]()
     
     public init() { }
@@ -67,7 +77,10 @@ open class RxCoordinator<OutputType> {
     ///
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
-    public func move<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
+    public func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
+        let connection: RxCoordinator<T>.Connection = .init()
+        coordinator.connection = connection
+        
         let queue: RxCoordinator<T>.Queue = .init()
         let controller = coordinator.start(output: queue.input)
         
@@ -78,16 +91,19 @@ open class RxCoordinator<OutputType> {
                 case .event(let r):
                     return .event(r)
                 case .dismiss:
-                    return .dismiss($0.0, trigger: .output)
+                    return .dismiss($0.0, trigger: .completed)
                 }
             }
-            .merge(with: { // convert disappear in dismiss
+            .merge(with: { // convert disappear to dismiss
                 controller.rx.viewDidDisappear
                     .withUnretained(controller)
-                    .filter {
-                        $0.0.isMovingFromParent || $0.0.isBeingDismissed
-                    }
+                    .filter { $0.0.isMovingFromParent || $0.0.isBeingDismissed }
                     .map { .dismiss($0.0, trigger: .disappear) }
+            }())
+            .merge(with: { // convert connection deallocation to dismiss
+                connection.rx.deallocated
+                    .withUnretained(controller)
+                    .map { .dismiss($0.0, trigger: .disconnect) }
             }())
             .catch { // convert error in dismiss
                 .just(.dismiss(controller, trigger: .error($0)))
@@ -108,6 +124,16 @@ open class RxCoordinator<OutputType> {
     open func start(output: AnyObserver<OutputType>) -> UIViewController {
         fatalError("Start method should be implemented.")
     }
+    
+    public final func disconnect() {
+        connection = nil
+    }
+}
+
+fileprivate extension RxCoordinator {
+    /// Object represent connection between parent-child.
+    /// Used for internal purposes.
+    class Connection: ReactiveCompatible { }
 }
 
 fileprivate extension RxCoordinator {
@@ -144,7 +170,7 @@ fileprivate extension RxCoordinator {
 }
 
 /// Coordinator dismiss trigger utilities.
-public extension RxCoordinator.DismissTrigger {
+public extension RxCoordinator.LifeCycle.DismissTrigger {
     var isDisappear: Bool {
         switch self {
         case .disappear:

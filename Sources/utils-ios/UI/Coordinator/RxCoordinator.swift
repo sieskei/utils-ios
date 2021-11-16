@@ -19,7 +19,7 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
         /// Coordinator's dismiss trigger.
         public enum DismissTrigger {
             /// Coordinator's view controller is still presented and want to be dismissed.
-            case completed
+            case complete
             
             /// When coordinator's view controller is removed from the hierarchy without an outgoing event.
             case disappear
@@ -34,7 +34,7 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
         
         case present(UIViewController)
         case event(OutputType)
-        case dismiss(UIViewController, trigger: DismissTrigger = .completed)
+        case dismiss(UIViewController, trigger: DismissTrigger = .complete)
     }
     
     /// Coordinator's job events.
@@ -73,11 +73,19 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
         childCoordinators[coordinator.identifier] = nil
     }
     
+    /// Starts job of the coordinator.
+    ///
+    /// - Parameter output: Output events of coordinator job.
+    /// - Returns: Controller of coordinator.
+    open func start(output: AnyObserver<OutputType>) -> UIViewController {
+        fatalError("Start method should be implemented.")
+    }
+    
     /// Calls method `start()` on that coordinator.
     ///
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
-    public func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
+    public final func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
         let connection: RxCoordinator<T>.Connection = .init()
         coordinator.connection = connection
         
@@ -91,7 +99,7 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
                 case .event(let r):
                     return .event(r)
                 case .dismiss:
-                    return .dismiss($0.0, trigger: .completed)
+                    return .dismiss($0.0, trigger: .complete)
                 }
             }
             .merge(with: { // convert disappear to dismiss
@@ -115,14 +123,6 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
             }, onSubscribe: { this in
                 this.store(coordinator: coordinator)
             })
-    }
-    
-    /// Starts job of the coordinator.
-    ///
-    /// - Parameter output: Output events of coordinator job.
-    /// - Returns: Controller of coordinator.
-    open func start(output: AnyObserver<OutputType>) -> UIViewController {
-        fatalError("Start method should be implemented.")
     }
     
     public final func disconnect() {

@@ -89,10 +89,10 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
         let connection: RxCoordinator<T>.Connection = .init()
         coordinator.connection = connection
         
-        let queue: RxCoordinator<T>.Queue = .init()
-        let controller = coordinator.start(output: queue.input)
+        let queue: RxCoordinator<T>.IO = .init()
+        let controller = coordinator.start(output: queue.i)
         
-        return queue.output
+        return queue.o
             .withUnretained(controller)
             .map {
                 switch $0.1 {
@@ -139,32 +139,28 @@ fileprivate extension RxCoordinator {
 fileprivate extension RxCoordinator {
     /// IO events queue.
     /// Used for internal purposes.
-    class Queue {
-        private class Observer: ObserverType {
-            typealias Element = OutputType
-            
-            fileprivate let subject: PublishSubject<Event> = .init()
-            
-            func on(_ event: RxSwift.Event<Element>) {
-                switch event {
+    class IO {
+        private let io: PublishSubject<Event> = .init()
+        
+        var i: AnyObserver<OutputType> {
+            .init { [weak io] in
+                guard let io = io else {
+                    return
+                }
+                
+                switch $0 {
                 case .next(let e):
-                    subject.on(.next(.event(e)))
+                    io.on(.next(.event(e)))
                 case .error(let error):
-                    subject.on(.error(error))
+                    io.on(.error(error))
                 case .completed: // convert completed to dismiss
-                    subject.on(.next(.dismiss))
+                    io.on(.next(.dismiss))
                 }
             }
         }
         
-        private let observer: Observer = .init()
-        
-        var input: AnyObserver<OutputType> {
-            observer.asObserver()
-        }
-        
-        var output: Observable<Event> {
-            observer.subject.asObservable()
+        var o: Observable<Event> {
+            io.asObservable()
         }
     }
 }
@@ -201,3 +197,5 @@ public extension RxCoordinator.LifeCycle {
         }
     }
 }
+
+

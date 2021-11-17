@@ -5,11 +5,8 @@
 //  Created by Miroslav Yozov on 1.07.21.
 //
 
-import Foundation
-
 import UIKit
 import RxSwift
-import RxSwiftExt
 
 open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     /// Typealias which will allows to access a InputType of the Coordainator by `CoordinatorName.CoordinationInput`.

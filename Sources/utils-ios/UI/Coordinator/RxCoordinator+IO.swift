@@ -12,16 +12,43 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     /// Typealias which will allows to access a InputType of the Coordainator by `CoordinatorName.CoordinationInput`.
     public typealias CoordinationInput = InputType
     
-    fileprivate let subject: PublishSubject<InputType> = .init()
+    private enum Connection {
+        case none(buffer: [InputType] = [])
+        case established(PublishSubject<InputType>)
+        
+        mutating func transmit(_ input: InputType) {
+            switch self {
+            case .none(let buffer):
+                self = .none(buffer: buffer + [input])
+            case .established(let obsever):
+                obsever.onNext(input)
+            }
+        }
+        
+        mutating func establish(to observer: PublishSubject<InputType>) {
+            switch self {
+            case .none(let buffer):
+                buffer.forEach { observer.onNext($0) }
+                fallthrough
+            case .established:
+                self = .established(observer)
+            }
+        }
+    }
+    
+    private var connection: Connection = .none()
     
     public final var input: Binder<InputType> {
-        .init(self, scheduler: CurrentThreadScheduler.instance) { this, input in
-            this.subject.onNext(input)
+        .init(self, scheduler: CurrentThreadScheduler.instance) {
+            $0.connection.transmit($1)
         }
     }
     
     public final override func start(output: AnyObserver<OutputType>) -> UIViewController {
-        start(input: subject, output: output)
+        let input: PublishSubject<InputType> = .init()
+        let controller = start(input: input, output: output)
+        connection.establish(to: input)
+        return controller
     }
     
     /// Starts job of the coordinator.

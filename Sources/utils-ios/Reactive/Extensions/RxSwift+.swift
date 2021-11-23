@@ -69,6 +69,13 @@ public extension ObservableType {
         })
     }
     
+    func subscribeNext<A: AnyObject, B: AnyObject, C: AnyObject>(with obj1: A?, _ obj2: B?, _ obj3: C?, _ onNext: @escaping (A, B, C, Element) -> Void) -> Disposable {
+        return subscribe(onNext: { [weak obj1, weak obj2, weak obj3] element in
+            guard let obj1 = obj1, let obj2 = obj2, let obj3 = obj3 else { return }
+            onNext(obj1, obj2, obj3, element)
+        })
+    }
+    
     func `do`<A: AnyObject>(with obj: A?, onNext: ((A, Element) throws -> Void)? = nil, afterNext: ((A, Element) throws -> Void)? = nil, onError: ((A, Swift.Error) throws -> Void)? = nil, afterError: ((A, Swift.Error) throws -> Void)? = nil, onCompleted: ((A) throws -> Void)? = nil, afterCompleted: ((A) throws -> Void)? = nil, onSubscribe: ((A) -> Void)? = nil, onSubscribed: ((A) -> Void)? = nil, onDispose: ((A) -> Void)? = nil)
     -> Observable<Element> {
         return `do`(

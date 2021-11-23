@@ -24,7 +24,7 @@ extension UIScrollView {
                 
                 sv.rx.methodInvoked(#selector(UIScrollView.layoutSubviews))
                     .observe(on: MainScheduler.asyncInstance)
-                    .subscribeNext(weak: self) { this, _ in
+                    .subscribeNext(with: self) { this, _ in
                         let i = this.frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size))
                         
                         let h = i.height
@@ -103,7 +103,7 @@ extension UIScrollView {
                 .observe(on: MainScheduler.instance)
                 .map { $0.height }
                 .distinctUntilChanged()
-                .do(weak: self, afterNext: { this, _ in
+                .`do`(with: self, afterNext: { this, _ in
                     this.outerScrollView?.setNeedsLayout()
                 })
                 .bind(to: c.rx.constant)

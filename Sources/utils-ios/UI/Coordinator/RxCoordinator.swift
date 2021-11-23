@@ -118,7 +118,7 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
             }
             .take(until: { $0.isDismiss && untilDismiss }, behavior: .inclusive)
             .startWith(.present(controller))
-            .do(weak: self, onCompleted: { this in
+            .`do`(with: self, onCompleted: { this in
                 this.free(coordinator: coordinator)
             }, onSubscribe: { this in
                 this.store(coordinator: coordinator)
@@ -170,6 +170,15 @@ public extension RxCoordinator.LifeCycle.DismissTrigger {
     var isDisappear: Bool {
         switch self {
         case .disappear:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    var isDisconnect: Bool {
+        switch self {
+        case .disconnect:
             return true
         default:
             return false

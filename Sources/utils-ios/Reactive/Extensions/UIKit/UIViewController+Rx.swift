@@ -86,6 +86,8 @@ public extension Reactive where Base: UIViewController {
                     observer.onNext((viewControllerToPresent))
                     observer.onCompleted()
                 }
+            } else {
+                observer.onCompleted()
             }
             return Disposables.create { }
         })
@@ -98,6 +100,8 @@ public extension Reactive where Base: UIViewController {
                     observer.onNext(())
                     observer.onCompleted()
                 }
+            } else {
+                observer.onCompleted()
             }
             return Disposables.create { }
         })

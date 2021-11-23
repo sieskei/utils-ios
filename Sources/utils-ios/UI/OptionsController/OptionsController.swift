@@ -47,7 +47,7 @@ public class OptionsController: ViewController {
         v.backgroundColor = .clear
         v.rx
             .tapGesture()
-            .subscribeNext(weak: self) { this, _ in
+            .subscribeNext(with: self) { this, _ in
                 this.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
@@ -160,7 +160,7 @@ public extension Reactive where Base: OptionsController {
     var action: Observable<Base.Action> {
         base.tableView.rx
             .itemSelected
-            .map(weak: base.tableView, default: nil) { view, indexPath in
+            .map(with: base.tableView, `default`: nil) { view, indexPath in
                 guard let cell = view.cellForRow(at: indexPath) as? Base.TableViewCell else {
                     return nil
                 }

@@ -360,7 +360,7 @@ fileprivate extension SliderView {
         pan
             .when(.changed)
             .asTranslation()
-            .subscribeNext(weak: self) {
+            .subscribeNext(with: self) {
                 let p = abs($1.translation.x / $0.frame.width)
                 let p_3 = p / 3
                 
@@ -391,7 +391,7 @@ fileprivate extension SliderView {
         pan
         .when(.cancelled, .failed, .ended)
         .asTranslation()
-        .subscribeNext(weak: self) {
+        .subscribeNext(with: self) {
             let p = abs(($1.translation.x + $1.velocity.x) / $0.frame.width)
             
             let revert = { [t = $0] in

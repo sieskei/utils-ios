@@ -10,7 +10,7 @@ import RxSwift
 import RxSwiftExt
 
 /// Base abstract coordinator generic over the return type of the `start` method.
-open class RxCoordinator<OutputType>: ReactiveCompatible {
+open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
     /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
     
@@ -103,10 +103,8 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
                 }
             }
             .merge(with: { // convert disappear to dismiss
-                controller.rx.viewDidDisappear
-                    .withUnretained(controller)
-                    .filter { $0.0.isMovingFromParent || $0.0.isBeingDismissed }
-                    .map { .dismiss($0.0, trigger: .disappear) }
+                controller.rx.dismissed
+                    .map { .dismiss($0, trigger: .disappear) }
             }())
             .merge(with: { // convert connection deallocation to dismiss
                 connection.rx.deallocated
@@ -127,6 +125,10 @@ open class RxCoordinator<OutputType>: ReactiveCompatible {
     
     public final func disconnect() {
         connection = nil
+    }
+    
+    public final func interrupt() {
+        disconnect()
     }
 }
 
@@ -207,4 +209,20 @@ public extension RxCoordinator.LifeCycle {
     }
 }
 
-
+public extension Reactive where Base: UIViewController {
+    var presented: Observable<UIViewController> {
+        base.rx
+            .methodInvoked(#selector(Base.viewDidAppear(_:)))
+            .withUnretained(base)
+            .map { $0.0 }
+            .filter { $0.isMovingToParent || $0.isBeingPresented }
+    }
+    
+    var dismissed: Observable<UIViewController> {
+        base.rx
+            .methodInvoked(#selector(Base.viewDidDisappear(_:)))
+            .withUnretained(base)
+            .map { $0.0 }
+            .filter { $0.isMovingFromParent || $0.isBeingDismissed }
+    }
+}

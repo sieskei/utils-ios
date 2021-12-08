@@ -1,5 +1,5 @@
 //
-//  IdentityEquitable.swift
+//  Equatable+Identity.swift
 //  
 //
 //  Created by Miroslav Yozov on 19.12.19.

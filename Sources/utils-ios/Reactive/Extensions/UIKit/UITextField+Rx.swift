@@ -34,6 +34,12 @@ extension Reactive where Base: UITextField {
                 return ()
             })
     }
+    
+    public var editing: Observable<Bool> {
+        Observable.merge(didBeginEditing.map { _ in true },
+                         didEndEditing.map { _ in false })
+            .distinctUntilChanged()
+    }
 }
 
 #endif

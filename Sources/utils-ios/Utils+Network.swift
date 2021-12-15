@@ -75,6 +75,10 @@ extension Utils {
         open func download(for url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
             session.download(url, to: destination)
         }
+        
+        open func upload(_ data: MultipartFormData, for url: URLRequestConvertible) -> UploadRequest {
+            session.upload(multipartFormData: data, with: url).validate(validation)
+        }
     }
 }
 
@@ -90,6 +94,12 @@ extension Utils.Network {
         case start
         case progress(Double)
         case done(URL)
+    }
+    
+    public enum UploadEvent<T: Decodable> {
+        case start
+        case progress(Double)
+        case done(T)
     }
     
     public static let status200Validation: DataRequest.Validation = {
@@ -207,6 +217,40 @@ public extension Reactive where Base: Utils.Network {
             .asSingle()
     }
     
+    func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes: Int64 = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
+        Observable.create { observer in
+            observer.onNext(.start)
+            let request = base.upload(data, for: url)
+                .uploadProgress { progress in
+                    observer.onNext(.progress(progress.totalUnitCount > 0 ? progress.fractionCompleted :
+                                                min(1, Double(progress.completedUnitCount) / Double(estimatedSizeInBytes))))
+                }
+                .responseData(queue: Utils.Task.concurrentUtilityQueue) {
+                    switch $0.result {
+                    case .success(let data):
+                        do {
+                            let o: T = try JSONDecoder(userInfo: userInfo).decode(from: data)
+                            observer.onNext(.done(o))
+                            observer.onCompleted()
+                        } catch (let error) {
+                            Utils.Log.error("Utils.Network: unable to decode data from url.", url, error)
+                        }
+                    case .failure(let error):
+                        Utils.Log.error("Utils.Network: unable to upload data to url.", url, error)
+                        observer.onError(error)
+                    }
+            }
+            
+            if !base.session.startRequestsImmediately {
+                request.resume()
+            }
+            
+            return Disposables.create {
+                request.cancel()
+            }
+        }
+    }
+    
     func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
         data(url: url).map {
             // print("[T] serialize:", Thread.current)
@@ -254,6 +298,10 @@ public extension Reactive where Base: Utils.Network {
     
     static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int64 = -1) -> Observable<Base.DownloadEvent> {
         Base.shared.rx.download(url: url, to: destination, estimatedSizeInBytes: size)
+    }
+    
+    static func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes size: Int64 = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
+        Base.shared.rx.upload(data: data, to: url, estimatedSizeInBytes: size, userInfo: userInfo)
     }
     
     static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {

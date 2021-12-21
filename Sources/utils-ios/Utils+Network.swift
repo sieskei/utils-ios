@@ -168,7 +168,7 @@ public extension Reactive where Base: Utils.Network {
         }
     }
     
-    func download(url source: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes: Int64 = -1) -> Observable<Base.DownloadEvent> {
+    func download(url source: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes: Int = -1) -> Observable<Base.DownloadEvent> {
         Observable.create { observer in
             observer.onNext(.start)
             
@@ -217,7 +217,7 @@ public extension Reactive where Base: Utils.Network {
             .asSingle()
     }
     
-    func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes: Int64 = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
+    func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
         Observable.create { observer in
             observer.onNext(.start)
             let request = base.upload(data, for: url)
@@ -296,11 +296,11 @@ public extension Reactive where Base: Utils.Network {
         Base.shared.rx.download(url: url, to: destination)
     }
     
-    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int64 = -1) -> Observable<Base.DownloadEvent> {
+    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int = -1) -> Observable<Base.DownloadEvent> {
         Base.shared.rx.download(url: url, to: destination, estimatedSizeInBytes: size)
     }
     
-    static func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes size: Int64 = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
+    static func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes size: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
         Base.shared.rx.upload(data: data, to: url, estimatedSizeInBytes: size, userInfo: userInfo)
     }
     

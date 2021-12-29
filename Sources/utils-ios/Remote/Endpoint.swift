@@ -24,6 +24,7 @@ public extension Fault {
 
 public extension CodingUserInfoKey.Decoder {
     static let endpoint = CodingUserInfoKey(rawValue: "ios.utils.Decoder.endpoint")!
+    static let verboseCodingData = CodingUserInfoKey(rawValue: "ios.utils.Decoder.verboseCodingData")!
 }
 
 public extension Decoder {
@@ -42,6 +43,7 @@ public enum EndpointRoot {
 public protocol Endpoint: URLRequestConvertible {
     var root: EndpointRoot { get }
     var decodeType: DecodeType { get }
+    var verboseCodingData: Bool { get }
     
     func prepare(response data: Data) -> Data
 }
@@ -57,6 +59,10 @@ public extension Endpoint {
     
     var decodeType: DecodeType {
         .replace
+    }
+    
+    var verboseCodingData: Bool {
+        false
     }
     
     func prepare(response data: Data) -> Data {

@@ -55,6 +55,12 @@ public extension ObservableType {
 
 // MARK: ObservableType - subscribe/do utils.
 public extension ObservableType {
+    func subscribeNext(_ onNext: @escaping (Element) -> Void) -> Disposable {
+        return subscribe(onNext: { element in
+            onNext(element)
+        })
+    }
+    
     func subscribeNext<A: AnyObject>(with obj: A?, _ onNext: @escaping (A, Element) -> Void) -> Disposable {
         return subscribe(onNext: { [weak obj] element in
             guard let obj = obj else { return }

@@ -19,9 +19,10 @@ public class RxEndpointWrapper: ReactiveCompatible {
 
 public extension Reactive where Base: RxEndpointWrapper {
     private func prepeare(userInfo ui: [CodingUserInfoKey: Any]) -> [CodingUserInfoKey: Any] {
-        return ui.insert(value: base.origin,            forKey: CodingUserInfoKey.Decoder.endpoint)
-                 .insert(value: base.origin.root,       forKey: CodingUserInfoKey.Decoder.root)
-                 .insert(value: base.origin.decodeType, forKey: CodingUserInfoKey.Decoder.decodeType)
+        return ui.insert(value: base.origin,                   forKey: CodingUserInfoKey.Decoder.endpoint)
+                 .insert(value: base.origin.verboseCodingData, forKey: CodingUserInfoKey.Decoder.verboseCodingData)
+                 .insert(value: base.origin.root,              forKey: CodingUserInfoKey.Decoder.root)
+                 .insert(value: base.origin.decodeType,        forKey: CodingUserInfoKey.Decoder.decodeType)
     }
     
     func data(network: Utils.Network = .shared) -> Single<Data> {

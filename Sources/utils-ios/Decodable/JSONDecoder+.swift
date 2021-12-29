@@ -52,6 +52,12 @@ extension Decoder {
     }
 }
 
+extension JSONDecoder {
+    var verboseCodingData: Bool {
+        userInfo[CodingUserInfoKey.Decoder.verboseCodingData] as? Bool ?? false
+    }
+}
+
 private extension Decoder {
     func object<T>() throws -> T {
         try Utils.castOrThrow(userInfo[CodingUserInfoKey.Decoder.object], Fault.Decoder.missingObject)
@@ -106,8 +112,9 @@ public extension JSONDecoder {
     }
     
     func decode<T: Redecodable>(to object: T, from data: Data) throws -> T {
-        userInfo[CodingUserInfoKey.Decoder.object] = object
+        verbose(codingData: data)
         
+        userInfo[CodingUserInfoKey.Decoder.object] = object
         switch try decode(RedecodableResult<T>.self, from: data) {
         case .success(let obj):
             return obj
@@ -117,11 +124,26 @@ public extension JSONDecoder {
     }
     
     func decode<T: Decodable>(from data: Data) throws -> T {
+        verbose(codingData: data)
+        
         switch try decode(Result<T>.self, from: data) {
         case .success(let obj):
             return obj
         case .failure(let error):
             throw error
+        }
+    }
+    
+    private func verbose(codingData data: Data) {
+        guard verboseCodingData else {
+            return
+        }
+        
+        if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
+           let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
+            Utils.Log.verbose(String(decoding: jsonData, as: UTF8.self))
+        } else {
+            Utils.Log.verbose("JSON data malformed.")
         }
     }
 }

@@ -85,12 +85,21 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
     ///
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
-    public final func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
-        let connection: RxCoordinator<T>.Connection = .init()
-        coordinator.connection = connection
+    public final func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss flag: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
+        coordinator.connect(untilDismiss: flag)
+            .`do`(with: self, onCompleted: { this in
+                this.free(coordinator: coordinator)
+            }, onSubscribe: { this in
+                this.store(coordinator: coordinator)
+            })
+    }
+    
+    public final func connect(untilDismiss: Bool = true) -> Observable<LifeCycle> {
+        let conn: Connection = .init()
+        connection = conn
         
-        let queue: RxCoordinator<T>.IO = .init()
-        let controller = coordinator.start(output: queue.i)
+        let queue: IO = .init()
+        let controller = start(output: queue.i)
         
         return queue.o
             .withUnretained(controller)
@@ -107,20 +116,15 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
                     .map { .dismiss($0, trigger: .disappear) }
             }())
             .merge(with: { // convert connection deallocation to dismiss
-                connection.rx.deallocated
+                conn.rx.deallocated
                     .withUnretained(controller)
                     .map { .dismiss($0.0, trigger: .disconnect) }
             }())
-            .catch { // convert error in dismiss
+            .catch { // convert error to dismiss
                 .just(.dismiss(controller, trigger: .error($0)))
             }
             .take(until: { $0.isDismiss && untilDismiss }, behavior: .inclusive)
             .startWith(.present(controller))
-            .`do`(with: self, onCompleted: { this in
-                this.free(coordinator: coordinator)
-            }, onSubscribe: { this in
-                this.store(coordinator: coordinator)
-            })
     }
     
     public final func disconnect() {

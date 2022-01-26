@@ -141,8 +141,8 @@ extension Utils.Network: ReactiveCompatible { }
 
 // MARK: Instance reactive extension.
 public extension Reactive where Base: Utils.Network {
-    func data(url: URLRequestConvertible) -> Single<Data> {
-        Single.create { single in
+    func data(url: URLRequestConvertible, waitForReachability: Bool = false) -> Single<Data> {
+        let single: Single<Data> = .create { single in
             // print("[T] data create:", Thread.current)
             
             let request = base.request(for: url)
@@ -166,10 +166,20 @@ public extension Reactive where Base: Utils.Network {
                 request.cancel()
             }
         }
+        
+        if waitForReachability {
+            return Base.rx.isReachable
+                .filter { $0 }
+                .take(1)
+                .asSingle()
+                .flatMap { _ in single }
+        } else {
+            return single
+        }
     }
     
-    func download(url source: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes: Int = -1) -> Observable<Base.DownloadEvent> {
-        Observable.create { observer in
+    func download(url source: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes: Int = -1, waitForReachability: Bool = false) -> Observable<Base.DownloadEvent> {
+        let observable: Observable<Base.DownloadEvent> = .create { observer in
             observer.onNext(.start)
             
             let request = base.download(for: source, to: destination)
@@ -201,10 +211,19 @@ public extension Reactive where Base: Utils.Network {
                 request.cancel()
             }
         }
+        
+        if waitForReachability {
+            return Base.rx.isReachable
+                .filter { $0 }
+                .take(1)
+                .flatMap { _ in observable }
+        } else {
+            return observable
+        }
     }
     
-    func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil) -> Single<URL> {
-        download(url: url, to: destination)
+    func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, waitForReachability flag: Bool = false) -> Single<URL> {
+        download(url: url, to: destination, waitForReachability: flag)
             .filterMap {
                 switch $0 {
                 case .done(let url):
@@ -217,8 +236,8 @@ public extension Reactive where Base: Utils.Network {
             .asSingle()
     }
     
-    func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
-        Observable.create { observer in
+    func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability: Bool = false) -> Observable<Base.UploadEvent<T>> {
+        let observable: Observable<Base.UploadEvent<T>> = .create { observer in
             observer.onNext(.start)
             let request = base.upload(data, for: url)
                 .uploadProgress { progress in
@@ -249,17 +268,26 @@ public extension Reactive where Base: Utils.Network {
                 request.cancel()
             }
         }
+        
+        if waitForReachability {
+            return Base.rx.isReachable
+                .filter { $0 }
+                .take(1)
+                .flatMap { _ in observable }
+        } else {
+            return observable
+        }
     }
     
-    func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        data(url: url).map {
+    func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability flag: Bool = false) -> Single<T> {
+        data(url: url, waitForReachability: flag).map {
             // print("[T] serialize:", Thread.current)
             try JSONDecoder(userInfo: userInfo).decode(from: $0)
         }
     }
     
-    func serialize<T: Redecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        data(url: url).map {
+    func serialize<T: Redecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability flag: Bool = false) -> Single<T> {
+        data(url: url, waitForReachability: flag).map {
             // print("[T] serialize to:", Thread.current)
             try JSONDecoder(userInfo: userInfo).decode(to: object, from: $0)
         }
@@ -288,28 +316,28 @@ public extension Reactive where Base: Utils.Network {
         Base.isReachableValue.asObservable()
     }
     
-    static func data(url: URLRequestConvertible) -> Single<Data> {
-        Base.shared.rx.data(url: url)
+    static func data(url: URLRequestConvertible, waitForReachability flag: Bool = false) -> Single<Data> {
+        Base.shared.rx.data(url: url, waitForReachability: flag)
     }
     
-    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil) -> Single<URL> {
-        Base.shared.rx.download(url: url, to: destination)
+    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, waitForReachability flag: Bool = false) -> Single<URL> {
+        Base.shared.rx.download(url: url, to: destination, waitForReachability: flag)
     }
     
-    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int = -1) -> Observable<Base.DownloadEvent> {
-        Base.shared.rx.download(url: url, to: destination, estimatedSizeInBytes: size)
+    static func download(url: URLRequestConvertible, to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int = -1, waitForReachability flag: Bool = false) -> Observable<Base.DownloadEvent> {
+        Base.shared.rx.download(url: url, to: destination, estimatedSizeInBytes: size, waitForReachability: flag)
     }
     
-    static func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes size: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<Base.UploadEvent<T>> {
-        Base.shared.rx.upload(data: data, to: url, estimatedSizeInBytes: size, userInfo: userInfo)
+    static func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes size: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability flag: Bool = false) -> Observable<Base.UploadEvent<T>> {
+        Base.shared.rx.upload(data: data, to: url, estimatedSizeInBytes: size, userInfo: userInfo, waitForReachability: flag)
     }
     
-    static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        Base.shared.rx.serialize(url: url, userInfo: userInfo)
+    static func serialize<T: Decodable>(url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability flag: Bool = false) -> Single<T> {
+        Base.shared.rx.serialize(url: url, userInfo: userInfo, waitForReachability: flag)
     }
     
-    static func serialize<T: Redecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:]) -> Single<T> {
-        Base.shared.rx.serialize(url: url, to: object, userInfo: userInfo)
+    static func serialize<T: Redecodable>(url: URLRequestConvertible, to object: T, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability flag: Bool = false) -> Single<T> {
+        Base.shared.rx.serialize(url: url, to: object, userInfo: userInfo, waitForReachability: flag)
     }
     
     static func serialize<T: Decodable>(interval: RxTimeInterval, url: URLRequestConvertible, userInfo: [CodingUserInfoKey: Any] = [:]) -> Observable<T> {

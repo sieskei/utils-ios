@@ -25,32 +25,32 @@ public extension Reactive where Base: RxEndpointWrapper {
                  .insert(value: base.origin.decodeType,        forKey: CodingUserInfoKey.Decoder.decodeType)
     }
     
-    func data(network: Utils.Network = .shared) -> Single<Data> {
-        network.rx.data(url: base.origin)
+    func data(network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Single<Data> {
+        network.rx.data(url: base.origin, waitForReachability: flag)
     }
     
-    func download(to destination: DownloadRequest.Destination? = nil, network: Utils.Network = .shared) -> Single<URL> {
-        network.rx.download(url: base.origin, to: destination)
+    func download(to destination: DownloadRequest.Destination? = nil, network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Single<URL> {
+        network.rx.download(url: base.origin, to: destination, waitForReachability: flag)
     }
     
-    func download(to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int = -1, network: Utils.Network = .shared) -> Observable<Utils.Network.DownloadEvent> {
-        network.rx.download(url: base.origin, to: destination, estimatedSizeInBytes: size)
+    func download(to destination: DownloadRequest.Destination? = nil, estimatedSizeInBytes size: Int = -1, network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Observable<Utils.Network.DownloadEvent> {
+        network.rx.download(url: base.origin, to: destination, estimatedSizeInBytes: size, waitForReachability: flag)
     }
     
-    func upload<T: Decodable>(data: MultipartFormData, estimatedSizeInBytes size: Int = -1, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Observable<Utils.Network.UploadEvent<T>> {
-        network.rx.upload(data: data, to: base.origin, estimatedSizeInBytes: size, userInfo: ui)
+    func upload<T: Decodable>(data: MultipartFormData, estimatedSizeInBytes size: Int = -1, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Observable<Utils.Network.UploadEvent<T>> {
+        network.rx.upload(data: data, to: base.origin, estimatedSizeInBytes: size, userInfo: ui, waitForReachability: flag)
     }
     
-    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {
-        network.rx.serialize(url: base.origin, userInfo: prepeare(userInfo: ui))
+    func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Single<T> {
+        network.rx.serialize(url: base.origin, userInfo: prepeare(userInfo: ui), waitForReachability: flag)
     }
     
     func serialize<T: Decodable>(interval: RxTimeInterval, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Observable<T> {
         network.rx.serialize(interval: interval, url: base.origin, userInfo: prepeare(userInfo: ui))
     }
 
-    func serialize<T: Redecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared) -> Single<T> {
-        network.rx.serialize(url: base.origin, to: object, userInfo: prepeare(userInfo: ui))
+    func serialize<T: Redecodable>(to object: T, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Single<T> {
+        network.rx.serialize(url: base.origin, to: object, userInfo: prepeare(userInfo: ui), waitForReachability: flag)
     }
 }
 

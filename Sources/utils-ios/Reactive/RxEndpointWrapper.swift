@@ -38,7 +38,7 @@ public extension Reactive where Base: RxEndpointWrapper {
     }
     
     func upload<T: Decodable>(data: MultipartFormData, estimatedSizeInBytes size: Int = -1, userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Observable<Utils.Network.UploadEvent<T>> {
-        network.rx.upload(data: data, to: base.origin, estimatedSizeInBytes: size, userInfo: ui, waitForReachability: flag)
+        network.rx.upload(data: data, to: base.origin, estimatedSizeInBytes: size, userInfo: prepeare(userInfo: ui), waitForReachability: flag)
     }
     
     func serialize<T: Decodable>(userInfo ui: [CodingUserInfoKey: Any] = [:], network: Utils.Network = .shared, waitForReachability flag: Bool = false) -> Single<T> {

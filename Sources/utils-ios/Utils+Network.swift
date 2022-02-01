@@ -239,8 +239,9 @@ public extension Reactive where Base: Utils.Network {
     func upload<T: Decodable>(data: MultipartFormData, to url: URLRequestConvertible, estimatedSizeInBytes: Int = -1, userInfo: [CodingUserInfoKey: Any] = [:], waitForReachability: Bool = false) -> Observable<Base.UploadEvent<T>> {
         let observable: Observable<Base.UploadEvent<T>> = .create { observer in
             observer.onNext(.start)
+            
             let request = base.upload(data, for: url)
-                .uploadProgress { progress in
+                .uploadProgress(queue: Utils.Task.concurrentUtilityQueue) { progress in
                     observer.onNext(.progress(progress.totalUnitCount > 0 ? progress.fractionCompleted :
                                                 min(1, Double(progress.completedUnitCount) / Double(estimatedSizeInBytes))))
                 }
@@ -251,8 +252,9 @@ public extension Reactive where Base: Utils.Network {
                             let o: T = try JSONDecoder(userInfo: userInfo).decode(from: data)
                             observer.onNext(.done(o))
                             observer.onCompleted()
-                        } catch (let error) {
+                        } catch {
                             Utils.Log.error("Utils.Network: unable to decode data from url.", url, error)
+                            observer.onError(error)
                         }
                     case .failure(let error):
                         Utils.Log.error("Utils.Network: unable to upload data to url.", url, error)

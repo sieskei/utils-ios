@@ -9,6 +9,12 @@ import Foundation
 
 /// Describes a arror with message and more data.
 public class Fault: Error, CustomStringConvertible {
+    public enum Level: Int {
+        case info = 0
+        case warning = 1
+        case error = 2
+    }
+    
     public enum Languages: String {
         case en
         case bg
@@ -35,6 +41,7 @@ public class Fault: Error, CustomStringConvertible {
     public let code: String
     public let info: [AnyHashable: Any]
     public let parent: Error?
+    public let level: Level
     
     public var message: String {
         return lang2messages[Fault.defaultLang] ?? lang2messages[.en] ?? ""
@@ -44,19 +51,20 @@ public class Fault: Error, CustomStringConvertible {
         return "Fault { identifier: \(identifier), message: \(message), parent: \(String(describing: parent)) }"
     }
     
-    public convenience init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
-        self.init(code: code, messages: [Fault.defaultLang: message], info: info, parent: parent)
+    public convenience init(code: String, message: String, info: [AnyHashable: Any] = [:], parent: Error? = nil, level: Level = .error) {
+        self.init(code: code, messages: [Fault.defaultLang: message], info: info, parent: parent, level: level)
     }
     
-    public convenience init(code: String, enMessage: String, info: [AnyHashable: Any] = [:], parent: Error? = nil) {
-        self.init(code: code, messages: [.en: enMessage], info: info, parent: parent)
+    public convenience init(code: String, enMessage: String, info: [AnyHashable: Any] = [:], parent: Error? = nil, level: Level = .error) {
+        self.init(code: code, messages: [.en: enMessage], info: info, parent: parent, level: level)
     }
     
-    public init(code: String, messages: [Languages: String], info: [AnyHashable: Any] = [:], parent: Error? = nil) {
+    public init(code: String, messages: [Languages: String], info: [AnyHashable: Any] = [:], parent: Error? = nil, level: Level = .error) {
         self.code = code
         self.lang2messages = messages
         self.info = info
         self.parent = parent
+        self.level = level
     }
     
     public func `is`(code c: String) -> Bool {

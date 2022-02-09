@@ -76,6 +76,7 @@ public extension Fault {
 
 // MARK: Basic `Fault` codes.
 public extension Fault.Codes {
+    static let deallocated = "deallocated"
     static let cancelled = "cancelled"
     static let notConnectedToInternet = "notConnectedToInternet"
     static let error = "error"
@@ -83,6 +84,10 @@ public extension Fault.Codes {
 
 // MARK: Basic `Fault` instances.
 public extension Fault {
+    static var deallocated: Fault {
+        .init(code: Codes.deallocated, messages: [.bg: "Обекта е освободен от паметта.", .en: "Object deallocated."])
+    }
+    
     static var cancelled: Fault {
         .init(code: Codes.cancelled, messages: [.bg: "Спряна операция.", .en: "Operation cancelled."])
     }

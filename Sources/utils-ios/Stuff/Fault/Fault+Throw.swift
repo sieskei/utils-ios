@@ -12,13 +12,13 @@ extension Fault {
     public struct Throw {
         fileprivate let subject: PublishSubject<Action> = .init()
         
-        let fault: Fault
-        let actions: [Action]
+        public let fault: Fault
+        public let actions: [Action]
         
-        let animated: Bool
-        let autodismiss: Bool
+        public let animated: Bool
+        public let autodismiss: Bool
         
-        func `catch`(with action: Action) {
+        public func `catch`(with action: Action) {
             guard !subject.isDisposed else {
                 utils_ios.Utils.Log.warning("Already catched!", self)
                 return
@@ -37,6 +37,7 @@ extension Fault.Throw {
         public enum Style {
             case regular
             case suggestive
+            case destructive
         }
         
         public let key: Int

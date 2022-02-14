@@ -32,7 +32,7 @@ extension Fault {
 
 extension Fault.Throw {
     public struct Action {
-        public static let autodismiss: Action = .init(key: -Int.randomIdentifier, style: .regular, title: "", icon: nil)
+        public static let dismiss: Action = .init(key: -Int.randomIdentifier, style: .regular, title: "", icon: nil)
         
         public enum Style {
             case regular

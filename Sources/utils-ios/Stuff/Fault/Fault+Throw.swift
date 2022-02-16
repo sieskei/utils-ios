@@ -32,7 +32,14 @@ extension Fault {
 
 extension Fault.Throw {
     public struct Action {
-        public static let dismiss: Action = .init(key: -Int.randomIdentifier, style: .regular, title: "", icon: nil)
+        
+        public static let dismissKey = -Int.randomIdentifier
+        public static let closeKey = -Int.randomIdentifier
+        
+        public static let dismiss: Action = .init(key: dismissKey, style: .regular, title: "", icon: nil)
+        public static func close(style: Style = .regular) -> Action {
+            .init(key: closeKey, style: style, title: "Затвори", icon: nil)
+        }
         
         public enum Style {
             case regular

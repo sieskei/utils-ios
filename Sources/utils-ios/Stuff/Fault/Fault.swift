@@ -39,7 +39,7 @@ public class Fault: Error, CustomStringConvertible {
     private var lang2messages: [Languages: String] = [:]
     
     public let code: String
-    public let info: [AnyHashable: Any]
+    public private (set) var info: [AnyHashable: Any]
     public let parent: Error?
     public let level: Level
     
@@ -69,6 +69,14 @@ public class Fault: Error, CustomStringConvertible {
     
     public func `is`(code c: String) -> Bool {
         identifier == Fault.identifier(for: c)
+    }
+    
+    public func `get`<T>(key: String) -> T? {
+        info[key] as? T
+    }
+    
+    public func `set`(_ value: Any, for key: String) {
+        info[key] = value
     }
 }
 

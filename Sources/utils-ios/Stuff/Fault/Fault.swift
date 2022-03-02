@@ -75,7 +75,7 @@ public class Fault: Error, CustomStringConvertible {
         info[key] as? T
     }
     
-    public func `set`(_ value: Any, for key: String) {
+    public func `set`(_ value: Any, forKey key: String) {
         info[key] = value
     }
 }

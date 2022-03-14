@@ -119,6 +119,10 @@ public extension URL {
 
 public extension Date {
     static var currentZeroSeconds: Date {
-        .init(timeIntervalSinceReferenceDate: floor(Date.timeIntervalSinceReferenceDate / 60.0) * 60)
+        .init().zeroSeconds
+    }
+    
+    var zeroSeconds: Date {
+        .init(timeIntervalSinceReferenceDate: floor(timeIntervalSinceReferenceDate / 60.0) * 60)
     }
 }

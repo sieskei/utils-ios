@@ -9,27 +9,43 @@ import Foundation
 
 // MARK: NSError help properties.
 public extension NSError {
+    var isNetwork: Bool {
+        domain == NSURLErrorDomain
+    }
+    
     var isCancelledURLRequest: Bool {
-        return domain == NSURLErrorDomain && code == NSURLErrorCancelled
+        isNetwork && code == NSURLErrorCancelled
     }
     
     var isNotConnectedToInternet: Bool {
-        return domain == NSURLErrorDomain && code == NSURLErrorNotConnectedToInternet
+        isNetwork && code == NSURLErrorNotConnectedToInternet
+    }
+    
+    var isTimeOutURLRequest: Bool {
+        isNetwork && code == NSURLErrorTimedOut
     }
 }
 
 // MARK: Error help properties.
 public extension Error {
     var nsError: NSError {
-        return self as NSError
+        self as NSError
+    }
+    
+    var isNetwork: Bool {
+        nsError.isNetwork
     }
     
     var isCancelledURLRequest: Bool {
-        return nsError.isCancelledURLRequest
+        nsError.isCancelledURLRequest
     }
     
     var isNotConnectedToInternet: Bool {
-        return nsError.isNotConnectedToInternet
+        nsError.isNotConnectedToInternet
+    }
+    
+    var isTimeOutURLRequest: Bool {
+        nsError.isTimeOutURLRequest
     }
 }
 

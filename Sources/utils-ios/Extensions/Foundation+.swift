@@ -55,6 +55,10 @@ public extension String {
     mutating func trim() {
         self = trimmed
     }
+    
+    func start(with string: String) -> Bool {
+        range(of: string, options: .anchored) != nil
+    }
 }
 
 public extension NSMutableAttributedString {

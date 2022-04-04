@@ -42,7 +42,7 @@ extension Decoder {
             return try c.superDecoder()
         case .key(let name):
             return try container(keyedBy: CustomCodingKey.self).superDecoder(forKey: .custom(named: name))
-        case .tree(let keys):
+        case .path(let keys):
             var c = try container(keyedBy: CustomCodingKey.self)
             for i in 0 ..< keys.count - 1 {
                 c = try c.nestedContainer(keyedBy: CustomCodingKey.self, forKey: .custom(named: keys[i]))

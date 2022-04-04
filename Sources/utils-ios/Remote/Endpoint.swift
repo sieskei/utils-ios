@@ -37,7 +37,7 @@ public enum EndpointRoot {
     case none
     case firstOfArray
     case key(String)
-    case tree(keys: [String])
+    case path(keys: [String])
 }
 
 public protocol Endpoint: URLRequestConvertible {

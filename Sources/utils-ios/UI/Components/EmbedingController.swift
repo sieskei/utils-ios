@@ -6,78 +6,80 @@
 //
 
 import UIKit
-
-open class UTEmbedingController: UТViewController {
-    open private(set) var rootViewController: UIViewController? = nil
-    
-    public let container = UIView()
-    
-    internal var containerFrame: CGRect {
-      view.bounds
-    }
-    
-    open override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+extension Utils.UI {
+    open class EmbedingController: Utils.UI.ViewController {
+        open private(set) var rootViewController: UIViewController? = nil
         
-        if let controller = rootViewController {
-            controller.beginAppearanceTransition(true, animated: animated)
+        public let container = UIView()
+        
+        internal var containerFrame: CGRect {
+          view.bounds
         }
-    }
-    
-    open override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
         
-        if let controller = rootViewController {
-            controller.endAppearanceTransition()
+        open override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            
+            if let controller = rootViewController {
+                controller.beginAppearanceTransition(true, animated: animated)
+            }
         }
-    }
-    
-    open override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
         
-        if let controller = rootViewController {
-            controller.beginAppearanceTransition(false, animated: animated)
+        open override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            
+            if let controller = rootViewController {
+                controller.endAppearanceTransition()
+            }
         }
-    }
-    
-    open override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
         
-        if let controller = rootViewController {
-            controller.endAppearanceTransition()
+        open override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+            
+            if let controller = rootViewController {
+                controller.beginAppearanceTransition(false, animated: animated)
+            }
         }
-    }
-    
-    open override func prepare() {
-        super.prepare()
         
-        prepareContainer()
-        if let controller = rootViewController {
+        open override func viewDidDisappear(_ animated: Bool) {
+            super.viewDidDisappear(animated)
+            
+            if let controller = rootViewController {
+                controller.endAppearanceTransition()
+            }
+        }
+        
+        open override func prepare() {
+            super.prepare()
+            
+            prepareContainer()
+            if let controller = rootViewController {
+                prepare(viewController: controller, in: container)
+            }
+        }
+        
+        open func embed(controller: UIViewController) {
+            guard isViewLoaded else {
+                rootViewController = controller
+                return
+            }
+            
+            if let controller = rootViewController {
+                removeViewController(viewController: controller)
+            }
+            
             prepare(viewController: controller, in: container)
-        }
-    }
-    
-    open func embed(controller: UIViewController) {
-        guard isViewLoaded else {
             rootViewController = controller
-            return
         }
-        
-        if let controller = rootViewController {
-            removeViewController(viewController: controller)
-        }
-        
-        prepare(viewController: controller, in: container)
-        rootViewController = controller
     }
 }
 
-internal extension UTEmbedingController {
+
+internal extension Utils.UI.EmbedingController {
     /// Prepares the container view.
     @objc dynamic func prepareContainer() {
         container.backgroundColor = .clear
         container.clipsToBounds = true
-        container.contentScaleFactor = Screen.scale
+        container.contentScaleFactor = Utils.UI.Screen.scale
         container.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         container.frame = containerFrame
         view.addSubview(container)
@@ -85,9 +87,9 @@ internal extension UTEmbedingController {
     
     /// Prepares the view controller before transition.
     func prepare(viewController: UIViewController) {
-      viewController.view.clipsToBounds = true
-      viewController.view.contentScaleFactor = Screen.scale
-      viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        viewController.view.clipsToBounds = true
+        viewController.view.contentScaleFactor = Utils.UI.Screen.scale
+        viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     }
     
     /**
@@ -108,7 +110,7 @@ internal extension UTEmbedingController {
     }
 }
 
-internal extension UTEmbedingController {
+internal extension Utils.UI.EmbedingController {
     /**
     Add a given view controller from the childViewControllers array.
     - Parameter viewController: A UIViewController to add as a child.

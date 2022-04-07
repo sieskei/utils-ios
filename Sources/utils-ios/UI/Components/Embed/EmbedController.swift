@@ -1,5 +1,5 @@
 //
-//  UTContainerController.swift
+//  EmbedController.swift
 //  
 //
 //  Created by Miroslav Yozov on 5.04.22.
@@ -7,45 +7,26 @@
 
 import UIKit
 extension Utils.UI {
-    open class EmbedingController: Utils.UI.ViewController {
+    open class EmbedController: Utils.UI.ViewController {
         open private(set) var rootViewController: UIViewController? = nil
         
         public let container = UIView()
         
         internal var containerFrame: CGRect {
-          view.bounds
+            view.bounds
         }
         
-        open override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            
-            if let controller = rootViewController {
-                controller.beginAppearanceTransition(true, animated: animated)
-            }
+        public init(rootViewController controller: UIViewController? = nil) {
+            super.init(nibName: nil, bundle: nil)
+            rootViewController = controller
         }
         
-        open override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
-            
-            if let controller = rootViewController {
-                controller.endAppearanceTransition()
-            }
+        required public init?(coder: NSCoder) {
+            super.init(coder: coder)
         }
         
-        open override func viewWillDisappear(_ animated: Bool) {
-            super.viewWillDisappear(animated)
-            
-            if let controller = rootViewController {
-                controller.beginAppearanceTransition(false, animated: animated)
-            }
-        }
-        
-        open override func viewDidDisappear(_ animated: Bool) {
-            super.viewDidDisappear(animated)
-            
-            if let controller = rootViewController {
-                controller.endAppearanceTransition()
-            }
+        public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+            super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         }
         
         open override func prepare() {
@@ -74,7 +55,7 @@ extension Utils.UI {
 }
 
 
-internal extension Utils.UI.EmbedingController {
+internal extension Utils.UI.EmbedController {
     /// Prepares the container view.
     @objc dynamic func prepareContainer() {
         container.backgroundColor = .clear
@@ -110,26 +91,17 @@ internal extension Utils.UI.EmbedingController {
     }
 }
 
-internal extension Utils.UI.EmbedingController {
+internal extension Utils.UI.EmbedController {
     /**
     Add a given view controller from the childViewControllers array.
     - Parameter viewController: A UIViewController to add as a child.
     */
     func addViewController(viewController: UIViewController, in container: UIView) {
-        let flag = isInHierarchy
-        
-        if flag {
-            viewController.beginAppearanceTransition(true, animated: false)
-        }
-
+        viewController.willMove(toParent: self)
         addChild(viewController)
         viewController.view.frame = container.bounds
         container.addSubview(viewController.view)
         viewController.didMove(toParent: self)
-
-        if flag {
-            viewController.endAppearanceTransition()
-        }
     }
   
     /**
@@ -140,19 +112,9 @@ internal extension Utils.UI.EmbedingController {
         guard viewController.parent == self else {
             return
         }
-
-        let flag = isInHierarchy
-
-        if flag {
-            viewController.beginAppearanceTransition(false, animated: false)
-        }
-
         viewController.willMove(toParent: nil)
         viewController.view.removeFromSuperview()
         viewController.removeFromParent()
-
-        if flag {
-            viewController.endAppearanceTransition()
-        }
+        viewController.didMove(toParent: nil)
     }
 }

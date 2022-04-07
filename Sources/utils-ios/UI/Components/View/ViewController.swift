@@ -41,24 +41,3 @@ extension Utils.UI {
         open func layoutSubviews() { }
     }
 }
-
-public extension UIViewController {
-    var isInHierarchy: Bool {
-        if let view = viewIfLoaded, view.window != nil {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    func relayout() {
-        guard isViewLoaded else {
-            return
-        }
-
-        view.setNeedsLayout()
-        view.layoutIfNeeded()
-    }
-}
-
-

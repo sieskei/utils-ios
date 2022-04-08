@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  DrawerController.swift
 //  
 //
 //  Created by Miroslav Yozov on 7.04.22.
@@ -159,6 +159,40 @@ extension Utils.UI {
             container.backgroundColor = .black
         }
         
+        open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+            super.viewWillTransition(to: size, with: coordinator)
+
+            guard .phone == UIDevice.current.userInterfaceIdiom else {
+                return
+            }
+
+            let r = size.width <= size.height ? ratio : ratio / 2
+            coordinator.animate(alongsideTransition: { [weak self] context in
+                guard let this = self, let v = this.leftView else {
+                    return
+                }
+                
+                v.frame.size.width = r * size.width
+                if !this.isLeftViewOpened {
+                    v.frame.origin.x = v.frame.width
+                }
+            })
+        }
+        
+        open func embed(leftController controller: UIViewController) {
+            guard isViewLoaded else {
+                leftViewController = controller
+                return
+            }
+            
+            if let controller = leftViewController {
+                removeViewController(viewController: controller)
+            }
+            
+            leftViewController = controller
+            prepareLeftViewController()
+        }
+        
         /**
          A method that opens the leftView.
          - Parameter velocity: A CGFloat value that sets the
@@ -226,6 +260,17 @@ extension Utils.UI {
                 // this.isUserInteractionEnabled = true
             }
         }
+    
+        /**
+         A method that toggles the leftView opened if previously closed,
+         or closed if previously opened.
+         - Parameter velocity: A CGFloat value that sets the
+         velocity of the user interaction when animating the
+         leftView. Defaults to 0.
+         */
+        open func toggleLeftView(velocity: CGFloat = 0) {
+            isLeftViewOpened ? closeLeftView(velocity: velocity) : openLeftView(velocity: velocity)
+        }
     }
 }
 
@@ -241,6 +286,10 @@ fileprivate extension Utils.UI.DrawerController {
         if let controller = leftViewController {
             prepare(viewController: controller, in: prepareLeftView())
             isLeftViewEnabled = true
+        } else {
+            leftView?.removeFromSuperview()
+            leftView = nil
+            isLeftViewEnabled = true
         }
     }
     
@@ -249,7 +298,7 @@ fileprivate extension Utils.UI.DrawerController {
         guard leftView == nil else {
             return leftView!
         }
-
+        
         let r = .phone == UIDevice.current.userInterfaceIdiom ? (view.bounds.width < view.bounds.height ? ratio : ratio / 2) : ratio / 2
         let w = view.bounds.width * r
         let lv: UIView = .init(frame: .init(origin: .zero, size: .init(width: w, height: view.bounds.height)))
@@ -273,11 +322,14 @@ fileprivate extension Utils.UI.DrawerController {
         guard nil == leftPanGesture else {
             return
         }
-
-        leftPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleLeftViewPanGesture(recognizer:)))
-        leftPanGesture!.delegate = self
-        leftPanGesture!.cancelsTouchesInView = isGesturesCancelsTouches
-        view.addGestureRecognizer(leftPanGesture!)
+        
+        UIPanGestureRecognizer(target: self, action: #selector(handleLeftViewPanGesture(recognizer:))) ~> {
+            $0.delegate = self
+            $0.cancelsTouchesInView = isGesturesCancelsTouches
+            
+            view.addGestureRecognizer($0)
+            leftPanGesture = $0
+        }
     }
     
     /// Prepare the left tap gesture.
@@ -285,11 +337,14 @@ fileprivate extension Utils.UI.DrawerController {
         guard nil == leftTapGesture else {
             return
         }
-
-        leftTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleLeftViewTapGesture(recognizer:)))
-        leftTapGesture!.delegate = self
-        leftTapGesture!.cancelsTouchesInView = isGesturesCancelsTouches
-        view.addGestureRecognizer(leftTapGesture!)
+        
+        UITapGestureRecognizer(target: self, action: #selector(handleLeftViewTapGesture(recognizer:))) ~> {
+            $0.delegate = self
+            $0.cancelsTouchesInView = isGesturesCancelsTouches
+            
+            view.addGestureRecognizer($0)
+            leftTapGesture = $0
+        }
     }
     
     /// Removes the left pan gesture.

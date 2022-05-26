@@ -8,6 +8,22 @@
 import UIKit
 extension Utils.UI {
     open class EmbedController: Utils.UI.ViewController {
+        open override var childForStatusBarStyle: UIViewController? {
+            return rootViewController
+        }
+        
+        open override var childForStatusBarHidden: UIViewController? {
+            return rootViewController
+        }
+        
+        open override var childForHomeIndicatorAutoHidden: UIViewController? {
+            return rootViewController
+        }
+        
+        open override var childForScreenEdgesDeferringSystemGestures: UIViewController? {
+            return rootViewController
+        }
+        
         open private(set) var rootViewController: UIViewController? = nil
         
         public let container = UIView()

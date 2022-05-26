@@ -8,6 +8,22 @@
 import UIKit
 
 public extension UIViewController {
+    /**
+     Finds a view controller with a given type based on
+     the view controller subclass.
+     - Returns: An optional of type T.
+    */
+    func traverseViewControllerHierarchyForClassType<T: UIViewController>() -> T? {
+        var v: UIViewController? = self
+        while nil != v {
+            if v is T {
+                return v as? T
+            }
+            v = v?.parent
+        }
+        return nil
+    }
+    
     var isInHierarchy: Bool {
         if let view = viewIfLoaded, view.window != nil {
             return true

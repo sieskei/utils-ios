@@ -25,6 +25,11 @@ open class Notifier<E>: ObservableType, ObserverType {
         subject.onNext(element)
     }
     
+    public func complete(with element: E) {
+        subject.onNext(element)
+        subject.onCompleted()
+    }
+    
     /// Subscribes observer
     public func subscribe<Observer: ObserverType>(_ observer: Observer) -> Disposable where Observer.Element == E {
         return subject.subscribe(observer)

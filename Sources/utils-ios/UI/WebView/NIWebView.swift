@@ -25,7 +25,11 @@ open class NIWebView: WKWebView {
     public private (set) var isReady: Bool = false
     
     @RxProperty
-    public private (set) var bodySize: BodySize = .ready(.zero)
+    public private (set) var bodySize: BodySize = .ready(.zero) {
+        didSet {
+            Utils.Log.debug("bodysize ....", bodySize)
+        }
+    }
     
     public let resizeSensor: Bool
     

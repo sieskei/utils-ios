@@ -54,9 +54,18 @@ extension Utils.UI {
             }
         }
         
-        open func embed(controller: UIViewController) {
+        open func embed(controller: UIViewController, animated: Bool = true) {
             guard isViewLoaded else {
                 rootViewController = controller
+                return
+            }
+            
+            if let c = rootViewController, c.presentedViewController != nil {
+                c.dismiss(animated: animated) { [weak self] in
+                    if let this = self {
+                        this.embed(controller: controller)
+                    }
+                }
                 return
             }
             

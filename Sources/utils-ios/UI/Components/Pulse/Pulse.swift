@@ -15,121 +15,127 @@ extension Utils.UI {
     public class Pulse {
         public let `type`: `Type`
         
-        public init(_ `type`: `Type` = .pointWithBacking) {
+        public init(_ `type`: `Type` =  .pointWithBacking) {
             self.`type` = `type`
         }
         
+        /**
+         Current status of animation.
+         */
+        private var progress: Progress = .none
         
-        private var status: Status = .collapsed(running: false)
         
         /**
          Triggers the expanding animation.
          - Parameter point: A point to pulse from.
          */
         public func expand(point: CGPoint, in layer: CALayer, withStyle style: Style = .default) {
-            switch status {
-            case .expaned:
-                return
-            case .collapsed(let running):
-                guard .none != `type`, !running else {
-                    return
-                }
-                
-                let layers: Layers = (.init(), .init())
-                status = .expaned(layers: layers, running: true)
-                
-                layer.masksToBounds = !(.centerRadialBeyondBounds == `type` || .radialBeyondBounds == `type`)
-                
-                layers.backing.addSublayer(layers.pulsing)
-                layer.addSublayer(layers.backing)
-                
-                Utils.UI.disable {
-                    let bounds = layer.bounds
-                    let width = bounds.width
-                    let height = bounds.height
-                    let pulseSize = `type` == .center ? min(width, height) : max(width, height)
-                    
-                    
-                    // setup backing layer
-                    layers.backing.backgroundColor = UIColor.clear.cgColor
-                    layers.backing.zPosition = .zero
-                    layers.backing.frame = bounds
-                    
-                    
-                    // setup pulsing layer
-                    layers.pulsing.backgroundColor = style.pulsingColor.cgColor
-                    layers.pulsing.zPosition = .zero
-                    layers.pulsing.frame = .init(origin: .zero, size: .init(width: pulseSize, height: pulseSize))
-                    
-                    switch `type` {
-                    case .center, .centerWithBacking, .centerRadialBeyondBounds:
-                        layers.pulsing.position = bounds.center
-                    default:
-                        layers.pulsing.position = point
+            switch progress {
+            case .none:
+                progress = .expading(append(at: point, in: layer, withStyle: style) {
+                    switch $0.progress {
+                    case .none:
+                        break
+                    case .expading(let layer, _):
+                        $0.progress = .expading(layer, finished: true)
+                    case .collapsing:
+                        $0.remove($1) {
+                            $0.progress = .none
+                        }
                     }
-
-                    layers.pulsing.cornerRadius = pulseSize / 2
-                    layers.pulsing.transform = CATransform3DMakeAffineTransform(CGAffineTransform(scaleX: 0, y: 0))
-                }
-                
-                let duration: TimeInterval = `type` == .center ? Pulse.maxDuration / 2 : Pulse.maxDuration
-                
-                switch `type` {
-                case .centerWithBacking, .backing, .pointWithBacking:
-                    layers.backing.animate(withMaxDuration: duration, animations: .background(color: style.backingColor))
-                default:
-                    break
-                }
-                
-                switch `type` {
-                case .center, .centerWithBacking, .centerRadialBeyondBounds, .radialBeyondBounds, .point, .pointWithBacking:
-                    layers.pulsing.animate(withMaxDuration: duration, animations: .scale(1))
-                default:
-                    break
-                }
-                
-                Utils.UI.async(delay: duration, with: self) {
-                    $0.status.completed()
-                }
+                }, finished: false)
+            case .expading, .collapsing:
+                // Already expanding or collapsing.
+                break
             }
         }
         
         /// Triggers the collapsing animation.
         public func collapse() {
-            switch status {
-            case .collapsed:
+            switch progress {
+            case .none, .collapsing:
+                // Nothing to collapse or already collapsing.
                 return
-            case .expaned(let layers, let running):
-                status = .collapsed(running: true)
-                
-                let exec: (Pulse) -> Void = { this in
-                    switch this.`type` {
-                    case .centerWithBacking, .backing, .pointWithBacking:
-                        layers.backing.animate(withMaxDuration: Pulse.maxDuration, animations: .background(color: .clear))
-                    default:
-                        break
+            case .expading(let layer, let finished):
+                if finished {
+                    remove(layer) {
+                        $0.progress = .none
                     }
-                    
-                    switch this.`type` {
-                    case .center, .centerWithBacking, .centerRadialBeyondBounds, .radialBeyondBounds, .point, .pointWithBacking:
-                        layers.pulsing.animate(withMaxDuration: Pulse.maxDuration, animations: .background(color: .clear))
-                    default:
-                        break
-                    }
-                    
-                    Utils.UI.async(delay: Pulse.maxDuration) {
-                        layers.backing.removeFromSuperlayer()
-                        layers.pulsing.removeFromSuperlayer()
-                        
-                        this.status.completed()
-                    }
-                }
-                
-                if running {
-                    Utils.UI.async(delay: Pulse.maxDuration, with: self, execution: exec)
                 } else {
-                    exec(self)
+                    progress = .collapsing
                 }
+            }
+        }
+        
+        public func pulse(point: CGPoint, in layer: CALayer, withStyle style: Style = .default) {
+            expand(point: point, in: layer, withStyle: style)
+            collapse()
+        }
+        
+        private func append(at point: CGPoint, in layer: CALayer, withStyle style: Style, callback: @escaping (Pulse, CAShapeLayer) -> Void) -> CAShapeLayer {
+            let backing: CAShapeLayer = .init()
+            let pulsing: CAShapeLayer = .init()
+            
+            let bounds = layer.bounds
+            let width = bounds.width
+            let height = bounds.height
+            
+            // setup backing layer
+            backing.backgroundColor = `type`.backing ? style.backingColor.cgColor : UIColor.clear.cgColor
+            backing.opacity = .zero
+            backing.frame = bounds
+            
+            // setup pulsing layer if needed
+            if `type`.pulsing {
+                let size = `type`.center ? min(width, height) : max(width, height)
+                
+                pulsing.backgroundColor = style.pulsingColor.cgColor
+                pulsing.frame = .init(origin: .zero, size: .init(width: size, height: size))
+                
+                switch `type` {
+                case .center, .centerWithBacking:
+                    pulsing.position = bounds.center
+                default:
+                    pulsing.position = point
+                }
+
+                pulsing.cornerRadius = size / 2
+                pulsing.transform = CATransform3DMakeScale(0.5, 0.5, 1);
+                
+                backing.addSublayer(pulsing)
+            }
+            
+            // append to super layer
+            layer.addSublayer(backing)
+            
+            if `type`.pulsing {
+                pulsing.animate(withMaxDuration: Pulse.maxDuration, animations: .transform(CATransform3DIdentity))
+            }
+            
+            backing.animate(withMaxDuration: Pulse.maxDuration, animations: .opacity(1)) { [weak self] in
+                if let this = self {
+                    callback(this, backing)
+                }
+            }
+            
+            return backing
+        }
+        
+        private func remove(_ layer: CAShapeLayer, callback: @escaping (Pulse) -> Void) {
+            layer.animate(withMaxDuration: Pulse.maxDuration, animations: .opacity(.zero)) { [weak self] in
+                layer.removeFromSuperlayer()
+                if let this = self {
+                    callback(this)
+                }
+            }
+        }
+        
+        deinit {
+            switch progress {
+            case .expading(let layer, _):
+                layer.removeFromSuperlayer()
+            default:
+                break
             }
         }
     }
@@ -139,38 +145,17 @@ extension Utils.UI.Pulse {
     /**
      Maximum duration.
      */
-    fileprivate static let maxDuration: TimeInterval = 3
+    fileprivate static let maxDuration: TimeInterval = 0.325
     
     /**
-     Typealias for animated layers.
+     State of  animations.
      */
-    fileprivate typealias Layers = (backing: CAShapeLayer, pulsing: CAShapeLayer)
-    
-    /**
-     Internal status.
-     */
-    fileprivate enum Status {
-        case collapsed(running: Bool = false)
-        case expaned(layers: Layers, running: Bool = false)
-        
-        var canExpand: Bool {
-            switch self {
-            case .collapsed:
-                return true
-            case .expaned:
-                return false
-            }
-        }
-        
-        mutating func completed() {
-            switch self {
-            case .expaned(let layers, _):
-                self = .expaned(layers: layers, running: false)
-            case .collapsed:
-                self = .collapsed(running: false)
-            }
-        }
+    fileprivate enum Progress {
+        case none
+        case expading(CAShapeLayer, finished: Bool = false)
+        case collapsing
     }
+    
     
     /**
      Type of pulse animation.
@@ -178,13 +163,40 @@ extension Utils.UI.Pulse {
     @objc(`Type`)
     public enum `Type`: Int {
         case none
+        
         case center
-        case centerWithBacking
-        case centerRadialBeyondBounds
-        case radialBeyondBounds
-        case backing
         case point
+        case backing
+        
+        case centerWithBacking
         case pointWithBacking
+        
+        var backing: Bool {
+            switch self {
+            case .backing, .centerWithBacking, .pointWithBacking:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        var pulsing: Bool {
+            switch self {
+            case .center, .point, .centerWithBacking, .pointWithBacking:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        var center: Bool {
+            switch self {
+            case .center, .centerWithBacking:
+                return true
+            default:
+                return false
+            }
+        }
     }
     
     /**

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Layout+Types.swift
 //  
 //
 //  Created by Miroslav Yozov on 7.07.22.

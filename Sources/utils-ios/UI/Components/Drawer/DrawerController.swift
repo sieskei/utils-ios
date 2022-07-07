@@ -214,7 +214,7 @@ extension Utils.UI {
             let duration: TimeInterval = .init(0 == velocity ? animationDuration : fmax(0.1, fmin(1, Double(v.frame.origin.x / velocity))))
             UIView.animate(withDuration: duration, animations: { [weak self, v = v] in
                 guard let this = self else {
-                return
+                    return
                 }
 
                 v.frame.origin.x = 0

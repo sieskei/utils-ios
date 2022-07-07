@@ -39,11 +39,9 @@ extension Utils.UI {
          when subclassing.
         */
         open func prepare() {
-            backgroundColor = .white
             contentScaleFactor = Screen.scale
             separatorStyle = .none
-            
-            // register(TableViewCell.self, forCellReuseIdentifier: "TableViewCell")
+            backgroundColor = .white
         }
     }
 }

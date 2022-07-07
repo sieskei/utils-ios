@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  UITableViewCell.swift
 //  
 //
 //  Created by Miroslav Yozov on 5.07.22.
@@ -67,26 +67,30 @@ extension Utils.UI {
             pulseContainer.cornerRadius = contentView.layer.cornerRadius
         }
         
-        open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-            super.touchesBegan(touches, with: event)
-            if let touch = touches.first {
-                touchPulse.expand(point: touch.location(in: self), in: pulseContainer)
-            }
-        }
-        
-        open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-            super.touchesEnded(touches, with: event)
-            touchPulse.collapse()
-        }
-        
-        open override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-            super.touchesCancelled(touches, with: event)
-            touchPulse.collapse()
-        }
-        
         open override func prepareForReuse() {
             super.prepareForReuse()
             touchPulse = .init()
         }
+    }
+}
+
+
+// MARK: Trigger pulse on touch events.
+extension Utils.UI.TableViewCell {
+    open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        if let touch = touches.first {
+            touchPulse.expand(point: touch.location(in: self), in: pulseContainer)
+        }
+    }
+    
+    open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        touchPulse.collapse()
+    }
+    
+    open override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        touchPulse.collapse()
     }
 }

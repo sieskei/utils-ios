@@ -13,6 +13,8 @@ extension Utils.UI {
      Pulse animation.
      */
     public class Pulse {
+        private var token: String = Utils.Identifiers.get(length: 6)
+        
         public let `type`: `Type`
         
         public init(_ `type`: `Type` =  .pointWithBacking) {
@@ -40,7 +42,12 @@ extension Utils.UI {
                         $0.progress = .expading(layer, finished: true)
                     case .collapsing:
                         $0.remove($1) {
-                            $0.progress = .none
+                            switch $0.progress {
+                            case .collapsing:
+                                $0.progress = .none
+                            default:
+                                Utils.Log.error("Unexpected progress state.", $0.progress)
+                            }
                         }
                     }
                 }, finished: false)
@@ -59,7 +66,12 @@ extension Utils.UI {
             case .expading(let layer, let finished):
                 if finished {
                     remove(layer) {
-                        $0.progress = .none
+                        switch $0.progress {
+                        case .expading:
+                            $0.progress = .none
+                        default:
+                            Utils.Log.error("Unexpected progress state.", $0.progress)
+                        }
                     }
                 } else {
                     progress = .collapsing
@@ -70,6 +82,12 @@ extension Utils.UI {
         public func pulse(point: CGPoint, in layer: CALayer, withStyle style: Style = .default) {
             expand(point: point, in: layer, withStyle: style)
             collapse()
+        }
+        
+        public func reset(in layer: CALayer) {
+            token = Utils.Identifiers.get(length: 6)
+            progress = .none
+            layer.clear()
         }
         
         private func append(at point: CGPoint, in layer: CALayer, withStyle style: Style, callback: @escaping (Pulse, CAShapeLayer) -> Void) -> CAShapeLayer {
@@ -112,8 +130,9 @@ extension Utils.UI {
                 pulsing.animate(withMaxDuration: Pulse.maxDuration, animations: .transform(CATransform3DIdentity))
             }
             
+            let token = token
             backing.animate(withMaxDuration: Pulse.maxDuration, animations: .opacity(1)) { [weak self] in
-                if let this = self {
+                if let this = self, this.token == token {
                     callback(this, backing)
                 }
             }
@@ -122,9 +141,10 @@ extension Utils.UI {
         }
         
         private func remove(_ layer: CAShapeLayer, callback: @escaping (Pulse) -> Void) {
+            let token = token
             layer.animate(withMaxDuration: Pulse.maxDuration, animations: .opacity(.zero)) { [weak self] in
                 layer.removeFromSuperlayer()
-                if let this = self {
+                if let this = self, this.token == token {
                     callback(this)
                 }
             }
@@ -133,6 +153,7 @@ extension Utils.UI {
         deinit {
             switch progress {
             case .expading(let layer, _):
+                layer.removeAllAnimations()
                 layer.removeFromSuperlayer()
             default:
                 break
@@ -145,7 +166,7 @@ extension Utils.UI.Pulse {
     /**
      Maximum duration.
      */
-    fileprivate static let maxDuration: TimeInterval = 0.325
+    fileprivate static let maxDuration: TimeInterval = 0.275
     
     /**
      State of  animations.
@@ -216,6 +237,17 @@ extension Utils.UI.Pulse {
         
         fileprivate var pulsingColor: UIColor {
             color.withAlphaComponent(opacity / 2)
+        }
+    }
+}
+
+fileprivate extension CALayer {
+    func clear() {
+        if let layers = sublayers {
+            layers.forEach {
+                $0.removeAllAnimations()
+                $0.removeFromSuperlayer()
+            }
         }
     }
 }

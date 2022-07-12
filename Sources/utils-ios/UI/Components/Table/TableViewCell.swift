@@ -69,7 +69,7 @@ extension Utils.UI {
         
         open override func prepareForReuse() {
             super.prepareForReuse()
-            touchPulse = .init()
+            touchPulse.reset(in: pulseContainer)
         }
     }
 }

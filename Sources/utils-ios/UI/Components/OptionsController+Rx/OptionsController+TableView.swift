@@ -6,10 +6,9 @@
 //
 
 import UIKit
-import Material
 
 extension OptionsController {
-    public class TableView: NoScrollTableView {
+    public class TableView: Utils.UI.NoScrollTableView {
         public override func prepare() {
             contentInset = .init(top: 8, left: 0, bottom: 8, right: 0)
             

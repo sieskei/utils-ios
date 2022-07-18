@@ -6,18 +6,16 @@
 //
 
 import UIKit
-import Material
-
 import RxSwift
 import RxSwiftExt
 
-public class OptionsController: ViewController {
-    public class TitleLabel:    utils_ios.Label { }
-    public class MesssageLabel: utils_ios.Label { }
+public class OptionsController: Utils.UI.ViewController {
+    public class TitleLabel:    Utils.UI.Label { }
+    public class MesssageLabel: Utils.UI.Label { }
     
-    public class ContentView:  Material.View { }
-    public class FreeAreaView: Material.View { }
-    public class TableViewWrapper: Material.View { }
+    public class ContentView:  Utils.UI.View { }
+    public class FreeAreaView: Utils.UI.View { }
+    public class TableViewWrapper: Utils.UI.View { }
     
     private let disposeBag = DisposeBag()
     
@@ -160,7 +158,7 @@ public extension Reactive where Base: OptionsController {
     var action: Observable<Base.Action> {
         base.tableView.rx
             .itemSelected
-            .map(with: base.tableView, `default`: nil) { view, indexPath in
+            .map(with: base.tableView, default: nil) { view, indexPath in
                 guard let cell = view.cellForRow(at: indexPath) as? Base.TableViewCell else {
                     return nil
                 }

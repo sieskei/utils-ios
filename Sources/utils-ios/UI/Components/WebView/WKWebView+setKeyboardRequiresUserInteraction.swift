@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  WKWebView+setKeyboardRequiresUserInteraction.swift
 //  
 //
 //  Created by Miroslav Yozov on 20.04.22.

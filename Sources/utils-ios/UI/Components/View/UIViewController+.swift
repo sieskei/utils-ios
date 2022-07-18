@@ -1,11 +1,29 @@
 //
-//  UIViewController+Ext.swift
+//  UIViewController+.swift
 //  
 //
-//  Created by Miroslav Yozov on 7.04.22.
+//  Created by Miroslav Yozov on 31.10.20.
 //
 
 import UIKit
+
+public extension UIViewController {
+    var safeTopAnchor: NSLayoutYAxisAnchor {
+        if #available(iOS 11.0, *) {
+            return view.safeAreaLayoutGuide.topAnchor
+        } else {
+            return topLayoutGuide.bottomAnchor
+        }
+    }
+    
+    var safeBottomAnchor: NSLayoutYAxisAnchor {
+        if #available(iOS 11.0, *) {
+            return view.safeAreaLayoutGuide.bottomAnchor
+        } else {
+            return bottomLayoutGuide.topAnchor
+        }
+    }
+}
 
 public extension UIViewController {
     /**
@@ -42,11 +60,11 @@ public extension UIViewController {
     }
     
     var isUserInteractionEnabled: Bool {
-      get {
-        view.isUserInteractionEnabled
-      }
-      set(value) {
-        view.isUserInteractionEnabled = value
-      }
+        get {
+            view.isUserInteractionEnabled
+        }
+        set(value) {
+            view.isUserInteractionEnabled = value
+        }
     }
 }

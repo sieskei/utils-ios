@@ -175,6 +175,10 @@ extension Utils.UI.Pulse {
         case none
         case expading(CAShapeLayer, finished: Bool = false)
         case collapsing
+        
+        mutating func none() {
+            self = .none
+        }
     }
     
     

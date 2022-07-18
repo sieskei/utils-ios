@@ -57,11 +57,11 @@ extension CABasicAnimation {
     }
     
     public static func scale(_ xyz: CGFloat, origin: CATransform3D = CATransform3DIdentity, withDuration duration: CFTimeInterval = .zero) -> CABasicAnimation {
-        transform(CATransform3DScale(origin, xyz, xyz, xyz), withDuration: duration)
+        transform(CATransform3DScale(origin, xyz, xyz, xyz), withDuration: duration) // ??? may not work as exprected
     }
     
     public static func rotate(x: CGFloat, y: CGFloat, z: CGFloat, origin: CATransform3D = CATransform3DIdentity, withDuration duration: CFTimeInterval = .zero) -> CABasicAnimation {
-        var t = CATransform3DRotate(origin, x, 1, 0, 0)
+        var t = CATransform3DRotate(origin, x, 1, 0, 0) // ??? may not work as exprected
         t = CATransform3DRotate(t, y, 0, 1, 0)
         t = CATransform3DRotate(t, z, 0, 0, 1)
         return transform(t, withDuration: duration)

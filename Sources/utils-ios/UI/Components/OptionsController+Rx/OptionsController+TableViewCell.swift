@@ -6,12 +6,11 @@
 //
 
 import UIKit
-import Material
 import RxSwift
 
 extension OptionsController {
-    public class TableViewCell: Material.TableViewCell {
-        public class SeparatorView: View { }
+    public class TableViewCell: Utils.UI.TableViewCell {
+        public class SeparatorView: Utils.UI.View { }
         
         private let disposeBag = DisposeBag()
         

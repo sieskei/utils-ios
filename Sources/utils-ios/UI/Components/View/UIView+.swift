@@ -45,8 +45,8 @@ public extension UIView {
     
     func asyncLayout() {
         setNeedsLayout()
-        DispatchQueue.main.async { [weak self] in
-            self?.layoutIfNeeded()
+        Utils.UI.async(with: self) {
+            $0.layoutIfNeeded()
         }
     }
     

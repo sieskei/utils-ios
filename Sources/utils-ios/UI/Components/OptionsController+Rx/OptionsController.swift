@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Material
 import RxSwift
 import RxSwiftExt
 
@@ -176,22 +177,22 @@ public extension Reactive where Base: OptionsController {
 
 extension OptionsController: UIViewControllerTransitioningDelegate {
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return .none
+        .none
     }
     
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
-        return .none
+        .none
     }
     
     public func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
-        return presented == self ? DimmingPresentationController(presentedViewController: presented, presenting: presenting) : nil
+        presented == self ? Utils.UI.Presentation.DimmingController(presentedViewController: presented, presenting: presenting) : nil
     }
     
     public func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return presented == self ? SlidePresentationAnimationController(isPresenting: true, duration: 0.35) : nil
+        presented == self ? Utils.UI.Presentation.SlideTransition(isPresenting: true, duration: 0.35) : nil
     }
     
     public func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return dismissed == self ? SlidePresentationAnimationController(isPresenting: false, duration: 0.5) : nil
+        dismissed == self ? Utils.UI.Presentation.SlideTransition(isPresenting: false, duration: 0.5) : nil
     }
 }

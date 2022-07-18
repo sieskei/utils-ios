@@ -165,109 +165,37 @@ extension Utils.UI.Layout.Anchor {
     }
 }
 
-
-extension UIView {
-    public var horizontalAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutXAxisAnchor> {
-        .init(first: leadingAnchor, second: trailingAnchor)
-    }
-
-    public var verticalAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutYAxisAnchor, NSLayoutYAxisAnchor> {
-        .init(first: topAnchor, second: bottomAnchor)
-    }
-
-    public var centerAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutYAxisAnchor> {
-        .init(first: centerXAnchor, second: centerYAnchor)
-    }
-
-    public var sizeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutDimension, NSLayoutDimension> {
-        .init(first: widthAnchor, second: heightAnchor)
-    }
-    
-    public var edgeAnchors: Utils.UI.Layout.Anchor.Edges {
-        .init(horizontal: horizontalAnchors, vertical: verticalAnchors)
-    }
-}
-
-extension UILayoutGuide {
-    public var horizontalAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutXAxisAnchor> {
-        .init(first: leadingAnchor, second: trailingAnchor)
-    }
-
-    public var verticalAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutYAxisAnchor, NSLayoutYAxisAnchor> {
-        .init(first: topAnchor, second: bottomAnchor)
-    }
-
-    public var centerAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutYAxisAnchor> {
-        .init(first: centerXAnchor, second: centerYAnchor)
-    }
-
-    public var sizeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutDimension, NSLayoutDimension> {
-        .init(first: widthAnchor, second: heightAnchor)
-    }
-}
-
-
-// MARK: - Safe area compatible anchros.
-fileprivate protocol AnchorsCompatible {
-    var leadingAnchor: NSLayoutXAxisAnchor { get }
-    var trailingAnchor: NSLayoutXAxisAnchor { get }
-
-    var leftAnchor: NSLayoutXAxisAnchor { get }
-    var rightAnchor: NSLayoutXAxisAnchor { get }
-
-    var topAnchor: NSLayoutYAxisAnchor { get }
-    var bottomAnchor: NSLayoutYAxisAnchor { get }
-
-    var widthAnchor: NSLayoutDimension { get }
-    var heightAnchor: NSLayoutDimension { get }
-
-    var centerXAnchor: NSLayoutXAxisAnchor { get }
-    var centerYAnchor: NSLayoutYAxisAnchor { get }
-}
-
-extension UILayoutGuide: AnchorsCompatible { }
-
-extension UIView: AnchorsCompatible {
-    private var safeOrSelf: AnchorsCompatible {
-        if #available(iOS 11.0, *) {
-            return safeAreaLayoutGuide
-        } else {
-            return self
+extension Utils.UI.Layout.Anchor {
+    public struct Group {
+        let anchors: UtilsUIAnchorsCompatible
+        
+        public init(_ a: UtilsUIAnchorsCompatible) {
+            anchors = a
         }
-    }
-    
-    public var leadingSafeAnchor: NSLayoutXAxisAnchor { safeOrSelf.leadingAnchor }
-    public var trailingSafeAnchor: NSLayoutXAxisAnchor { safeOrSelf.trailingAnchor }
+        
+        public var leading  : NSLayoutXAxisAnchor { anchors.leadingAnchor }
+        public var trailing : NSLayoutXAxisAnchor { anchors.trailingAnchor }
 
-    public var leftSafeAnchor: NSLayoutXAxisAnchor { safeOrSelf.leftAnchor }
-    public var rightSafeAnchor: NSLayoutXAxisAnchor { safeOrSelf.rightAnchor }
+        public var left  : NSLayoutXAxisAnchor { anchors.leftAnchor }
+        public var right : NSLayoutXAxisAnchor { anchors.rightAnchor }
 
-    public var topSafeAnchor: NSLayoutYAxisAnchor { safeOrSelf.topAnchor }
-    public var bottomSafeAnchor: NSLayoutYAxisAnchor { safeOrSelf.bottomAnchor }
+        public var top    : NSLayoutYAxisAnchor { anchors.topAnchor }
+        public var bottom : NSLayoutYAxisAnchor { anchors.bottomAnchor }
 
-    public var widthSafeAnchor: NSLayoutDimension { safeOrSelf.widthAnchor }
-    public var heightSafeAnchor: NSLayoutDimension { safeOrSelf.heightAnchor }
+        public var width  : NSLayoutDimension { anchors.widthAnchor }
+        public var height : NSLayoutDimension { anchors.heightAnchor }
 
-    public var centerXSafeAnchor: NSLayoutXAxisAnchor { safeOrSelf.centerXAnchor }
-    public var centerYSafeAnchor: NSLayoutYAxisAnchor { safeOrSelf.centerYAnchor }
-    
-    public var horizontalSafeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutXAxisAnchor> {
-        .init(first: leadingSafeAnchor, second: trailingSafeAnchor)
-    }
-
-    public var verticalSafeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutYAxisAnchor, NSLayoutYAxisAnchor> {
-        .init(first: topSafeAnchor, second: bottomSafeAnchor)
-    }
-
-    public var centerSafeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutYAxisAnchor> {
-        .init(first: centerXSafeAnchor, second: centerYSafeAnchor)
-    }
-
-    public var sizeSafeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutDimension, NSLayoutDimension> {
-        .init(first: widthSafeAnchor, second: heightSafeAnchor)
-    }
-    
-    public var edgeSafeAnchors: Utils.UI.Layout.Anchor.Edges {
-        .init(horizontal: horizontalSafeAnchors, vertical: verticalSafeAnchors)
+        public var centerX : NSLayoutXAxisAnchor { anchors.centerXAnchor }
+        public var centerY : NSLayoutYAxisAnchor { anchors.centerYAnchor }
+        
+        public var horizontal : Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutXAxisAnchor> { anchors.horizontalAnchors }
+        public var vertical   : Utils.UI.Layout.Anchor.Pair<NSLayoutYAxisAnchor, NSLayoutYAxisAnchor> { anchors.verticalAnchors }
+        public var center     : Utils.UI.Layout.Anchor.Pair<NSLayoutXAxisAnchor, NSLayoutYAxisAnchor> { anchors.centerAnchors }
+        public var size       : Utils.UI.Layout.Anchor.Pair<NSLayoutDimension, NSLayoutDimension> { anchors.sizeAnchors }
+        public var edge       : Utils.UI.Layout.Anchor.Edges { anchors.edgeAnchors }
+        
+        public var safe: Self {
+            .init(anchors.safeAnchros)
+        }
     }
 }

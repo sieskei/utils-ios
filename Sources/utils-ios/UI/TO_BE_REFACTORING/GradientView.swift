@@ -15,26 +15,24 @@ public enum GradientOrientation {
     case horizontal
     case vertical
     
-    var startPoint : CGPoint {
-        return points.startPoint
+    var startPoint: CGPoint {
+        points.startPoint
     }
     
-    var endPoint : CGPoint {
-        return points.endPoint
+    var endPoint: CGPoint {
+        points.endPoint
     }
     
-    var points : GradientPoints {
-        get {
-            switch(self) {
-            case .topRightBottomLeft:
-                return (.init(x: 0.0, y: 1.0), .init(x: 1.0, y: 0.0))
-            case .topLeftBottomRight:
-                return (.init(x: 0.0, y: 0.0), .init(x: 1, y: 1))
-            case .horizontal:
-                return (.init(x: 0.0, y: 0.5), .init(x: 1.0, y: 0.5))
-            case .vertical:
-                return (.init(x: 0.0, y: 0.0), .init(x: 0.0, y: 1.0))
-            }
+    var points: GradientPoints {
+        switch self {
+        case .topRightBottomLeft:
+            return (.init(x: 0.0, y: 1.0), .init(x: 1.0, y: 0.0))
+        case .topLeftBottomRight:
+            return (.init(x: 0.0, y: 0.0), .init(x: 1, y: 1))
+        case .horizontal:
+            return (.init(x: 0.0, y: 0.5), .init(x: 1.0, y: 0.5))
+        case .vertical:
+            return (.init(x: 0.0, y: 0.0), .init(x: 0.0, y: 1.0))
         }
     }
 }
@@ -67,11 +65,11 @@ public enum GradientLocation {
 
 public class GradientView: UIView {
     public override class var layerClass: AnyClass {
-        return CAGradientLayer.self
+        CAGradientLayer.self
     }
     
     public override var layer: CAGradientLayer {
-        return super.layer as! CAGradientLayer
+        super.layer as! CAGradientLayer
     }
     
     public override init(frame: CGRect) {

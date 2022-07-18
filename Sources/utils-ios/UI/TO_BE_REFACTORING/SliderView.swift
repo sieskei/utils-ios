@@ -321,6 +321,7 @@ fileprivate extension SliderView {
         recenter()
     }
     
+    /*
     var anchors: (top: NSLayoutYAxisAnchor, bottom: NSLayoutYAxisAnchor, left: NSLayoutXAxisAnchor, right: NSLayoutXAxisAnchor, center: NSLayoutXAxisAnchor, width: NSLayoutDimension) {
         if #available(iOS 11.0, *) {
             return (safeAreaLayoutGuide.topAnchor, safeAreaLayoutGuide.bottomAnchor, safeAreaLayoutGuide.leftAnchor, safeAreaLayoutGuide.rightAnchor, safeAreaLayoutGuide.centerXAnchor, safeAreaLayoutGuide.widthAnchor)
@@ -328,6 +329,7 @@ fileprivate extension SliderView {
             return (topAnchor, bottomAnchor, leftAnchor, rightAnchor, centerXAnchor, widthAnchor)
         }
     }
+    */
     
     func prepareLayout() {
         addSubview(holderView)

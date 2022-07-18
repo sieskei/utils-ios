@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Material
 import RxSwift
 
 extension OptionsController {

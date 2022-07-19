@@ -12,7 +12,7 @@ public protocol GradientSetter {
     dynamic func set(fullVericalGradientColors colors: [UIColor])
 }
 
-extension GradientView: GradientSetter {
+extension Utils.UI.GradientView: GradientSetter {
     public func set(fullVericalGradientColors colors: [UIColor]) {
         applyGradient(withColours: colors, orientation: .vertical, location: .fullScreen)
     }

@@ -15,8 +15,8 @@ extension OptionsController {
         
         private let disposeBag = DisposeBag()
         
-        private lazy var nameLabel: Label = {
-            let l: Label = .init()
+        private lazy var nameLabel: Utils.UI.Label = {
+            let l: Utils.UI.Label = .init()
             $model.value.map { $0.name }.bind(to: l.rx.text).disposed(by: disposeBag)
             return l
         }()

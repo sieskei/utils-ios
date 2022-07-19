@@ -209,8 +209,8 @@ fileprivate extension ScrollView {
                     }
                     callback(this)
                 }
-            } else if let wv = view as? NIWebView {
-                observation = wv.observe(\NIWebView.bodySize, options: ops) { [weak self] _, pair in
+            } else if let wv = view as? Utils.UI.WebView {
+                observation = wv.observe(\Utils.UI.WebView.bodySize, options: ops) { [weak self] _, pair in
                     guard let this = self, pair.oldValue?.value != pair.newValue?.value else {
                         return
                     }
@@ -222,7 +222,7 @@ fileprivate extension ScrollView {
         func height(for bounds: CGRect) -> CGFloat {
             if let sv = view as? UIScrollView {
                 return sv.contentInset.top + sv.contentSize.height + sv.contentInset.bottom
-            } else if let wv = view as? NIWebView {
+            } else if let wv = view as? Utils.UI.WebView {
                 return wv.scrollView.contentInset.top + wv.bodySize.value.height + wv.scrollView.contentInset.bottom
             } else {
                 return view.systemLayoutSizeFitting(.init(width: bounds.width, height: 0),

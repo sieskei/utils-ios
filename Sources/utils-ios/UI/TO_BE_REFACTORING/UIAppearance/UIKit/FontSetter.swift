@@ -39,7 +39,7 @@ extension UITextField: FontSetter {
     }
     
     public func set(fontSize size: CGFloat) {
-        print("UITextField.FontSetter: \(#selector(UITextField.set(fontSize:))) not supported, use \(#selector(UITextField.set(font:))) instead.")
+        fatalError("UITextField.FontSetter: \(#selector(UITextField.set(fontSize:))) not supported, use \(#selector(UITextField.set(font:))) instead.")
     }
     
     public func set(fontColor color: UIColor) {

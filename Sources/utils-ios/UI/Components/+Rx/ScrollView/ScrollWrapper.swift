@@ -6,12 +6,11 @@
 //
 
 import UIKit
-import Material
 import RxSwift
 import RxSwiftExt
 
-extension UIScrollView {
-    open class Wrapper<T: Scrollable>: View {
+extension Utils.UI {
+    open class ScrollWrapper<T: UtilsUIScrollCompatible>: Utils.UI.View {
         private var outerDisposeBag: DisposeBag = .init()
         private var innerDisposeBag: DisposeBag = .init()
         
@@ -32,29 +31,30 @@ extension UIScrollView {
                         
                         this.innerHeightConstraint.constant = h
                         this.innerTopConstraint.constant = m.isInfinite ? 0 : m
-                        this.scrollable.scrollView.contentOffset.y = this.innerTopConstraint.constant
-                    }.disposed(by: outerDisposeBag)
+                        this.scrollCompatible.scrollView.contentOffset.y = this.innerTopConstraint.constant
+                    }
+                    .disposed(by: outerDisposeBag)
             }
         }
         
-        private let scrollable: T
+        private let scrollCompatible: T
         
         private lazy var innerTopConstraint: NSLayoutConstraint = {
-            let c: NSLayoutConstraint = scrollable.view.topAnchor.constraint(equalTo: topAnchor, constant: 0)
+            let c: NSLayoutConstraint = scrollCompatible.view.topAnchor.constraint(equalTo: topAnchor, constant: 0)
             c.priority = .init(999)
             c.isActive = true
             return c
         }()
         
         private lazy var innerHeightConstraint: NSLayoutConstraint = {
-            let c: NSLayoutConstraint = scrollable.view.heightAnchor.constraint(equalToConstant: 0)
+            let c: NSLayoutConstraint = scrollCompatible.view.heightAnchor.constraint(equalToConstant: 0)
             c.priority = .init(999)
             c.isActive = true
             return c
         }()
         
         public init(_ s: T, dualView: Bool = false) {
-            scrollable = s
+            scrollCompatible = s
             
             let v = s.view
             let sv = s.scrollView
@@ -94,17 +94,15 @@ extension UIScrollView {
             let _ = innerTopConstraint
             let _ = innerHeightConstraint
             
-            let size: CGSize = Utils.castOrFatalError(scrollable.value(forKeyPath: scrollable.scrollSizeKeyPath))
-            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: size.height)
+            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: s.scrollSize.height)
             c.isActive = true
             
-            s.rx.observe(CGSize.self, s.scrollSizeKeyPath)
-                .unwrap()
-                .observe(on: MainScheduler.instance)
+            s.rx.scrollSize
                 .map { $0.height }
-                .distinctUntilChanged()
                 .`do`(with: self, afterNext: { this, _ in
-                    this.outerScrollView?.setNeedsLayout()
+                    if let sv = this.outerScrollView {
+                        sv.setNeedsLayout()
+                    }
                 })
                 .bind(to: c.rx.constant)
                 .disposed(by: innerDisposeBag)

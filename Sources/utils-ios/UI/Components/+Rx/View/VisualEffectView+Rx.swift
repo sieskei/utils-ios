@@ -11,7 +11,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-extension Reactive where Base: VisualEffectView {
+extension Reactive where Base: Utils.UI.VisualEffectView {
     /// Bindable sink for `colorTint` property.
     var colorTint: Binder<UIColor?> {
         return Binder(self.base) { view, color in

@@ -8,11 +8,11 @@
 import UIKit
 
 @objc
-public protocol GradientSetter {
+public protocol UtilsUIGradientSetter {
     dynamic func set(fullVericalGradientColors colors: [UIColor])
 }
 
-extension Utils.UI.GradientView: GradientSetter {
+extension Utils.UI.GradientView: UtilsUIGradientSetter {
     public func set(fullVericalGradientColors colors: [UIColor]) {
         applyGradient(withColours: colors, orientation: .vertical, location: .fullScreen)
     }

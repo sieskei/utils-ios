@@ -8,11 +8,11 @@
 import UIKit
 
 @objc
-public protocol TextSetter {
+public protocol UtilsUITextSetter {
     dynamic func set(text: String)
 }
 
-extension UILabel: TextSetter {
+extension UILabel: UtilsUITextSetter {
     public func set(text: String) {
         self.text = text
     }

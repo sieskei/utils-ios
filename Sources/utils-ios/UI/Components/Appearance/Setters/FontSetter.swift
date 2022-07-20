@@ -8,18 +8,18 @@
 import UIKit
 
 @objc
-public protocol FontSetter {
+public protocol UtilsUIFontSetter {
     dynamic func set(font: UIFont)
     dynamic func set(fontSize size: CGFloat)
     dynamic func set(fontColor color: UIColor)
 }
 
 @objc
-public protocol FontStateSetter: FontSetter {
+public protocol UtilsUIFontStateSetter: UtilsUIFontSetter {
     dynamic func set(fontColor color: UIColor, for state: UIControl.State)
 }
 
-extension UILabel: FontSetter {
+extension UILabel: UtilsUIFontSetter {
     public func set(font: UIFont) {
         self.font = font
     }
@@ -33,7 +33,7 @@ extension UILabel: FontSetter {
     }
 }
 
-extension UITextField: FontSetter {
+extension UITextField: UtilsUIFontSetter {
     public func set(font: UIFont) {
         self.font = font
     }
@@ -47,7 +47,7 @@ extension UITextField: FontSetter {
     }
 }
 
-extension UIButton: FontStateSetter {
+extension UIButton: UtilsUIFontStateSetter {
     public func set(font: UIFont) {
         self.titleLabel?.font = font
     }

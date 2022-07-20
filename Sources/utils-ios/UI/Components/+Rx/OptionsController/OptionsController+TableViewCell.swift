@@ -6,10 +6,9 @@
 //
 
 import UIKit
-import Material
 import RxSwift
 
-extension OptionsController {
+extension Utils.UI.OptionsController {
     public class TableViewCell: Utils.UI.TableViewCell {
         public class SeparatorView: Utils.UI.View { }
         
@@ -17,7 +16,7 @@ extension OptionsController {
         
         private lazy var nameLabel: Utils.UI.Label = {
             let l: Utils.UI.Label = .init()
-            $model.value.map { $0.name }.bind(to: l.rx.text).disposed(by: disposeBag)
+            $action.value.map { $0?.name ?? "---" }.bind(to: l.rx.text).disposed(by: disposeBag)
             return l
         }()
         
@@ -27,8 +26,8 @@ extension OptionsController {
             return v
         }()
         
-        @RxModel
-        public var model: Model<OptionsController.Action> = .empty
+        @RxProperty
+        public var action: Utils.UI.OptionsController.Action?
         
         public override func prepare() {
             super.prepare()
@@ -36,23 +35,19 @@ extension OptionsController {
             backgroundColor = .clear
             contentView.backgroundColor = .clear
             
-            contentView.layout(separatorView)
-                .left(16)
-                .right(16)
-                .bottom(8)
-                .height(1)
+            contentView.anchor(subview: separatorView) {
+                $1.left == $0.left + 16
+                $1.right == $0.right + 16
+                $1.bottom == $0.bottom + 8
+                $1.height == 1
+            }
             
-            contentView.layout(nameLabel)
-                .top(8)
-                .left(24)
-                .right(24)
-                .bottom(separatorView.anchor.top, 8)
+            contentView.anchor(subview: nameLabel) {
+                $1.left == $0.left + 24
+                $1.right == $0.right + 24
+                $1.top == $0.top + 8
+                $1.bottom == separatorView.topAnchor + 8
+            }
         }
-    }
-}
-
-fileprivate extension Model where M: OptionsController.Action {
-    var name: String {
-        map("--") { $0.name }
     }
 }

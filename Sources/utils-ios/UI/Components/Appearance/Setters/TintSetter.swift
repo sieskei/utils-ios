@@ -8,23 +8,22 @@
 import UIKit
 
 @objc
-public protocol TintSetter {
+public protocol UtilsUITintSetter {
     dynamic func set(tintColor color: UIColor)
 }
 
-extension UIView: TintSetter {
+@objc
+public protocol UtilsUITrackTintSetter {
+    dynamic func set(trackTintColor color: UIColor)
+}
+
+extension UIView: UtilsUITintSetter {
     public func set(tintColor color: UIColor) {
         self.tintColor = color
     }
 }
 
-
-@objc
-public protocol TrackTintSetter {
-    dynamic func set(trackTintColor color: UIColor)
-}
-
-extension UIProgressView: TrackTintSetter {
+extension UIProgressView: UtilsUITrackTintSetter {
     public func set(trackTintColor color: UIColor) {
         self.trackTintColor = color
     }

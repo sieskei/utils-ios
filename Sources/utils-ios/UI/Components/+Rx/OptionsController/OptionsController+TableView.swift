@@ -7,7 +7,7 @@
 
 import UIKit
 
-extension OptionsController {
+extension Utils.UI.OptionsController {
     public class TableView: Utils.UI.NoScrollTableView {
         public override func prepare() {
             contentInset = .init(top: 8, left: 0, bottom: 8, right: 0)
@@ -19,7 +19,7 @@ extension OptionsController {
             rowHeight = UITableView.automaticDimension
             estimatedRowHeight = 44
             
-            register(OptionsController.TableViewCell.self)
+            register(Utils.UI.OptionsController.TableViewCell.self)
         }
     }
 }

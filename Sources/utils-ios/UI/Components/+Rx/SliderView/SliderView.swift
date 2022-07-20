@@ -11,132 +11,134 @@ import UIKit
 import RxSwift
 import RxGesture
 
-open class SliderView: UIView {
-    open var makeEementInstance: UIView {
-        fatalError("Has not been implemented yet!")
-    }
-    
-    public private (set) var selected: Int = 0
-    
-    open var count: Int {
-        fatalError("Has not been implemented yet!")
-    }
-    
-    public let disposeBag = DisposeBag()
-    
-    private lazy var holderView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let l = makeEementInstance
-        let c = makeEementInstance
-        let r = makeEementInstance
-        
-        [l, c, r].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview($0)
+extension Utils.UI {
+    open class SliderView: UIView {
+        open var makeEementInstance: UIView {
+            fatalError("Has not been implemented yet!")
         }
         
-        NSLayoutConstraint.activate([
-            l.topAnchor.constraint(equalTo: view.topAnchor),
-            l.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            c.topAnchor.constraint(equalTo: view.topAnchor),
-            c.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            r.topAnchor.constraint(equalTo: view.topAnchor),
-            r.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            c.widthAnchor.constraint(equalTo: l.widthAnchor),
-            r.widthAnchor.constraint(equalTo: l.widthAnchor)
-        ])
+        public private (set) var selected: Int = 0
         
-        arrange(left: l, center: c, right: r, in: view)
-        
-        return view
-    }()
-    
-    private var positionConstraint: NSLayoutConstraint? { // center x, left or right
-        didSet {
-            oldValue?.isActive = false
-            positionConstraint?.isActive = true
+        open var count: Int {
+            fatalError("Has not been implemented yet!")
         }
-    }
-    
-    private var alignmentConstraints: [NSLayoutConstraint] = [] {
-        didSet {
-            oldValue.forEach {
-                $0.isActive = false
+        
+        public let disposeBag = DisposeBag()
+        
+        private lazy var holderView: UIView = {
+            let view = UIView()
+            view.backgroundColor = .clear
+            view.translatesAutoresizingMaskIntoConstraints = false
+            
+            let l = makeEementInstance
+            let c = makeEementInstance
+            let r = makeEementInstance
+            
+            [l, c, r].forEach {
+                $0.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview($0)
             }
             
-            NSLayoutConstraint.activate(alignmentConstraints)
-        }
-    }
-    
-    public enum Position: Int {
-        case left
-        case center
-        case right
-    }
-    
-    private var leftView: UIView {
-        return holderView.subviews[0]
-    }
-    
-    private var centerView: UIView {
-        return holderView.subviews[1]
-    }
-    
-    private var rightView: UIView {
-        return holderView.subviews[2]
-    }
-    
-    private subscript(positions: Position...) -> [UIView] {
-        var s = [UIView]()
-        positions.forEach {
-            s.append(holderView.subviews[$0.rawValue])
-        }
-        return s
-    }
-    
-    public init(selected i : Int = 0, count c: Int = 0) {
-        super.init(frame: .zero)
-        selected = min(max(0, i), c - 1)
-        prepare()
-    }
-    
-    required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        prepare()
-    }
-    
-    open func prepare() {
-        backgroundColor = .clear
-        
-        prepareLayout()
-        prepareGestures()
-    }
-    
-    open override func willMove(toWindow newWindow: UIWindow?) {
-        super.willMove(toWindow: newWindow)
-        
-        if nil != newWindow {
-            prepare(view: leftView, at: .left)
-            prepare(view: centerView, at: .center)
-            prepare(view: rightView, at: .right)
+            NSLayoutConstraint.activate([
+                l.topAnchor.constraint(equalTo: view.topAnchor),
+                l.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                
+                c.topAnchor.constraint(equalTo: view.topAnchor),
+                c.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                
+                r.topAnchor.constraint(equalTo: view.topAnchor),
+                r.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                
+                c.widthAnchor.constraint(equalTo: l.widthAnchor),
+                r.widthAnchor.constraint(equalTo: l.widthAnchor)
+            ])
             
-            didAppear(view: centerView)
+            arrange(left: l, center: c, right: r, in: view)
+            
+            return view
+        }()
+        
+        private var positionConstraint: NSLayoutConstraint? { // center x, left or right
+            didSet {
+                oldValue?.isActive = false
+                positionConstraint?.isActive = true
+            }
         }
+        
+        private var alignmentConstraints: [NSLayoutConstraint] = [] {
+            didSet {
+                oldValue.forEach {
+                    $0.isActive = false
+                }
+                
+                NSLayoutConstraint.activate(alignmentConstraints)
+            }
+        }
+        
+        public enum Position: Int {
+            case left
+            case center
+            case right
+        }
+        
+        private var leftView: UIView {
+            return holderView.subviews[0]
+        }
+        
+        private var centerView: UIView {
+            return holderView.subviews[1]
+        }
+        
+        private var rightView: UIView {
+            return holderView.subviews[2]
+        }
+        
+        private subscript(positions: Position...) -> [UIView] {
+            var s = [UIView]()
+            positions.forEach {
+                s.append(holderView.subviews[$0.rawValue])
+            }
+            return s
+        }
+        
+        public init(selected i : Int = 0, count c: Int = 0) {
+            super.init(frame: .zero)
+            selected = min(max(0, i), c - 1)
+            prepare()
+        }
+        
+        required public init?(coder aDecoder: NSCoder) {
+            super.init(coder: aDecoder)
+            prepare()
+        }
+        
+        open func prepare() {
+            backgroundColor = .clear
+            
+            prepareLayout()
+            prepareGestures()
+        }
+        
+        open override func willMove(toWindow newWindow: UIWindow?) {
+            super.willMove(toWindow: newWindow)
+            
+            if nil != newWindow {
+                prepare(view: leftView, at: .left)
+                prepare(view: centerView, at: .center)
+                prepare(view: rightView, at: .right)
+                
+                didAppear(view: centerView)
+            }
+        }
+        
+        open func prepare(view: UIView, at position: Position) { }
+        
+        open func didAppear(view: UIView) { }
+        open func didDisappear(view: UIView) { }
     }
-    
-    open func prepare(view: UIView, at position: Position) { }
-    
-    open func didAppear(view: UIView) { }
-    open func didDisappear(view: UIView) { }
 }
 
-public extension SliderView {
+public extension Utils.UI.SliderView {
     enum Direction {
         case left
         case right
@@ -225,13 +227,13 @@ public extension SliderView {
                 tbh = self[.left, .center]
                 tbs = self[.right]
                 
-                positionConstraint = holderView.rightAnchor.constraint(equalTo: anchors.right)
+                positionConstraint = holderView.rightAnchor.constraint(equalTo: anchors.safe.right)
             case .prev:
                 s = selected - 1
                 tbh = self[.right, .center]
                 tbs = self[.left]
                 
-                positionConstraint = holderView.leftAnchor.constraint(equalTo: anchors.left)
+                positionConstraint = holderView.leftAnchor.constraint(equalTo: anchors.safe.left)
             }
             
             setNeedsLayout()
@@ -260,7 +262,7 @@ public extension SliderView {
     }
 }
 
-fileprivate extension SliderView {
+fileprivate extension Utils.UI.SliderView {
     func recenter() {
         positionConstraint = holderView.centerXAnchor.constraint(equalTo: centerXAnchor)
         
@@ -321,22 +323,12 @@ fileprivate extension SliderView {
         recenter()
     }
     
-    /*
-    var anchors: (top: NSLayoutYAxisAnchor, bottom: NSLayoutYAxisAnchor, left: NSLayoutXAxisAnchor, right: NSLayoutXAxisAnchor, center: NSLayoutXAxisAnchor, width: NSLayoutDimension) {
-        if #available(iOS 11.0, *) {
-            return (safeAreaLayoutGuide.topAnchor, safeAreaLayoutGuide.bottomAnchor, safeAreaLayoutGuide.leftAnchor, safeAreaLayoutGuide.rightAnchor, safeAreaLayoutGuide.centerXAnchor, safeAreaLayoutGuide.widthAnchor)
-        } else {
-            return (topAnchor, bottomAnchor, leftAnchor, rightAnchor, centerXAnchor, widthAnchor)
-        }
-    }
-    */
-    
     func prepareLayout() {
         addSubview(holderView)
         
-        NSLayoutConstraint.activate([holderView.topAnchor.constraint(equalTo: anchors.top),
-                                     holderView.bottomAnchor.constraint(equalTo: anchors.bottom),
-                                     holderView.subviews[0].widthAnchor.constraint(equalTo: anchors.width)])
+        NSLayoutConstraint.activate([holderView.topAnchor.constraint(equalTo: anchors.safe.top),
+                                     holderView.bottomAnchor.constraint(equalTo: anchors.safe.bottom),
+                                     holderView.subviews[0].widthAnchor.constraint(equalTo: anchors.safe.width)])
         recenter()
     }
     

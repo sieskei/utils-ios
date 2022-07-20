@@ -8,11 +8,11 @@
 import UIKit
 
 @objc
-public protocol BackgroundSetter {
+public protocol UtilsUIBackgroundSetter {
     dynamic func set(backgroundColor color: UIColor)
 }
 
-extension UIView: BackgroundSetter {
+extension UIView: UtilsUIBackgroundSetter {
     public func set(backgroundColor color: UIColor) {
         self.backgroundColor = color
     }

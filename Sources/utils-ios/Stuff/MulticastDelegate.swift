@@ -1,9 +1,8 @@
 //
 //  MulticastDelegate.swift
-//  sinoptik-ios
+//
 //
 //  Created by Miroslav Yozov on 13.12.18.
-//  Copyright © 2018 Net Info. All rights reserved.
 //
 
 import Foundation

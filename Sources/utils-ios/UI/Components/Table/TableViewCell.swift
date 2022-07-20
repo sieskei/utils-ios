@@ -75,7 +75,7 @@ extension Utils.UI {
 }
 
 
-// MARK: Trigger pulse on touch events.
+// MARK: - Trigger pulse on touch events.
 extension Utils.UI.TableViewCell {
     open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)

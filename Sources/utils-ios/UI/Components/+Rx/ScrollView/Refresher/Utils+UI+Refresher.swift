@@ -1,28 +1,20 @@
 //
-//  UIScrollView+Refresher.swift
+//  File.swift
+//  
 //
-//  Created by Miroslav Yozov on 14.05.18.
-//  Copyright © 2018 Net Info.BG EAD. All rights reserved.
+//  Created by Miroslav Yozov on 20.07.22.
 //
 
 import UIKit
 import RxSwift
 
-public protocol UIScrollViewRefresher {
-    func start(by object: AnyObject) -> String
-    func start(by object: AnyObject, delay: DispatchTimeInterval) -> String
-    
-    func stop(by object: AnyObject, token: String)
+extension Utils.UI {
+    internal struct ScrollRefresher { }
 }
 
-public extension UIScrollViewRefresher {
-    func start(by object: AnyObject) -> String {
-        return start(by: object, delay: .seconds(0))
-    }
-}
-
-fileprivate extension UIScrollView {
-    final class RefresherView: UIView {
+// MARK: - Refresher UI view
+extension Utils.UI.ScrollRefresher {
+    final class View: Utils.UI.View {
         struct Constants {
             static let trigger   : CGFloat = 44
             static let height    : CGFloat = 44
@@ -39,18 +31,16 @@ fileprivate extension UIScrollView {
         
         class Owner { }
         
-        private var KVOContext = 0
-        
         var scrollView: UIScrollView? {
-            return superview as? UIScrollView
+            superview as? UIScrollView
         }
         
         let owner: Owner = .init()
-        let action: (UIScrollViewRefresher, AnyObject, String) -> Void
+        let action: UtilsUIScrollRefresher.Action
         
         private var disposeBag: DisposeBag = .init()
         
-        init(action: @escaping (UIScrollViewRefresher, AnyObject, String) -> Void) {
+        init(action: @escaping UtilsUIScrollRefresher.Action) {
             self.action = action
             super.init(frame: .zero)
         }
@@ -266,22 +256,21 @@ fileprivate extension UIScrollView {
                 view.removeObserver(self, forKeyPath: #keyPath(UIScrollView.contentOffset))
             }
         }
-
     }
 }
 
-extension UIScrollView.RefresherView: UIScrollViewRefresher {
+extension Utils.UI.ScrollRefresher.View: UtilsUIScrollRefresher {
     struct AssociatedKeys {
         static var meta: UInt8 = 0
     }
     
-    class RequestMeta {
-        weak var refresher: UIScrollView.RefresherView?
+    private class Meta {
+        weak var view: Utils.UI.ScrollRefresher.View?
         
         private var delayedTokens: Set<String> = []
         private var tokens: Set<String> = [] {
             didSet {
-                guard let r = refresher, oldValue.isEmpty != tokens.isEmpty else {
+                guard let r = view, oldValue.isEmpty != tokens.isEmpty else {
                     return
                 }
                 
@@ -291,6 +280,10 @@ extension UIScrollView.RefresherView: UIScrollViewRefresher {
                     r.start()
                 }
             }
+        }
+        
+        init(_ r: Utils.UI.ScrollRefresher.View) {
+            view = r
         }
         
         func plus(_ delay: DispatchTimeInterval) -> String {
@@ -320,81 +313,24 @@ extension UIScrollView.RefresherView: UIScrollViewRefresher {
         }
         
         deinit {
-            guard let pullToRefresh = refresher else {
-                return
+            view ~> {
+                $0.stop()
             }
-            
-            pullToRefresh.stop()
         }
     }
     
-    // ---------------- //
-    // MARK: Public API //
-    // ---------------- //
-    
     func start(by object: AnyObject, delay: DispatchTimeInterval) -> String {
-        objc_sync_enter(object)
-        defer {
-            objc_sync_exit(object)
+        Utils.Task.guard(object) {
+            let meta: Meta = Utils.AssociatedObject.get(base: object, key: &AssociatedKeys.meta) { .init(self) }
+            return meta.plus(delay)
         }
-        
-        let meta: RequestMeta
-        if let current = objc_getAssociatedObject(object, &AssociatedKeys.meta) as? RequestMeta {
-            meta = current
-        } else {
-            meta = .init()
-            meta.refresher = self
-            objc_setAssociatedObject(object, &AssociatedKeys.meta, meta, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-        
-        return meta.plus(delay)
     }
     
     func stop(by object: AnyObject, token: String) {
-        objc_sync_enter(object)
-        defer {
-            objc_sync_exit(object)
+        Utils.Task.guard(object) {
+            if let meta: Meta = Utils.AssociatedObject.get(base: object, key: &AssociatedKeys.meta) {
+                meta.minus(token)
+            }
         }
-        
-        if let meta = objc_getAssociatedObject(object, &AssociatedKeys.meta) as? RequestMeta {
-            meta.minus(token)
-        }
-    }
-}
-
-public extension UIScrollView {
-    static var refresherColors: (base: UIColor, arrow: UIColor) {
-        get {
-            return (UIScrollView.RefresherView.Constants.color,
-                    UIScrollView.RefresherView.Constants.arrowColor)
-        }
-        
-        set {
-            UIScrollView.RefresherView.Constants.color = newValue.base
-            UIScrollView.RefresherView.Constants.arrowColor = newValue.arrow
-        }
-    }
-    
-    var refresher: UIScrollViewRefresher? {
-        return refresherView
-    }
-    
-    private var refresherView: UIScrollView.RefresherView? {
-        return subviews.first { $0 is UIScrollView.RefresherView } as? UIScrollView.RefresherView
-    }
-    
-    func refresher(_ action: @escaping (UIScrollViewRefresher, AnyObject, String) -> Void) {
-        guard refresherView == nil else {
-            return
-        }
-        
-        let view: UIScrollView.RefresherView = .init(action: action)
-        let height = UIScrollView.RefresherView.Constants.height
-        let width = bounds.size.width
-        view.frame = .init(x: 0, y: -height, width: width, height: height)
-        view.autoresizingMask = [view.autoresizingMask, .flexibleWidth]
-        view.alpha = 0.0
-        
-        addSubview(view)
     }
 }

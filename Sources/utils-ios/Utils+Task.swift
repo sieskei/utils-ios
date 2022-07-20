@@ -146,6 +146,15 @@ public extension Utils {
         public static func sync(_ operation: @escaping () -> Void) {
             batchSync(operations: operation)
         }
+        
+        @discardableResult
+        public static func `guard`<T>(_ obj: AnyObject, operation: () throws -> T) rethrows -> T {
+            objc_sync_enter(obj)
+            defer {
+                objc_sync_exit(obj)
+            }
+            return try operation()
+        }
     }
 }
 

@@ -25,7 +25,7 @@ extension Utils {
 
         
       /**
-       Gets the Obj-C reference for the instance object within the UIView extension.
+       Gets the Obj-C reference for the instance object.
        - Parameter base: Base object.
        - Parameter key: Memory key pointer.
        - Parameter initializer: Object initializer.
@@ -40,9 +40,26 @@ extension Utils {
             objc_setAssociatedObject(base, key, v, policy.objc_value)
             return v
         }
+        
+        /**
+         Gets the Obj-C reference for the instance object.
+         - Parameter base: Base object.
+         - Parameter key: Memory key pointer.
+         - Parameter initializer: Object initializer.
+         - Returns: The associated reference for the initializer object.
+         */
+          public static func get<T: Any>(base: Any, key: UnsafePointer<UInt8>) -> T? {
+              if let v = objc_getAssociatedObject(base, key) as? T {
+                  return v
+              } else {
+                  return nil
+              }
+          }
+        
+        
       
       /**
-       Sets the Obj-C reference for the instance object within the UIView extension.
+       Sets the Obj-C reference for the instance object.
        - Parameter base: Base object.
        - Parameter key: Memory key pointer.
        - Parameter value: The object instance to set for the associated object.

@@ -12,152 +12,153 @@ import RxSwift
 import RxSwiftExt
 import RxCocoa
 
-open class WebView: WKWebView {
-    private let disposeBag = DisposeBag()
-    
-    @RxProperty
-    private var isReady: Bool = false {
-        didSet {
-            guard isReady else {
-                return
+extension Utils.UI {
+    open class ExtendedWebView: WKWebView {
+        private let disposeBag = DisposeBag()
+        
+        @RxProperty
+        private var isReady: Bool = false {
+            didSet {
+                guard isReady else {
+                    return
+                }
+                
+                /*
+                 Set body margins and display.
+                 */
+                evaluateJavaScript(
+                    """
+                        \(Margin.top(headerContainerView.bounds.height).script(for: scrollView.zoomScale))
+                        \(Margin.bottom(footerContainerView.bounds.height).script(for: scrollView.zoomScale))
+                        document.body.style.display = "block";
+                    """
+                )
             }
-            
+        }
+        
+        private lazy var zoomScale: Observable<CGFloat> = {
+            scrollView.rx.didZoom
+                .withUnretained(self)
+                .map { this, _ in this.scrollView.zoomScale }
+                .startWith(scrollView.zoomScale)
+                .map { round($0 * 1000) / 1000.0 }
+                .distinctUntilChanged()
+        }()
+        
+        @RxProperty
+        public var freezeHeaderBounds: Bool = false
+        
+        public private (set) lazy var headerContainerView: UIView = {
+            headerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
+        }()
+        
+        public private (set) lazy var footerContainerView: UIView = {
+            footerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
+        }()
+        
+        open var headerContainerViewClass: UIView.Type {
+            UIView.self
+        }
+        
+        open var footerContainerViewClass: UIView.Type {
+            UIView.self
+        }
+        
+        open var headerTopConstraintConstant: Observable<CGFloat> {
             /*
-             Set body margins and display.
-             */
-            evaluateJavaScript(
-                """
-                    \(Margin.top(headerContainerView.bounds.height).script(for: scrollView.zoomScale))
-                    \(Margin.bottom(footerContainerView.bounds.height).script(for: scrollView.zoomScale))
-                    document.body.style.display = "block";
-                """
-            )
+             Follow vertical scroll content offset.
+            */
+            scrollView.rx.contentOffset.map { -$0.y }
+        }
+        
+        open var footerTopConstraintConstant: Observable<CGFloat> {
+            /*
+             Follow body size + scale (see top constraint).
+            */
+            Observable.combineLatest($bodySize.height, zoomScale).map { $0 * $1 }
+        }
+        
+        @RxProperty
+        public private (set) var bodySize: CGSize = .zero
+        
+        public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
+            configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+            self.init(frame: .zero, configuration: configuration)
+        }
+        
+        public convenience init(frame: CGRect) {
+            let configuration = WKWebViewConfiguration()
+            configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+            self.init(frame: frame, configuration: configuration)
+        }
+        
+        public override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+            super.init(frame: frame, configuration: configuration)
+            prepare()
+        }
+        
+        public required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            prepare()
+        }
+        
+        open func prepare() {
+            isOpaque = false
+            backgroundColor = .clear
+            scrollView.backgroundColor = .clear
+            
+            prepareHeaderContainerView()
+            prepareFooterContainerView()
+            
+            prepareConfiguration()
+            prepareRx()
+        }
+        
+        open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+            headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ??
+                footerContainerView.hitTest(convert(point, to: footerContainerView), with: event) ??
+                super.hitTest(point, with: event)
+        }
+        
+        
+        // ---------------
+        // MARK: Load API.
+        // ---------------
+        
+        @discardableResult
+        open override func load(_ request: URLRequest) -> WKNavigation? {
+            isReady = false
+            return super.load(request)
+        }
+        
+        @discardableResult
+        open override func loadFileURL(_ URL: URL, allowingReadAccessTo readAccessURL: URL) -> WKNavigation? {
+            isReady = false
+            return super.loadFileURL(URL, allowingReadAccessTo: readAccessURL)
+        }
+        
+        @discardableResult
+        open override func load(_ data: Data, mimeType MIMEType: String, characterEncodingName: String, baseURL: URL) -> WKNavigation? {
+            isReady = false
+            return super.load(data, mimeType: MIMEType, characterEncodingName: characterEncodingName, baseURL: baseURL)
+        }
+        
+        @discardableResult
+        open override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
+            isReady = false
+            return super.loadHTMLString(string, baseURL: baseURL)
+        }
+        
+        deinit {
+            Utils.Log.debug(self)
         }
     }
-    
-    private lazy var zoomScale: Observable<CGFloat> = {
-        scrollView.rx.didZoom
-            .withUnretained(self)
-            .map { this, _ in this.scrollView.zoomScale }
-            .startWith(scrollView.zoomScale)
-            .map { round($0 * 1000) / 1000.0 }
-            .distinctUntilChanged()
-    }()
-    
-    @RxProperty
-    public var freezeHeaderBounds: Bool = false
-    
-    public private (set) lazy var headerContainerView: UIView = {
-        headerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
-    }()
-    
-    public private (set) lazy var footerContainerView: UIView = {
-        footerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
-    }()
-    
-    open var headerContainerViewClass: UIView.Type {
-        UIView.self
-    }
-    
-    open var footerContainerViewClass: UIView.Type {
-        UIView.self
-    }
-    
-    open var headerTopConstraintConstant: Observable<CGFloat> {
-        /*
-         Follow vertical scroll content offset.
-        */
-        scrollView.rx.contentOffset.map { -$0.y }
-    }
-    
-    open var footerTopConstraintConstant: Observable<CGFloat> {
-        /*
-         Follow body size + scale (see top constraint).
-        */
-        Observable.combineLatest($bodySize.height, zoomScale).map { $0 * $1 }
-    }
-    
-    @RxProperty
-    public private (set) var bodySize: CGSize = .zero
-    
-    public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
-        configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
-        self.init(frame: .zero, configuration: configuration)
-    }
-    
-    public convenience init(frame: CGRect) {
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
-        self.init(frame: frame, configuration: configuration)
-    }
-    
-    public override init(frame: CGRect, configuration: WKWebViewConfiguration) {
-        super.init(frame: frame, configuration: configuration)
-        prepare()
-    }
-    
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        prepare()
-    }
-    
-    open func prepare() {
-        isOpaque = false
-        backgroundColor = .clear
-        scrollView.backgroundColor = .clear
-        
-        prepareHeaderContainerView()
-        prepareFooterContainerView()
-        
-        prepareConfiguration()
-        prepareRx()
-    }
-    
-    open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        headerContainerView.hitTest(convert(point, to: headerContainerView), with: event) ??
-            footerContainerView.hitTest(convert(point, to: footerContainerView), with: event) ??
-            super.hitTest(point, with: event)
-    }
-    
-    
-    // ---------------
-    // MARK: Load API.
-    // ---------------
-    
-    @discardableResult
-    open override func load(_ request: URLRequest) -> WKNavigation? {
-        isReady = false
-        return super.load(request)
-    }
-    
-    @discardableResult
-    open override func loadFileURL(_ URL: URL, allowingReadAccessTo readAccessURL: URL) -> WKNavigation? {
-        isReady = false
-        return super.loadFileURL(URL, allowingReadAccessTo: readAccessURL)
-    }
-    
-    @discardableResult
-    open override func load(_ data: Data, mimeType MIMEType: String, characterEncodingName: String, baseURL: URL) -> WKNavigation? {
-        isReady = false
-        return super.load(data, mimeType: MIMEType, characterEncodingName: characterEncodingName, baseURL: baseURL)
-    }
-    
-    @discardableResult
-    open override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
-        isReady = false
-        return super.loadHTMLString(string, baseURL: baseURL)
-    }
-    
-    deinit {
-        Utils.Log.debug(self)
-    }
 }
-
 
 // -------------------------------------------
 // MARK: Prepeare header and footer containrs.
 // -------------------------------------------
-fileprivate extension WebView {
+fileprivate extension Utils.UI.ExtendedWebView {
     func prepareHeaderContainerView() {
         let view = headerContainerView
         
@@ -202,10 +203,11 @@ fileprivate extension WebView {
 }
 
 
+
 // -----------------------------
 // MARK: Prepeare configuration.
 // -----------------------------
-extension WebView {
+extension Utils.UI.ExtendedWebView {
     private static var messageLogging = "logging"
     private static var messageReady = "ready"
     private static var messageBodySize = "bodysize"
@@ -225,9 +227,9 @@ extension WebView {
     }
     
     private class ScriptMessageHandler: NSObject, WKScriptMessageHandler {
-        private weak var view: WebView?
+        private weak var view: Utils.UI.ExtendedWebView?
         
-        init(_ view: WebView) {
+        init(_ view: Utils.UI.ExtendedWebView) {
             self.view = view
         }
         
@@ -237,11 +239,11 @@ extension WebView {
             }
             
             switch message.name {
-            case WebView.messageLogging:
+            case Utils.UI.ExtendedWebView.messageLogging:
                 print("[WebView.console.log]:", message.body)
-            case WebView.messageReady:
+            case Utils.UI.ExtendedWebView.messageReady:
                 view.isReady = true
-            case WebView.messageBodySize:
+            case Utils.UI.ExtendedWebView.messageBodySize:
                 if let sizeMap = message.body as? [String: CGFloat],
                    let w = sizeMap["width"],
                    let h = sizeMap["height"] {
@@ -256,9 +258,9 @@ extension WebView {
     internal func prepareConfiguration() {
         let ucc = configuration.userContentController
         let smh = ScriptMessageHandler(self)
-        ucc.add(smh, name: WebView.messageLogging)
-        ucc.add(smh, name: WebView.messageReady)
-        ucc.add(smh, name: WebView.messageBodySize)
+        ucc.add(smh, name: Utils.UI.ExtendedWebView.messageLogging)
+        ucc.add(smh, name: Utils.UI.ExtendedWebView.messageReady)
+        ucc.add(smh, name: Utils.UI.ExtendedWebView.messageBodySize)
 
         // logging
         ucc.addUserScript(.init(source:

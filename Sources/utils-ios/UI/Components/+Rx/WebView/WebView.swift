@@ -26,7 +26,14 @@ extension Utils.UI {
         public private (set) var isReady: Bool = false
         
         @RxProperty
-        public private (set) var bodySize: BodySize = .ready(.zero)
+        public private (set) var bodySize: BodySize = .ready(.zero) {
+            didSet {
+                bodySizeValue = bodySize.value
+            }
+        }
+        
+        @objc
+        public private (set) dynamic lazy var bodySizeValue: CGSize = bodySize.value
         
         public let resizeSensor: Bool
         

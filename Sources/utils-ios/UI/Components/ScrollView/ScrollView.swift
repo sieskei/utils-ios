@@ -1,4 +1,3 @@
-
 //
 //  ScrollView.swift
 //
@@ -9,67 +8,87 @@
 import UIKit
 import WebKit
 
-open class ScrollView: UIScrollView {
-    private var layouting: Bool = false
-    
-    private var elements: [Element] = [] {
-        didSet {
-            oldValue.forEach {
-                $0.view.removeFromSuperview()
+extension Utils.UI {
+    open class ScrollView: UIScrollView {
+        private var layouting: Bool = false
+        
+        private var elements: [Element] = [] {
+            didSet {
+                oldValue.forEach {
+                    $0.view.removeFromSuperview()
+                }
+                
+                updateContentSize()
+                
+                elements.forEach {
+                    addSubview($0.view)
+                    
+                    $0.onResize { [weak self] _ in
+                        guard let this = self, !this.layouting else {
+                            return
+                        }
+                        this.asyncLayout()
+                    }
+                }
+                
+                asyncLayout()
             }
+        }
+        
+        public convenience init() {
+            self.init(frame: .zero)
+            prepare()
+        }
+        
+        public override init(frame: CGRect) {
+            super.init(frame: frame)
+            prepare()
+        }
+        
+        required public init?(coder: NSCoder) {
+            super.init(coder: coder)
+            prepare()
+        }
+        
+        public func prepare() {
+            clipsToBounds = true
+            contentScaleFactor = UIScreen.main.scale
+            alwaysBounceVertical = true
+        }
+        
+        open override func layoutSubviews() {
+            layouting = true
+            defer {
+                layouting = false
+            }
+            
+            super.layoutSubviews()
             
             updateContentSize()
-            
-            elements.forEach {
-                addSubview($0.view)
-                
-                $0.onResize { [weak self] _ in
-                    guard let this = self, !this.layouting else {
-                        return
-                    }
-                    this.asyncLayout()
-                }
-            }
-            
-            asyncLayout()
+            adjustContentOnScroll()
         }
-    }
-    
-    public convenience init() {
-        self.init(frame: .zero)
-        prepare()
-    }
-    
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-        prepare()
-    }
-    
-    required public init?(coder: NSCoder) {
-        super.init(coder: coder)
-        prepare()
-    }
-    
-    public func prepare() {
-        clipsToBounds = true
-        contentScaleFactor = UIScreen.main.scale
-        alwaysBounceVertical = true
-    }
-    
-    open override func layoutSubviews() {
-        layouting = true
-        defer {
-            layouting = false
-        }
-        
-        super.layoutSubviews()
-        
-        updateContentSize()
-        adjustContentOnScroll()
     }
 }
 
-fileprivate extension ScrollView {
+
+public extension Utils.UI.ScrollView {
+    /// Reference to scrolling views.
+    var views: [UIView] {
+        get {
+            elements.map { $0.view }
+        }
+        set {
+            elements = newValue.map { .init($0)}
+        }
+    }
+    
+    /// Relayout.
+    func relayout() {
+        asyncLayout()
+    }
+}
+
+fileprivate extension Utils.UI.ScrollView {
     /// This function is used to calculate the rect of each view into the stack and put it in place.
     /// It's called when a new array of views is set.
     func updateContentSize() {
@@ -153,24 +172,7 @@ fileprivate extension ScrollView {
     }
 }
 
-public extension ScrollView {
-    /// Reference to scrolling views.
-    var views: [UIView] {
-        get {
-            elements.map { $0.view }
-        }
-        set {
-            elements = newValue.map { .init($0)}
-        }
-    }
-    
-    /// Relayout.
-    func relayout() {
-        asyncLayout()
-    }
-}
-
-fileprivate extension ScrollView {
+fileprivate extension Utils.UI.ScrollView {
     class Element {
         let view: UIView
         var observation: NSKeyValueObservation? = nil
@@ -195,27 +197,17 @@ fileprivate extension ScrollView {
         
         func onResize(_ callback: @escaping (Element) -> Void) {
             let ops: NSKeyValueObservingOptions = [.old, .new, .initial]
-//            let handler:  (UIView, NSKeyValueObservedChange<CGSize>) -> Void = { [weak self] in
-//                guard let this = self, $1.oldValue != $1.newValue else {
-//                    return
-//                }
-//                callback(this)
-//            }
+            let handler:  (UIView, NSKeyValueObservedChange<CGSize>) -> Void = { [weak self] in
+                guard let this = self, $1.oldValue != $1.newValue else {
+                    return
+                }
+                callback(this)
+            }
             
             if let sv = view as? UIScrollView {
-                observation = sv.observe(\UIScrollView.contentSize, options: ops) { [weak self] in
-                    guard let this = self, $1.oldValue != $1.newValue else {
-                        return
-                    }
-                    callback(this)
-                }
+                observation = sv.observe(\UIScrollView.contentSize, options: ops, changeHandler: handler)
             } else if let wv = view as? Utils.UI.WebView {
-                observation = wv.observe(\Utils.UI.WebView.bodySize, options: ops) { [weak self] _, pair in
-                    guard let this = self, pair.oldValue?.value != pair.newValue?.value else {
-                        return
-                    }
-                    callback(this)
-                }
+                observation = wv.observe(\Utils.UI.WebView.bodySizeValue, options: ops, changeHandler: handler)
             }
         }
         

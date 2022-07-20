@@ -9,7 +9,14 @@ import UIKit
 
 extension Utils.UI {
     open class TableViewCell: UITableViewCell {
-        private lazy var touchPulse: Utils.UI.Pulse = .init()
+        /// Pulse animation type.
+        open var pulseType: Utils.UI.Pulse.`Type` = .pointWithBacking
+        
+        /// Pulse animation style.
+        open var pulseStyle: Utils.UI.Pulse.Style = .default
+        
+        /// Touch pulse.
+        private lazy var touchPulse: Utils.UI.Pulse = .init(pulseType)
         
         private lazy var pulseContainer: CAShapeLayer = {
             let layer: CAShapeLayer = .init()
@@ -80,7 +87,7 @@ extension Utils.UI.TableViewCell {
     open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         if let touch = touches.first {
-            touchPulse.expand(point: touch.location(in: self), in: pulseContainer)
+            touchPulse.expand(point: touch.location(in: self), in: pulseContainer, withStyle: pulseStyle)
         }
     }
     

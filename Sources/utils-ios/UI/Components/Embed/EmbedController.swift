@@ -24,6 +24,11 @@ extension Utils.UI {
             return rootViewController
         }
         
+        public override var isUserInteractionEnabled: Bool {
+            get { (rootViewController ?? self).isUserInteractionEnabled }
+            set { (rootViewController ?? self).view.isUserInteractionEnabled = newValue  }
+        }
+        
         open private(set) var rootViewController: UIViewController? = nil
         
         public let container = UIView()

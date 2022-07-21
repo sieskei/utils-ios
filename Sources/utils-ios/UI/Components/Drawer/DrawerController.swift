@@ -205,26 +205,18 @@ extension Utils.UI {
             }
 
             isAnimating = true
-
+            isUserInteractionEnabled = false
             // statusBarHidden = true
+            
             showView(container: v)
 
-            // isUserInteractionEnabled = false
-
             let duration: TimeInterval = .init(0 == velocity ? animationDuration : fmax(0.1, fmin(1, Double(v.frame.origin.x / velocity))))
-            UIView.animate(withDuration: duration, animations: { [weak self, v = v] in
-                guard let this = self else {
-                    return
-                }
-
+            Utils.UI.animate(with: self, duration: duration, animations: { this in
                 v.frame.origin.x = 0
                 this.rootViewController?.view.alpha = 0.5
-            }) { [weak self] _ in
-                guard let this = self else {
-                    return
-                }
+            }, completion: { this, _ in
                 this.isAnimating = false
-            }
+            })
         }
         
         /**
@@ -239,26 +231,19 @@ extension Utils.UI {
             }
 
             isAnimating = true
+            isUserInteractionEnabled = false
 
             let duration: TimeInterval = .init(0 == velocity ? animationDuration : fmax(0.1, fmin(1, Double(v.frame.origin.x / velocity))))
-            UIView.animate(withDuration: duration, animations: { [weak self, v = v] in
-                guard let this = self else {
-                    return
-                }
-
+            Utils.UI.animate(with: self, duration: duration, animations: { this in
                 v.frame.origin.x = -v.bounds.width
                 this.rootViewController?.view.alpha = 1
-            }) { [weak self, v = v] _ in
-                guard let this = self else {
-                    return
-                }
-
+            }, completion: { this, _ in
                 this.hideView(container: v)
-
+                
                 // this.statusBarHidden = false
+                this.isUserInteractionEnabled = true
                 this.isAnimating = false
-                // this.isUserInteractionEnabled = true
-            }
+            })
         }
     
         /**
@@ -312,7 +297,7 @@ fileprivate extension Utils.UI.DrawerController {
 
         lv.isHidden = true
         lv.frame.origin.x = -w
-        lv.layer.zPosition = 2000
+        lv.layer.zPosition = 2000 // ???
 
         return lv
     }

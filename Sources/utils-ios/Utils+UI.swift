@@ -68,14 +68,17 @@ extension Utils.UI {
 // MARK: Animation utils.
 extension Utils.UI {
     /**
-     Runs an animation with a specified duration.
+     Runs an animations in transaction with a specified duration.
      - Parameter duration: An animation duration time.
      - Parameter animations: An animation block.
      - Parameter timingFunction: A CAMediaTimingFunction.
      - Parameter completion: A completion block that is executed once
      the animations have completed.
      */
-    public static func animate(duration: CFTimeInterval, timingFunction: CAMediaTimingFunction = .easeInOut, animations: (() -> Void), completion: (() -> Void)? = nil) {
+    public static func transaction(withDuration duration: CFTimeInterval,
+                                   timingFunction: CAMediaTimingFunction = .easeInOut,
+                                   animations: (() -> Void),
+                                   completion: (() -> Void)? = nil) {
         CATransaction.begin()
         CATransaction.setAnimationDuration(duration)
         CATransaction.setCompletionBlock(completion)
@@ -89,6 +92,18 @@ extension Utils.UI {
      - Parameter animations: A callback that wraps the animations to disable.
      */
     public static func disable(_ animations: (() -> Void)) {
-        animate(duration: 0, animations: animations)
+        transaction(withDuration: 0, animations: animations)
+    }
+    
+    public static func animate<T: AnyObject>(with obj: T?, duration: TimeInterval, animations: @escaping (T) -> Void, completion: ((T, Bool) -> Void)? = nil) {
+        UIView.animate(withDuration: duration, animations: { [weak obj] in
+            if let obj = obj {
+                animations(obj)
+            }
+        }, completion: { [weak obj] flag in
+            if let completion = completion, let obj = obj {
+                completion(obj, flag)
+            }
+        })
     }
 }

@@ -59,7 +59,8 @@ public extension UIViewController {
         view.layoutIfNeeded()
     }
     
-    var isUserInteractionEnabled: Bool {
+    @objc
+    dynamic var isUserInteractionEnabled: Bool {
         get {
             view.isUserInteractionEnabled
         }

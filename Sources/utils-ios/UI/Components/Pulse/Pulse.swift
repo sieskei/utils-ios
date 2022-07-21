@@ -229,11 +229,16 @@ extension Utils.UI.Pulse {
      */
     public struct Style {
         public static var `default`: Style {
-            .init(opacity: 0.25, color: .init(red: 158/255, green: 158/255, blue: 158/255, alpha: 1))
+            .init()
         }
         
-        let opacity: CGFloat
-        let color: UIColor
+        public let opacity: CGFloat
+        public let color: UIColor
+        
+        public init(opacity o: CGFloat = 0.25, color c: UIColor = .init(red: 158/255, green: 158/255, blue: 158/255, alpha: 1)) {
+            opacity = o
+            color = c
+        }
         
         fileprivate var backingColor: UIColor {
             color.withAlphaComponent(opacity)

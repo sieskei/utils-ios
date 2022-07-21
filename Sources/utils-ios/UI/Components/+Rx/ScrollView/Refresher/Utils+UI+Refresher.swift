@@ -88,6 +88,11 @@ extension Utils.UI.ScrollRefresher {
         // When 'true' STOPPING animation is started, prevent from double stop.
         private var isRefreshStopping = false
         
+        override func prepare() {
+            super.prepare()
+            backgroundColor = .clear
+        }
+        
         override func layoutSublayers(of layer: CALayer) {
             super.layoutSublayers(of: layer)
             guard layer == self.layer else { return }

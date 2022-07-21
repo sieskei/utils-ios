@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-// MARK: - Abstract layout costant type.
+// MARK: - Abstract layout constant type.
 public protocol UtilsUILayoutConstantType { }
 
 extension CGFloat: UtilsUILayoutConstantType { }

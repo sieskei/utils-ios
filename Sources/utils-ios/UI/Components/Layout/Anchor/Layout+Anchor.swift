@@ -8,7 +8,67 @@
 import UIKit
 
 extension Utils.UI.Layout {
-    public struct Anchor { }
+    public struct Anchor {
+        /**
+         Constraint Activation.
+         */
+        static func finalize(constraint: NSLayoutConstraint, withPriority priority: Utils.UI.Layout.Priority = .required) -> NSLayoutConstraint {
+            // Only disable autoresizing constraints on the LHS item, which is the one definitely intended to be governed by Auto Layout
+            if let first = constraint.firstItem as? UIView {
+                first.translatesAutoresizingMaskIntoConstraints = false
+            }
+
+            constraint.priority = priority.value
+
+            if let lastBatch = Constraint.Batch.instances.last {
+                lastBatch.add(constraint: constraint)
+            } else {
+                constraint.isActive = true
+            }
+            
+            return constraint
+        }
+        
+        // MARK: - Batching
+
+        /// Any Anchorage constraints created inside the passed closure are returned in the array.
+        ///
+        /// - Parameter closure: A closure that runs some Anchorage expressions.
+        /// - Returns: An array of new, active `NSLayoutConstraint`s.
+        @discardableResult
+        public static func batch(_ closure: () -> Void) -> [NSLayoutConstraint] {
+             batch(active: true, closure: closure)
+        }
+
+        /// Any Anchorage constraints created inside the passed closure are returned in the array.
+        ///
+        /// - Parameter active: Whether the created constraints should be active when they are returned.
+        /// - Parameter closure: A closure that runs some Anchorage expressions.
+        /// - Returns: An array of new `NSLayoutConstraint`s.
+        public static func batch(active: Bool, closure: () -> Void) -> [NSLayoutConstraint] {
+            let batch: Constraint.Batch = .init()
+            Constraint.Batch.instances.append(batch)
+            defer {
+                Constraint.Batch.instances.removeLast()
+            }
+        
+            closure()
+        
+            if active {
+                batch.activate()
+            }
+        
+            return batch.constraints
+        }
+        
+        public static func performInBatch(closure: () -> Void) {
+            if Constraint.Batch.instances.isEmpty {
+                batch(closure)
+            } else {
+                closure()
+            }
+        }
+    }
 }
 
 extension Utils.UI.Layout.Anchor {
@@ -51,7 +111,7 @@ extension Utils.UI.Layout.Anchor {
         func constraints(forConstant size: CGSize, priority: Priority, builder: Constraint.Builder) -> Constraint.Pair {
             var constraints: Constraint.Pair!
 
-            Utils.UI.Layout.performInBatch {
+            Utils.UI.Layout.Anchor.performInBatch {
                 switch (first, second) {
                 case let (first as NSLayoutDimension, second as NSLayoutDimension):
                     constraints = .init(first: builder.dimensionBuilder(first, size.width ~ priority),
@@ -75,7 +135,7 @@ extension Utils.UI.Layout.Anchor {
 
             var constraints: Constraint.Pair!
 
-            Utils.UI.Layout.performInBatch {
+            Utils.UI.Layout.Anchor.performInBatch {
                 switch (first, anchors.first, second, anchors.second) {
                 // Leading, Trailing
                 case let (firstX as NSLayoutXAxisAnchor, otherFirstX as NSLayoutXAxisAnchor,
@@ -151,7 +211,7 @@ extension Utils.UI.Layout.Anchor {
 
             var constraints: Constraint.Group!
 
-            Utils.UI.Layout.performInBatch {
+            Utils.UI.Layout.Anchor.performInBatch {
                 let horizontalConstraints = horizontalAnchors.constraints(forAnchors: anchors.horizontalAnchors, firstConstant: insets.left, secondConstant: insets.right, priority: priority, builder: builder)
                 let verticalConstraints = verticalAnchors.constraints(forAnchors: anchors.verticalAnchors, firstConstant: insets.top, secondConstant: insets.bottom, priority: priority, builder: builder)
                 constraints = .init(top: verticalConstraints.first,

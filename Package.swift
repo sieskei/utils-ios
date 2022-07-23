@@ -24,15 +24,13 @@ let package = Package(
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.2.0"),
         .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "4.1.0"),
         .package(url: "https://github.com/Kitura/HeliumLogger.git", from: "1.9.0"),
-        .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Material.git", .branch("development")),
-        .package(url: "ssh://git@repos.ni.bg/nidata/git/CosmicMind/Motion.git", .branch("development")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", "AlamofireImage", "HeliumLogger", "Material", "Motion"]),
+            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", "AlamofireImage", "HeliumLogger"]),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),

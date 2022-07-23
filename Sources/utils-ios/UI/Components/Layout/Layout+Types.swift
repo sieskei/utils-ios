@@ -45,7 +45,8 @@ public protocol UtilsUIAnchorsCompatible {
     var sizeAnchors: Utils.UI.Layout.Anchor.Pair<NSLayoutDimension, NSLayoutDimension> { get }
     var edgeAnchors: Utils.UI.Layout.Anchor.Edges { get }
     
-    var safeAnchros: UtilsUIAnchorsCompatible { get }
+    var safeAnchors: UtilsUIAnchorsCompatible { get }
+    var parentAnchors: UtilsUIAnchorsCompatible? { get }
 }
 
 extension UtilsUIAnchorsCompatible {
@@ -68,28 +69,40 @@ extension UtilsUIAnchorsCompatible {
     public var edgeAnchors: Utils.UI.Layout.Anchor.Edges {
         .init(horizontal: horizontalAnchors, vertical: verticalAnchors)
     }
+    
+    internal var unwapParentAnchors: UtilsUIAnchorsCompatible {
+        assert(parentAnchors != nil, "Utils.UI.Layout: Requires view/guide to have parent.")
+        return parentAnchors!
+    }
+    
+    internal func unwrapParentAnchor<T: UtilsUILayoutAnchorType>(_ path: KeyPath<UtilsUIAnchorsCompatible, T>, safe: Bool = false) -> T {
+        let parent = unwapParentAnchors
+        return safe ? parent.safeAnchors[keyPath: path] : parent[keyPath: path]
+    }
 }
 
 extension UILayoutGuide: UtilsUIAnchorsCompatible {
-    public var safeAnchros: UtilsUIAnchorsCompatible {
+    public var safeAnchors: UtilsUIAnchorsCompatible {
         self
+    }
+    
+    public var parentAnchors: UtilsUIAnchorsCompatible? {
+        owningView
     }
 }
 
 extension UIView: UtilsUIAnchorsCompatible {
-    public var safeAnchros: UtilsUIAnchorsCompatible {
+    public var safeAnchors: UtilsUIAnchorsCompatible {
         if #available(iOS 11.0, *) {
             return safeAreaLayoutGuide
+        } else if let guide = alternativeSafeAreaLayoutGuide {
+            return guide
         } else {
             return self
         }
     }
-}
-
-extension UIView {
-    public var anchors: Utils.UI.Layout.Anchor.Group { .init(self) }
-}
-
-extension UILayoutGuide {
-    public var anchors: Utils.UI.Layout.Anchor.Group { .init(self) }
+    
+    public var parentAnchors: UtilsUIAnchorsCompatible? {
+        superview
+    }
 }

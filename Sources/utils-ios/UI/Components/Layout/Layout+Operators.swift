@@ -20,7 +20,7 @@ public func == <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,
 @discardableResult
 public func /==/ <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,
                                           rhs: T) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalToConstant: CGFloat(rhs)))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(equalToConstant: CGFloat(rhs)))
 }
 
 @discardableResult
@@ -30,7 +30,7 @@ public func == (lhs: NSLayoutXAxisAnchor, rhs: NSLayoutXAxisAnchor) -> NSLayoutC
 
 @discardableResult
 public func /==/ (lhs: NSLayoutXAxisAnchor, rhs: NSLayoutXAxisAnchor) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(equalTo: rhs))
 }
 
 @discardableResult
@@ -41,7 +41,7 @@ public func == (lhs: NSLayoutYAxisAnchor, rhs: NSLayoutYAxisAnchor) -> NSLayoutC
 @discardableResult
 public func /==/ (lhs: NSLayoutYAxisAnchor,
                   rhs: NSLayoutYAxisAnchor) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(equalTo: rhs))
 }
 
 @discardableResult
@@ -53,7 +53,7 @@ public func == (lhs: NSLayoutDimension,
 @discardableResult
 public func /==/ (lhs: NSLayoutDimension,
                   rhs: NSLayoutDimension) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(equalTo: rhs))
 }
 
 @discardableResult
@@ -65,7 +65,7 @@ public func == (lhs: NSLayoutXAxisAnchor,
 @discardableResult
 public func /==/ (lhs: NSLayoutXAxisAnchor,
                   rhs: Utils.UI.Layout.Expression<NSLayoutXAxisAnchor, CGFloat>) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(equalTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
 }
 
 @discardableResult
@@ -75,7 +75,7 @@ public func == (lhs: NSLayoutYAxisAnchor, rhs: Utils.UI.Layout.Expression<NSLayo
 
 @discardableResult
 public func /==/ (lhs: NSLayoutYAxisAnchor, rhs: Utils.UI.Layout.Expression<NSLayoutYAxisAnchor, CGFloat>) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(equalTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
 }
 
 @discardableResult
@@ -88,10 +88,10 @@ public func == (lhs: NSLayoutDimension,
 public func /==/ (lhs: NSLayoutDimension,
                   rhs: Utils.UI.Layout.Expression<NSLayoutDimension, CGFloat>) -> NSLayoutConstraint {
     if let anchor = rhs.anchor {
-        return Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalTo: anchor, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+        return Utils.UI.Layout.finalize(constraint: lhs.constraint(equalTo: anchor, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
     }
     else {
-        return Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(equalToConstant: rhs.constant), withPriority: rhs.priority)
+        return Utils.UI.Layout.finalize(constraint: lhs.constraint(equalToConstant: rhs.constant), withPriority: rhs.priority)
     }
 }
 
@@ -190,7 +190,7 @@ public func <= <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,
 @discardableResult
 public func /<=/ <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,
                                           rhs: T) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualToConstant: CGFloat(rhs)))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualToConstant: CGFloat(rhs)))
 }
 
 @discardableResult
@@ -202,7 +202,7 @@ public func <= (lhs: NSLayoutXAxisAnchor,
 @discardableResult
 public func /<=/ (lhs: NSLayoutXAxisAnchor,
                   rhs: NSLayoutXAxisAnchor) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs))
 }
 
 @discardableResult
@@ -214,7 +214,7 @@ public func <= (lhs: NSLayoutYAxisAnchor,
 @discardableResult
 public func /<=/ (lhs: NSLayoutYAxisAnchor,
                   rhs: NSLayoutYAxisAnchor) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs))
 }
 
 @discardableResult
@@ -226,7 +226,7 @@ public func <= (lhs: NSLayoutDimension,
 @discardableResult
 public func /<=/ (lhs: NSLayoutDimension,
                   rhs: NSLayoutDimension) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs))
 }
 
 @discardableResult
@@ -238,7 +238,7 @@ public func <= (lhs: NSLayoutXAxisAnchor,
 @discardableResult
 public func /<=/ (lhs: NSLayoutXAxisAnchor,
                   rhs: Utils.UI.Layout.Expression<NSLayoutXAxisAnchor, CGFloat>) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
 }
 
 @discardableResult
@@ -250,7 +250,7 @@ public func <= (lhs: NSLayoutYAxisAnchor,
 @discardableResult
 public func /<=/ (lhs: NSLayoutYAxisAnchor,
                   rhs: Utils.UI.Layout.Expression<NSLayoutYAxisAnchor, CGFloat>) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
 }
 
 @discardableResult
@@ -263,10 +263,10 @@ public func <= (lhs: NSLayoutDimension,
 public func /<=/ (lhs: NSLayoutDimension,
                   rhs: Utils.UI.Layout.Expression<NSLayoutDimension, CGFloat>) -> NSLayoutConstraint {
     if let anchor = rhs.anchor {
-        return Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualTo: anchor, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+        return Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualTo: anchor, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
     }
     else {
-        return Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(lessThanOrEqualToConstant: rhs.constant), withPriority: rhs.priority)
+        return Utils.UI.Layout.finalize(constraint: lhs.constraint(lessThanOrEqualToConstant: rhs.constant), withPriority: rhs.priority)
     }
 }
 
@@ -366,7 +366,7 @@ public func >= <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,
 @discardableResult
 public func />=/ <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,
                                           rhs: T) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualToConstant: CGFloat(rhs)))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualToConstant: CGFloat(rhs)))
 }
 
 @discardableResult
@@ -378,7 +378,7 @@ public func >= (lhs: NSLayoutXAxisAnchor,
 @discardableResult
 public func />=/ (lhs: NSLayoutXAxisAnchor,
                   rhs: NSLayoutXAxisAnchor) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs))
 }
 
 @discardableResult
@@ -390,7 +390,7 @@ public func >= (lhs: NSLayoutYAxisAnchor,
 @discardableResult
 public func />=/ (lhs: NSLayoutYAxisAnchor,
                   rhs: NSLayoutYAxisAnchor) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs))
 }
 
 @discardableResult
@@ -402,7 +402,7 @@ public func >= (lhs: NSLayoutDimension,
 @discardableResult
 public func />=/ (lhs: NSLayoutDimension,
                   rhs: NSLayoutDimension) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs))
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs))
 }
 
 @discardableResult
@@ -414,7 +414,7 @@ public func >= (lhs: NSLayoutXAxisAnchor,
 @discardableResult
 public func />=/ (lhs: NSLayoutXAxisAnchor,
                   rhs: Utils.UI.Layout.Expression<NSLayoutXAxisAnchor, CGFloat>) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
 }
 
 @discardableResult
@@ -426,7 +426,7 @@ public func >= (lhs: NSLayoutYAxisAnchor,
 @discardableResult
 public func />=/ (lhs: NSLayoutYAxisAnchor,
                   rhs: Utils.UI.Layout.Expression<NSLayoutYAxisAnchor, CGFloat>) -> NSLayoutConstraint {
-    Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+    Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: rhs.anchor!, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
 }
 
 @discardableResult
@@ -439,10 +439,10 @@ public func >= (lhs: NSLayoutDimension,
 public func />=/ (lhs: NSLayoutDimension,
                   rhs: Utils.UI.Layout.Expression<NSLayoutDimension, CGFloat>) -> NSLayoutConstraint {
     if let anchor = rhs.anchor {
-        return Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: anchor, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
+        return Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualTo: anchor, multiplier: rhs.multiplier, constant: rhs.constant), withPriority: rhs.priority)
     }
     else {
-        return Utils.UI.Layout.Anchor.finalize(constraint: lhs.constraint(greaterThanOrEqualToConstant: rhs.constant), withPriority: rhs.priority)
+        return Utils.UI.Layout.finalize(constraint: lhs.constraint(greaterThanOrEqualToConstant: rhs.constant), withPriority: rhs.priority)
     }
 }
 
@@ -566,6 +566,9 @@ public func ~ <T, U>(lhs: Utils.UI.Layout.Expression<T, U>,
     expr.priority = rhs
     return expr
 }
+
+
+// MARK: - Aritmetic
 
 @discardableResult
 public func * <T: BinaryFloatingPoint>(lhs: NSLayoutDimension,

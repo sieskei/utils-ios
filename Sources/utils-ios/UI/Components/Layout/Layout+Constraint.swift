@@ -40,40 +40,49 @@ extension Utils.UI.Layout.Constraint {
 }
 
 extension Utils.UI.Layout.Constraint {
-    internal struct Builder {
+    public struct Builder {
         typealias Horizontal = (NSLayoutXAxisAnchor, Utils.UI.Layout.Expression<NSLayoutXAxisAnchor, CGFloat>) -> NSLayoutConstraint
         typealias Vertical = (NSLayoutYAxisAnchor, Utils.UI.Layout.Expression<NSLayoutYAxisAnchor, CGFloat>) -> NSLayoutConstraint
         typealias Dimension = (NSLayoutDimension, Utils.UI.Layout.Expression<NSLayoutDimension, CGFloat>) -> NSLayoutConstraint
 
-        static let equality = Builder(horizontal: ==, vertical: ==, dimension: ==)
-        static let lessThanOrEqual = Builder(leading: <=, top: <=, trailing: >=, bottom: >=, centerX: <=, centerY: <=, dimension: <=)
-        static let greaterThanOrEqual = Builder(leading: >=, top: >=, trailing: <=, bottom: <=, centerX: >=, centerY: >=, dimension: >=)
+        public static let equality = Builder(horizontal: ==, vertical: ==, dimension: ==)
+        public static let lessThanOrEqual = Builder(leading: <=, top: <=, trailing: >=, bottom: >=, centerX: <=, centerY: <=, dimension: <=)
+        public static let greaterThanOrEqual = Builder(leading: >=, top: >=, trailing: <=, bottom: <=, centerX: >=, centerY: >=, dimension: >=)
 
         var topBuilder: Vertical
-        var leadingBuilder: Horizontal
         var bottomBuilder: Vertical
+        
+        var leadingBuilder: Horizontal
         var trailingBuilder: Horizontal
-        var centerYBuilder: Vertical
+        
         var centerXBuilder: Horizontal
+        var centerYBuilder: Vertical
+        
         var dimensionBuilder: Dimension
 
         init(horizontal: @escaping Horizontal, vertical: @escaping Vertical, dimension: @escaping Dimension) {
             topBuilder = vertical
-            leadingBuilder = horizontal
             bottomBuilder = vertical
+            
+            leadingBuilder = horizontal
             trailingBuilder = horizontal
-            centerYBuilder = vertical
+            
             centerXBuilder = horizontal
+            centerYBuilder = vertical
+            
             dimensionBuilder = dimension
         }
 
         init(leading: @escaping Horizontal, top: @escaping Vertical, trailing: @escaping Horizontal, bottom: @escaping Vertical, centerX: @escaping Horizontal, centerY: @escaping Vertical, dimension: @escaping Dimension) {
-            leadingBuilder = leading
             topBuilder = top
-            trailingBuilder = trailing
             bottomBuilder = bottom
-            centerYBuilder = centerY
+            
+            leadingBuilder = leading
+            trailingBuilder = trailing
+            
             centerXBuilder = centerX
+            centerYBuilder = centerY
+            
             dimensionBuilder = dimension
         }
     }

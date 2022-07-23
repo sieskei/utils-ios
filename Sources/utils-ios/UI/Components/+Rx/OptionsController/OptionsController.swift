@@ -98,13 +98,13 @@ extension Utils.UI {
             super.prepare()
             view.backgroundColor = .clear
             
-            view.anchor(subview: freeAreaView) {
+            view.anchor(freeAreaView) {
                 $1.top == $0.top
                 $1.left == $0.left
                 $1.right == $0.right
             }
             
-            view.anchor(subview: contentView) {
+            view.anchor(contentView) {
                 $1.top == freeAreaView.bottomAnchor
                 $1.bottom == $0.bottom
                 $1.left == $0.left
@@ -112,23 +112,23 @@ extension Utils.UI {
             }
             
             let c: TableViewWrapper = .init()
-            c.anchor(subview: tableView) {
+            c.anchor(tableView) {
                 $1.edge == $0.edge
             }
             
-            contentView.anchor(subview: c) {
+            contentView.anchor(c) {
                 $1.left == $0.safe.left + 16
                 $1.right == $0.safe.right + 16
                 $1.bottom == $0.safe.bottom + 16
             }
             
-            contentView.anchor(subview: messageLabel) {
+            contentView.anchor(messageLabel) {
                 $1.left == $0.safe.left + 16
                 $1.right == $0.safe.right + 16
                 $1.bottom == c.topAnchor + 8
             }
             
-            contentView.anchor(subview: titleLabel) {
+            contentView.anchor(titleLabel) {
                 $1.left == $0.safe.left + 16
                 $1.right == $0.safe.right + 16
                 $1.top == $0.top

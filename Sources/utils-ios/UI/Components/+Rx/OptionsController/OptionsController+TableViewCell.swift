@@ -35,14 +35,14 @@ extension Utils.UI.OptionsController {
             backgroundColor = .clear
             contentView.backgroundColor = .clear
             
-            contentView.anchor(subview: separatorView) {
+            contentView.anchor(separatorView) {
                 $1.left == $0.left + 16
                 $1.right == $0.right + 16
                 $1.bottom == $0.bottom + 8
                 $1.height == 1
             }
             
-            contentView.anchor(subview: nameLabel) {
+            contentView.anchor(nameLabel) {
                 $1.left == $0.left + 24
                 $1.right == $0.right + 24
                 $1.top == $0.top + 8

@@ -227,13 +227,13 @@ public extension Utils.UI.SliderView {
                 tbh = self[.left, .center]
                 tbs = self[.right]
                 
-                positionConstraint = holderView.rightAnchor.constraint(equalTo: layoutAnchors.safe.right)
+                positionConstraint = holderView.rightAnchor.constraint(equalTo: anchor.safe.right)
             case .prev:
                 s = selected - 1
                 tbh = self[.right, .center]
                 tbs = self[.left]
                 
-                positionConstraint = holderView.leftAnchor.constraint(equalTo: layoutAnchors.safe.left)
+                positionConstraint = holderView.leftAnchor.constraint(equalTo: anchor.safe.left)
             }
             
             setNeedsLayout()
@@ -326,9 +326,9 @@ fileprivate extension Utils.UI.SliderView {
     func prepareLayout() {
         addSubview(holderView)
         
-        NSLayoutConstraint.activate([holderView.topAnchor.constraint(equalTo: layoutAnchors.safe.top),
-                                     holderView.bottomAnchor.constraint(equalTo: layoutAnchors.safe.bottom),
-                                     holderView.subviews[0].widthAnchor.constraint(equalTo: layoutAnchors.safe.width)])
+        NSLayoutConstraint.activate([holderView.topAnchor.constraint(equalTo: anchor.safe.top),
+                                     holderView.bottomAnchor.constraint(equalTo: anchor.safe.bottom),
+                                     holderView.subviews[0].widthAnchor.constraint(equalTo: anchor.safe.width)])
         recenter()
     }
     

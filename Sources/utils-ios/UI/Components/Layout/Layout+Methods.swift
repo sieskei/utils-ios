@@ -71,6 +71,15 @@ public extension Utils.UI.Layout.Methods {
     }
     
     @discardableResult
+    func top(_ anchor: NSLayoutYAxisAnchor,
+             _ constant: CGFloat = 0,
+             _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+             multiplier: CGFloat = 1.0,
+             priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        top(anchor: anchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
+    }
+    
+    @discardableResult
     func top(_ constant: CGFloat = 0,
              _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
              multiplier: CGFloat = 1.0,
@@ -100,6 +109,15 @@ public extension Utils.UI.Layout.Methods {
     }
     
     @discardableResult
+    func bottom(_ anchor: NSLayoutYAxisAnchor,
+                _ constant: CGFloat = 0,
+                _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+                multiplier: CGFloat = 1.0,
+                priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        bottom(anchor: anchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
+    }
+    
+    @discardableResult
     func bottom(_ constant: CGFloat = 0,
                 _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
                 multiplier: CGFloat = 1.0,
@@ -126,6 +144,15 @@ public extension Utils.UI.Layout.Methods {
               safeArea: Bool = false) -> Utils.UI.Layout.Methods {
         let _ = relationer((), ()).leadingBuilder(anchors.leftAnchor, expression(anchor, \.leftAnchor, constant, multiplier, priority, safeArea))
         return self
+    }
+    
+    @discardableResult
+    func left(_ anchor: NSLayoutXAxisAnchor,
+              _ constant: CGFloat = 0,
+              _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+              multiplier: CGFloat = 1.0,
+              priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        left(anchor: anchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
     }
     
     @discardableResult
@@ -175,6 +202,15 @@ public extension Utils.UI.Layout.Methods {
     }
     
     @discardableResult
+    func right(_ anchor: NSLayoutXAxisAnchor,
+               _ constant: CGFloat = 0,
+               _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+               multiplier: CGFloat = 1.0,
+               priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        right(anchor: anchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
+    }
+    
+    @discardableResult
     func rightSafe(_ constant: CGFloat = 0,
                    _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
                    multiplier: CGFloat = 1.0,
@@ -202,6 +238,15 @@ public extension Utils.UI.Layout.Methods {
                  safeArea: Bool = false) -> Utils.UI.Layout.Methods {
         let _ = relationer((), ()).leadingBuilder(anchors.leadingAnchor, expression(anchor, \.leadingAnchor, constant, multiplier, priority, safeArea))
         return self
+    }
+    
+    @discardableResult
+    func leading(_ anchor: NSLayoutXAxisAnchor,
+                 _ constant: CGFloat = 0,
+                 _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+                 multiplier: CGFloat = 1.0,
+                 priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        leading(anchor: anchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
     }
     
     @discardableResult
@@ -234,11 +279,20 @@ public extension Utils.UI.Layout.Methods {
     }
     
     @discardableResult
+    func trailing(_ anchor: NSLayoutXAxisAnchor,
+                  _ constant: CGFloat = 0,
+                  _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+                  multiplier: CGFloat = 1.0,
+                  priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        trailing(anchor: anchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
+    }
+    
+    @discardableResult
     func trailing(_ constant: CGFloat = 0,
                   _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
                   multiplier: CGFloat = 1.0,
                   priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
-        leading(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
+        trailing(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
     }
     
     @discardableResult
@@ -246,7 +300,7 @@ public extension Utils.UI.Layout.Methods {
                       _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
                       multiplier: CGFloat = 1.0,
                       priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
-        leading(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: true)
+        trailing(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: true)
     }
     
     // ---

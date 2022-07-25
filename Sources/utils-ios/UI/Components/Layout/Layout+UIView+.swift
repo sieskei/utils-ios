@@ -36,21 +36,21 @@ extension UIView {
 }
 
 extension UIView {
-    public var layoutAnchors: Utils.UI.Layout.Anchor.Group {
+    public var anchor: Utils.UI.Layout.Anchor.Group {
         .init(self)
     }
     
-    public var layoutMethods: Utils.UI.Layout.Methods {
+    public var layout: Utils.UI.Layout.Methods {
         .init(self)
     }
 }
 
 extension UILayoutGuide {
-    public var layoutAnchors: Utils.UI.Layout.Anchor.Group {
+    public var anchor: Utils.UI.Layout.Anchor.Group {
         .init(self)
     }
     
-    public var layoutMethods: Utils.UI.Layout.Methods {
+    public var layout: Utils.UI.Layout.Methods {
         .init(self)
     }
 }
@@ -58,26 +58,26 @@ extension UILayoutGuide {
 
 // MARK: - Anchor view/guide with methods.
 extension UIView {
-    public func anchor(_ guide: UILayoutGuide) -> Utils.UI.Layout.Methods {
+    public func layout(_ guide: UILayoutGuide) -> Utils.UI.Layout.Methods {
         if guide.owningView != self {
             addLayoutGuide(guide)
         }
-        return guide.layoutMethods
+        return guide.layout
     }
     
-    public func anchor(_ view: UIView) -> Utils.UI.Layout.Methods {
+    public func layout(_ view: UIView) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { addSubview($0) }
     }
     
-    public func anchor(_ view: UIView, aboveSubview siblingSubview: UIView) -> Utils.UI.Layout.Methods {
+    public func layout(_ view: UIView, aboveSubview siblingSubview: UIView) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { insertSubview($0, aboveSubview: siblingSubview) }
     }
     
-    public func anchor(_ view: UIView, belowSubview siblingSubview: UIView) -> Utils.UI.Layout.Methods {
+    public func layout(_ view: UIView, belowSubview siblingSubview: UIView) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { insertSubview($0, belowSubview: siblingSubview) }
     }
     
-    public func anchor(_ view: UIView, at index: Int) -> Utils.UI.Layout.Methods {
+    public func layout(_ view: UIView, at index: Int) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { insertSubview($0, at: index) }
     }
 }
@@ -87,31 +87,31 @@ extension UIView {
 extension UIView {
     public typealias LayoutType = (_ superanchors: Utils.UI.Layout.Anchor.Group, _ anchors: Utils.UI.Layout.Anchor.Group) -> Void
 
-    public func anchor(_ guide: UILayoutGuide, layout: LayoutType) {
+    public func layout(_ guide: UILayoutGuide, layout: LayoutType) {
         if guide.owningView != self {
             addLayoutGuide(guide)
         }
-        layout(layoutAnchors, guide.layoutAnchors)
+        layout(anchor, guide.anchor)
     }
     
-    public func anchor(_ view: UIView, layout: LayoutType) {
+    public func layout(_ view: UIView, layout: LayoutType) {
         prepare(subview: view) { addSubview($0) }
-        layout(layoutAnchors, view.layoutAnchors)
+        layout(anchor, view.anchor)
     }
     
-    public func anchor(_ view: UIView, aboveSubview siblingSubview: UIView, layout: LayoutType) {
+    public func layout(_ view: UIView, aboveSubview siblingSubview: UIView, layout: LayoutType) {
         prepare(subview: view) { insertSubview($0, aboveSubview: siblingSubview) }
-        layout(layoutAnchors, view.layoutAnchors)
+        layout(anchor, view.anchor)
     }
     
-    public func anchor(_ view: UIView, belowSubview siblingSubview: UIView, layout: LayoutType) {
+    public func layout(_ view: UIView, belowSubview siblingSubview: UIView, layout: LayoutType) {
         prepare(subview: view) { insertSubview($0, belowSubview: siblingSubview) }
-        layout(layoutAnchors, view.layoutAnchors)
+        layout(anchor, view.anchor)
     }
     
-    public func anchor(_ view: UIView, at index: Int, layout: LayoutType) {
+    public func layout(_ view: UIView, at index: Int, layout: LayoutType) {
         prepare(subview: view) { insertSubview($0, at: index) }
-        layout(layoutAnchors, view.layoutAnchors)
+        layout(anchor, view.anchor)
     }
 }
 

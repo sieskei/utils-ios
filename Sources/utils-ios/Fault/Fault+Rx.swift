@@ -38,7 +38,7 @@ extension Fault.Throw {
         
         public static let dismiss: Action = .init(key: dismissKey, style: .regular, title: "", icon: nil)
         public static func close(style: Style = .regular) -> Action {
-            .init(key: closeKey, style: style, title: "Затвори", icon: nil)
+            .init(key: closeKey, style: style, title: "ЗАТВОРИ", icon: nil)
         }
         
         public enum Style {

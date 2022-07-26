@@ -95,6 +95,15 @@ public extension Utils.UI.Layout.Methods {
         top(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: true)
     }
     
+    @discardableResult
+    func below(_ anchors: UtilsUIAnchorsCompatible,
+               _ constant: CGFloat = 0,
+               _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+               multiplier: CGFloat = 1.0,
+               priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        top(anchor: anchors.bottomAnchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
+    }
+    
     // ---
     
     @discardableResult
@@ -131,6 +140,15 @@ public extension Utils.UI.Layout.Methods {
                     multiplier: CGFloat = 1.0,
                     priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
         bottom(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: true)
+    }
+    
+    @discardableResult
+    func above(_ anchors: UtilsUIAnchorsCompatible,
+               _ constant: CGFloat = 0,
+               _ relationer: Utils.UI.Layout.RelationerType = Utils.UI.Layout.Relationer.equality,
+               multiplier: CGFloat = 1.0,
+               priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        bottom(anchor: anchors.topAnchor, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: false)
     }
     
     // ---
@@ -306,12 +324,21 @@ public extension Utils.UI.Layout.Methods {
     // ---
     
     @discardableResult
-    func edges(insets: UIEdgeInsets = .zero,
+    func edges(anchors ac: UtilsUIAnchorsCompatible? = nil,
+               insets: UIEdgeInsets = .zero,
                priority: Utils.UI.Layout.Priority = .required,
                safeArea: Bool = false) -> Utils.UI.Layout.Methods {
-        let parentAnchors = safeArea ? anchors.unwapParentAnchors.safeAnchors : anchors.unwapParentAnchors
+        let src = ac ?? anchors.unwapParentAnchors
+        let parentAnchors = safeArea ? src.safeAnchors : src
         let _ = anchors.edgeAnchors.finalize(constraintsEqualToEdges: parentAnchors.edgeAnchors, insets: insets, priority: priority)
         return self
+    }
+    
+    @discardableResult
+    func edges(_ anchors: UtilsUIAnchorsCompatible? = nil,
+               _ insets: UIEdgeInsets = .zero,
+               priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        edges(anchors: anchors, insets: insets, priority: priority, safeArea: false)
     }
     
     @discardableResult
@@ -456,5 +483,12 @@ public extension Utils.UI.Layout.Methods {
                     multiplier: CGFloat = 1.0,
                     priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
         height(anchor: nil, constant: constant, relationer: relationer, multiplier: multiplier, priority: priority, safeArea: true)
+    }
+    
+    @discardableResult
+    func size(_ size: CGSize,
+              priority: Utils.UI.Layout.Priority = .required) -> Utils.UI.Layout.Methods {
+        let _ = anchors.sizeAnchors.finalize(constraintsEqualToConstant: size, priority: priority)
+        return self
     }
 }

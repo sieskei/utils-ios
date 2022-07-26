@@ -19,11 +19,39 @@ public extension UIColor {
         self.init(red: rgb.0, green: rgb.1, blue: rgb.2, alpha: alpha)
     }
     
-    /*
+    /**
+     A convenience initializer that creates color from
+     argb(alpha red green blue) hexadecimal representation.
+     - Parameter argb: An unsigned 32 bit integer. E.g 0xFFAA44CC.
+     */
+    convenience init(argb: UInt32) {
+        let a = argb >> 24
+        let r = argb >> 16
+        let g = argb >> 8
+        let b = argb >> 0
+
+        func f(_ v: UInt32) -> CGFloat {
+            return CGFloat(v & 0xff) / 255
+        }
+
+        self.init(red: f(r), green: f(g), blue: f(b), alpha: f(a))
+    }
+    
+    
+    /**
+     A convenience initializer that creates color from
+     rgb(red green blue) hexadecimal representation with alpha value 1.
+     - Parameter rgb: An unsigned 32 bit integer. E.g 0xAA44CC.
+     */
+    convenience init(rgb: UInt32) {
+        self.init(argb: (0xff000000 as UInt32) | rgb)
+    }
+    
+    /**
      Define UIColor from hex value
      
-     @param rgbValue - hex color value
-     @param alpha - transparency level
+     - Parameter rgbValue - hex color value
+     - Parameter alpha - transparency level
      */
     convenience init(hex: UInt32, alpha: CGFloat = 1.00) {
         let red   = CGFloat((hex & 0xFF0000) >> 16) / 255.0
@@ -33,11 +61,11 @@ public extension UIColor {
         self.init(red: red, green: green, blue: blue, alpha: alpha)
     }
     
-    /*
+    /**
      Define UIColor from hex string
      
-     @param rgbValue - hex color string
-     @param alpha - transparency level
+     - Parameter rgbValue - hex color string
+     - Parameter alpha - transparency level
      */
     convenience init(hex: String, alpha: CGFloat = 1.00) {
         var colorString: String = hex.trimmingCharacters(in: CharacterSet.whitespaces).uppercased()
@@ -57,11 +85,10 @@ public extension UIColor {
         self.init(hex: rgbValue, alpha: alpha)
     }
     
-    /*
-     
+    /**
      Get hex string from UIColor
      
-     @param format - hex format enum
+     - Parameter format - hex format enum
      */
     enum HexFormat {
         case RGB

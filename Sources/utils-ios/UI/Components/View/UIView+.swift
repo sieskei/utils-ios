@@ -110,3 +110,20 @@ public extension UIView {
         return nil
     }
 }
+
+
+extension UIView {
+    /// A property that accesses the layer.borderColor property.
+    @objc
+    open var borderColor: UIColor? {
+        get {
+            guard let v = layer.borderColor else {
+                return nil
+            }
+            return .init(cgColor: v)
+        }
+        set {
+            layer.borderColor = newValue?.cgColor
+        }
+    }
+}

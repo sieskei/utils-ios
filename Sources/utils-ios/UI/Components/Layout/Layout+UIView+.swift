@@ -58,6 +58,7 @@ extension UILayoutGuide {
 
 // MARK: - Anchor view/guide with methods.
 extension UIView {
+    @discardableResult
     public func layout(_ guide: UILayoutGuide) -> Utils.UI.Layout.Methods {
         if guide.owningView != self {
             addLayoutGuide(guide)
@@ -65,18 +66,22 @@ extension UIView {
         return guide.layout
     }
     
+    @discardableResult
     public func layout(_ view: UIView) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { addSubview($0) }
     }
     
+    @discardableResult
     public func layout(_ view: UIView, aboveSubview siblingSubview: UIView) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { insertSubview($0, aboveSubview: siblingSubview) }
     }
     
+    @discardableResult
     public func layout(_ view: UIView, belowSubview siblingSubview: UIView) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { insertSubview($0, belowSubview: siblingSubview) }
     }
     
+    @discardableResult
     public func layout(_ view: UIView, at index: Int) -> Utils.UI.Layout.Methods {
         prepare(subview: view) { insertSubview($0, at: index) }
     }

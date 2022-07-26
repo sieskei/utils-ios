@@ -1,14 +1,14 @@
 //
-//  UITableViewCell.swift
+//  CollectionViewCell.swift
 //  
 //
-//  Created by Miroslav Yozov on 5.07.22.
+//  Created by Miroslav Yozov on 25.07.22.
 //
 
 import UIKit
 
 extension Utils.UI {
-    open class TableViewCell: UITableViewCell {
+    open class CollectionViewCell: UICollectionViewCell {
         /// Pulse animation type.
         open var pulseType: Utils.UI.Pulse.`Type` = .pointWithBacking
         
@@ -37,14 +37,8 @@ extension Utils.UI {
             prepare()
         }
         
-        /**
-         An initializer that initializes the object.
-         - Parameter style: A UITableViewCellStyle enum.
-         - Parameter reuseIdentifier: A String identifier.
-         */
-        public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String!) {
-            super.init(style: style, reuseIdentifier: reuseIdentifier)
-            prepare()
+        public override init(frame: CGRect) {
+            super.init(frame: frame)
         }
         
         /**
@@ -56,13 +50,8 @@ extension Utils.UI {
          */
         open func prepare() {
             contentScaleFactor = Screen.scale
-            selectionStyle = .none
-            separatorInset = .zero
-            
             backgroundColor = .white
-            
-            contentView.layer
-                .addSublayer(pulseContainer)
+            contentView.layer.addSublayer(pulseContainer)
         }
         
         open override func layoutSublayers(of layer: CALayer) {
@@ -85,7 +74,7 @@ extension Utils.UI {
 
 
 // MARK: - Trigger pulse on touch events.
-extension Utils.UI.TableViewCell {
+extension Utils.UI.CollectionViewCell {
     open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         if let touch = touches.first {

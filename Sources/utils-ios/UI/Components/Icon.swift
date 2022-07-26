@@ -12,5 +12,9 @@ extension Utils.UI {
         public static func icon(named name: String, renderingMode mode: UIImage.RenderingMode = .alwaysOriginal) -> UIImage? {
             .init(named: name)?.withRenderingMode(mode)
         }
+        
+        public static let visibility = Icon.icon(named: "ic_visibility_white")
+        public static let visibilityOff = Icon.icon(named: "ic_visibility_off_white")
+        public static let clear = Icon.icon(named: "ic_close_white")
     }
 }

@@ -126,4 +126,28 @@ extension UIView {
             layer.borderColor = newValue?.cgColor
         }
     }
+    
+    /*
+    /// A property that accesses the layer.borderWidth property.
+    @objc
+    open var borderThickness: CGFloat {
+        get {
+            layer.borderWidth
+        }
+        set {
+            layer.borderWidth = newValue
+        }
+    }
+    
+    /// A property that accesses the layer.cornerRadius property.
+    @objc
+    open var cornerAngle: CGFloat {
+        get {
+            layer.cornerRadius
+        }
+        set {
+            layer.cornerRadius = newValue
+        }
+    }
+    */
 }

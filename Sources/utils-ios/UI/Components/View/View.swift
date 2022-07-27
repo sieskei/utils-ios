@@ -41,8 +41,18 @@ extension Utils.UI {
          when subclassing.
         */
         open func prepare() {
-          contentScaleFactor = Screen.scale
-          backgroundColor = .white
+            contentScaleFactor = Screen.scale
+            backgroundColor = .white
+        }
+        
+        open override func layoutSublayers(of layer: CALayer) {
+            super.layoutSublayers(of: layer)
+            
+            guard layer == self.layer else {
+                return
+            }
+            
+            layer.layoutDepthPath()
         }
     }
 }

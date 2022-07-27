@@ -46,8 +46,8 @@ extension Utils.UI.Layout.Constraint {
         typealias Dimension = (NSLayoutDimension, Utils.UI.Layout.Expression<NSLayoutDimension, CGFloat>) -> NSLayoutConstraint
 
         public static let equality = Builder(horizontal: ==, vertical: ==, dimension: ==)
-        public static let lessThanOrEqual = Builder(leading: <=, top: <=, trailing: >=, bottom: >=, centerX: <=, centerY: <=, dimension: <=)
-        public static let greaterThanOrEqual = Builder(leading: >=, top: >=, trailing: <=, bottom: <=, centerX: >=, centerY: >=, dimension: >=)
+        public static let lessThanOrEqual = Builder(leading: <=, top: <=, trailing: <=, bottom: <=, centerX: <=, centerY: <=, dimension: <=)
+        public static let greaterThanOrEqual = Builder(leading: >=, top: >=, trailing: >=, bottom: >=, centerX: >=, centerY: >=, dimension: >=)
 
         var topBuilder: Vertical
         var bottomBuilder: Vertical

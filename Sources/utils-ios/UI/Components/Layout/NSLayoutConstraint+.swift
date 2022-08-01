@@ -49,6 +49,10 @@ public extension NSLayoutConstraint {
     }
     
     func multiplied(_ multiplier: CGFloat) -> NSLayoutConstraint {
+        guard self.multiplier != multiplier else {
+            return self
+        }
+        
         let c: NSLayoutConstraint = .init(item: firstItem as Any,
                                           attribute: firstAttribute,
                                           relatedBy: relation,

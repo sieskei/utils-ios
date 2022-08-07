@@ -31,12 +31,8 @@ public extension UIScrollView {
     }
     
     func set(elements: [Element], direction: UIScrollView.Direction = .vertical) {
+        // allways create new one
         let container: UIView = container(direction: direction)
-        
-        container.subviews
-            .forEach {
-                $0.removeFromSuperview()
-            }
         
         guard !elements.isEmpty else {
             return

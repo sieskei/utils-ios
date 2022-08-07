@@ -130,23 +130,20 @@ fileprivate extension UIScrollView {
             v.removeFromSuperview()
         }
         
-        return Utils.AssociatedObject.get(base: self, key: &containerViewKey) {
-            let v: UIView = .init()
-            v.backgroundColor = .clear
-            v.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(v)
+        return .init() ~> {
+            $0.backgroundColor = .clear
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            addSubview($0)
             
-            NSLayoutConstraint.activate {
-                [
-                    v.leftAnchor.constraint(equalTo: leftAnchor),
-                    v.rightAnchor.constraint(equalTo: rightAnchor),
-                    v.topAnchor.constraint(equalTo: topAnchor),
-                    v.bottomAnchor.constraint(equalTo: bottomAnchor),
-                    direction == .vertical ? v.widthAnchor.constraint(equalTo: widthAnchor) : v.heightAnchor.constraint(equalTo: heightAnchor)
-                ]
-            }
+            NSLayoutConstraint.activate([
+                $0.leftAnchor.constraint(equalTo: leftAnchor),
+                $0.rightAnchor.constraint(equalTo: rightAnchor),
+                $0.topAnchor.constraint(equalTo: topAnchor),
+                $0.bottomAnchor.constraint(equalTo: bottomAnchor),
+                direction == .vertical ? $0.widthAnchor.constraint(equalTo: widthAnchor) : $0.heightAnchor.constraint(equalTo: heightAnchor)
+            ])
             
-            return v
+            Utils.AssociatedObject.set(base: self, key: &containerViewKey, value: $0)
         }
     }
 }

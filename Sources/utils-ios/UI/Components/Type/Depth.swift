@@ -107,7 +107,7 @@ extension Utils.UI.Depth {
             case .depth5:
                 return .init(offset: .init(horizontal: 0, vertical: 8), opacity: 0.3, radius: 8)
             case .above(let preset):
-                var v = preset.value
+                let v = preset.value
                 if preset.isRoot {
                     v.offset.vertical *= -1
                 } else {
@@ -116,7 +116,7 @@ extension Utils.UI.Depth {
                 }
                 return v
             case .below(let preset):
-                var v = preset.value
+                let v = preset.value
                 if preset.isRoot {
                     return v
                 } else {
@@ -125,7 +125,7 @@ extension Utils.UI.Depth {
                 }
                 return v
             case .left(let preset):
-                var v = preset.value
+                let v = preset.value
                 if preset.isRoot {
                     v.offset.horizontal = -v.offset.vertical
                     v.offset.vertical = 0
@@ -135,7 +135,7 @@ extension Utils.UI.Depth {
                 }
                 return v
             case .right(let preset):
-                var v = preset.value
+                let v = preset.value
                 if preset.isRoot {
                     v.offset.horizontal = v.offset.vertical
                     v.offset.vertical = 0

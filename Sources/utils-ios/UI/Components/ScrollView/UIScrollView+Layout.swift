@@ -7,87 +7,150 @@
 
 import UIKit
 
+extension UIScrollView {
+    public typealias Element = (view: UIView, insets: UIEdgeInsets)
+    
+    public enum Direction: Int {
+        case vertical
+        case horizontal
+    }
+}
+
 public extension UIScrollView {
-    typealias Element = (view: UIView, insets: UIEdgeInsets)
-    
-    private static var containerTag: Int = .randomIdentifier
-    
     convenience init(views: [UIView], insets: UIEdgeInsets = .zero) {
         self.init(elements: views.map { ($0, insets) })
     }
     
-    convenience init(elements: [Element]) {
+    convenience init(elements: [Element], direction: UIScrollView.Direction = .vertical) {
         self.init(frame: .zero)
-        set(elements: elements)
+        set(elements: elements, direction: direction)
     }
     
-    func set(views: [UIView], insets: UIEdgeInsets = .zero) {
-        set(elements: views.map { ($0, insets) })
+    func set(views: [UIView], insets: UIEdgeInsets = .zero, direction: UIScrollView.Direction = .vertical) {
+        set(elements: views.map { ($0, insets) }, direction: direction)
     }
     
-    func set(elements: [Element]) {
-        if let view = subviews.first(where: { $0.tag == UIScrollView.containerTag }) {
-            view.removeFromSuperview()
-        }
+    func set(elements: [Element], direction: UIScrollView.Direction = .vertical) {
+        let container: UIView = container(direction: direction)
+        
+        container.subviews
+            .forEach {
+                $0.removeFromSuperview()
+            }
         
         guard !elements.isEmpty else {
             return
         }
         
-        let container: UIView = .init()
-        container.tag = UIScrollView.containerTag
-        container.backgroundColor = .clear
-        container.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(container)
-
-        NSLayoutConstraint.activate([
-            container.leftAnchor.constraint(equalTo: leftAnchor),
-            container.rightAnchor.constraint(equalTo: rightAnchor),
-            container.topAnchor.constraint(equalTo: topAnchor),
-            container.widthAnchor.constraint(equalTo: widthAnchor),
-            container.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
-        
-        elements.forEach {
-            $0.view.translatesAutoresizingMaskIntoConstraints = false
-            container.addSubview($0.view)
+        elements.forEach { e in
+            e.view.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(e.view)
             
-            NSLayoutConstraint.activate([
-                $0.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: $0.insets.left),
-                $0.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -$0.insets.right)
-            ])
+            switch direction {
+            case .vertical:
+                NSLayoutConstraint.activate([e.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: e.insets.left),
+                                             e.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -e.insets.right)])
+            case .horizontal:
+                NSLayoutConstraint.activate([e.view.topAnchor.constraint(equalTo: container.topAnchor, constant: e.insets.top),
+                                             e.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -e.insets.bottom)])
+            }
+        }
+        
+        if direction == .horizontal, isPagingEnabled {
+            elements.forEach { e in
+                NSLayoutConstraint.activate([
+                    e.view.widthAnchor.constraint(equalTo: widthAnchor, constant: -e.insets.horizontal)
+                ])
+            }
         }
         
         switch elements.count {
         case 1:
             let e = elements[0]
-            NSLayoutConstraint.activate([
-                e.view.topAnchor.constraint(equalTo: container.topAnchor, constant: e.insets.top),
-                e.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -e.insets.bottom)
-            ])
+            switch direction {
+            case .vertical:
+                NSLayoutConstraint.activate([e.view.topAnchor.constraint(equalTo: container.topAnchor, constant: e.insets.top),
+                                             e.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -e.insets.bottom)])
+            case .horizontal:
+                NSLayoutConstraint.activate([e.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: e.insets.left),
+                                             e.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -e.insets.right)])
+            }
         default:
             let f = elements[0] // first
-            NSLayoutConstraint.activate([
-                f.view.topAnchor.constraint(equalTo: container.topAnchor, constant: f.insets.top)
-            ])
+            let l = elements[elements.count - 1] // last
             
-            // middle
-            if elements.count > 2 {
-                for i in 1...elements.count - 2 {
-                    let s = elements[i].insets.top + elements[i - 1].insets.bottom // spacing
-                    NSLayoutConstraint.activate([
-                        elements[i].view.topAnchor.constraint(equalTo: elements[i - 1].view.bottomAnchor, constant: s)
-                    ])
+            switch direction {
+            case .vertical:
+                NSLayoutConstraint.activate([
+                    f.view.topAnchor.constraint(equalTo: container.topAnchor, constant: f.insets.top)
+                ])
+                
+                // middle
+                if elements.count > 2 {
+                    for i in 1...elements.count - 2 {
+                        let s = elements[i].insets.top + elements[i - 1].insets.bottom // spacing
+                        NSLayoutConstraint.activate([
+                            elements[i].view.topAnchor.constraint(equalTo: elements[i - 1].view.bottomAnchor, constant: s)
+                        ])
+                    }
                 }
+                
+                let ls = l.insets.top + elements[elements.count - 2].insets.bottom // spacing
+                NSLayoutConstraint.activate([
+                    l.view.topAnchor.constraint(equalTo: elements[elements.count - 2].view.bottomAnchor, constant: ls),
+                    l.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -l.insets.bottom)
+                ])
+            case .horizontal:
+                NSLayoutConstraint.activate([
+                    f.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: f.insets.left)
+                ])
+                
+                // middle
+                if elements.count > 2 {
+                    for i in 1...elements.count - 2 {
+                        let s = elements[i].insets.left + elements[i - 1].insets.right // spacing
+                        NSLayoutConstraint.activate([
+                            elements[i].view.leftAnchor.constraint(equalTo: elements[i - 1].view.rightAnchor, constant: s)
+                        ])
+                    }
+                }
+                
+                let ls = l.insets.left + elements[elements.count - 2].insets.right // spacing
+                NSLayoutConstraint.activate([
+                    l.view.leftAnchor.constraint(equalTo: elements[elements.count - 2].view.rightAnchor, constant: ls),
+                    l.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -l.insets.bottom)
+                ])
+            }
+        }
+    }
+}
+
+// MARK: - Container view.
+fileprivate var containerViewKey: UInt8 = 0
+
+fileprivate extension UIScrollView {
+    func container(direction: UIScrollView.Direction) -> UIView {
+        if let v: UIView = Utils.AssociatedObject.get(base: self, key: &containerViewKey) {
+            v.removeFromSuperview()
+        }
+        
+        return Utils.AssociatedObject.get(base: self, key: &containerViewKey) {
+            let v: UIView = .init()
+            v.backgroundColor = .clear
+            v.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(v)
+            
+            NSLayoutConstraint.activate {
+                [
+                    v.leftAnchor.constraint(equalTo: leftAnchor),
+                    v.rightAnchor.constraint(equalTo: rightAnchor),
+                    v.topAnchor.constraint(equalTo: topAnchor),
+                    v.bottomAnchor.constraint(equalTo: bottomAnchor),
+                    direction == .vertical ? v.widthAnchor.constraint(equalTo: widthAnchor) : v.heightAnchor.constraint(equalTo: heightAnchor)
+                ]
             }
             
-            // last
-            let l = elements[elements.count - 1]
-            let ls = l.insets.top + elements[elements.count - 2].insets.bottom // spacing
-            NSLayoutConstraint.activate([
-                l.view.topAnchor.constraint(equalTo: elements[elements.count - 2].view.bottomAnchor, constant: ls),
-                l.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -l.insets.bottom)
-            ])
+            return v
         }
     }
 }

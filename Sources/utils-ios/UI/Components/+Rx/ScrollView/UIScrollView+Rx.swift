@@ -8,6 +8,13 @@
 import UIKit
 import RxSwift
 
+extension UIScrollView {
+    public enum VerticalDirection: Int {
+        case up
+        case down
+    }
+}
+
 extension Reactive where Base: UIScrollView {
     public var contentSize: Observable<CGSize> {
         observeWeakly(CGSize.self, #keyPath(UIScrollView.contentSize), options: [.initial, .new])
@@ -25,12 +32,7 @@ extension Reactive where Base: UIScrollView {
 }
 
 extension Reactive where Base: UIScrollView {
-    public enum VerticalDirection: Int {
-        case up
-        case down
-    }
-    
-    public var verticalScrollDirection: Observable<VerticalDirection> {
+    public var didScrollVertically: Observable<UIScrollView.VerticalDirection> {
         typealias OffsetPair = (last: CGFloat, current: CGFloat)
         let pair: OffsetPair = (base.contentOffset.y, base.contentOffset.y)
         

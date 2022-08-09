@@ -320,7 +320,7 @@ extension Utils.UI {
                 visibilityIconButton = Utils.UI.Button.icon(nil, tintColor: placeholderNormalColor.withAlphaComponent(0.54))
                 updateVisibilityIcon()
                 visibilityIconButton!.contentEdgeInsetsPreset = .none
-                visibilityIconButton?.pulseType = .centerWithBacking
+                visibilityIconButton?.pulseType = .center
 
                 rightView?.grid.views.append(visibilityIconButton!)
                 isVisibilityIconButtonAutoHandled = { isVisibilityIconButtonAutoHandled }()
@@ -362,6 +362,12 @@ extension Utils.UI {
             }
         }
         
+        open override var isSecureTextEntry: Bool {
+            didSet {
+                updateVisibilityIcon()
+                fixCursorPosition()
+            }
+        }
         
         /// Default size when using AutoLayout.
         open override var intrinsicContentSize: CGSize {

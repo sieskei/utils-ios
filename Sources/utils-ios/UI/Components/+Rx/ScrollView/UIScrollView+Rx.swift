@@ -23,3 +23,30 @@ extension Reactive where Base: UIScrollView {
             .distinctUntilChanged()
     }
 }
+
+extension Reactive where Base: UIScrollView {
+    public enum VerticalDirection: Int {
+        case up
+        case down
+    }
+    
+    public var verticalScrollDirection: Observable<VerticalDirection> {
+        typealias OffsetPair = (last: CGFloat, current: CGFloat)
+        let pair: OffsetPair = (base.contentOffset.y, base.contentOffset.y)
+        
+        return didScroll
+            .asObservable()
+            .filter { [base = base] _ in !base.isBouncing }
+            .scan(pair) { [base = base] pair, _ -> OffsetPair in
+                (pair.current, base.contentOffset.y)
+            }
+            .filter { $0.last != $0.current }
+            .map {
+                if $0.last > $0.current {
+                    return .up
+                } else {
+                    return .down
+                }
+            }
+    }
+}

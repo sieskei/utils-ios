@@ -13,6 +13,11 @@ extension UIScrollView {
         case up
         case down
     }
+    
+    public enum HorizontalDirection: Int {
+        case left
+        case right
+    }
 }
 
 extension Reactive where Base: UIScrollView {
@@ -32,23 +37,26 @@ extension Reactive where Base: UIScrollView {
 }
 
 extension Reactive where Base: UIScrollView {
-    public var didScrollVertically: Observable<UIScrollView.VerticalDirection> {
-        typealias OffsetPair = (last: CGFloat, current: CGFloat)
-        let pair: OffsetPair = (base.contentOffset.y, base.contentOffset.y)
-        
+    private typealias OffsetPair = (last: CGFloat, current: CGFloat)
+    
+    private func source(keyPath path: KeyPath<CGPoint, CGFloat>) -> Observable<OffsetPair> {
+        let offset = base.contentOffset
         return didScroll
             .asObservable()
             .filter { [base = base] _ in !base.isBouncing }
-            .scan(pair) { [base = base] pair, _ -> OffsetPair in
-                (pair.current, base.contentOffset.y)
+            .scan((offset[keyPath: path], offset[keyPath: path])) { [base = base] pair, _ -> (OffsetPair) in
+                (pair.current, base.contentOffset[keyPath: path])
             }
             .filter { $0.last != $0.current }
-            .map {
-                if $0.last > $0.current {
-                    return .up
-                } else {
-                    return .down
-                }
-            }
+    }
+    
+    public var didScrollVertically: Observable<UIScrollView.VerticalDirection> {
+        source(keyPath: \CGPoint.y)
+            .map { $0.last > $0.current ? .up : .down }
+    }
+    
+    public var didScrollHorizontally: Observable<UIScrollView.HorizontalDirection> {
+        source(keyPath: \CGPoint.x)
+            .map { $0.last > $0.current ? .left : .right }
     }
 }

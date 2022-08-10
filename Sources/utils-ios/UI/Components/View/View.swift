@@ -10,7 +10,7 @@ import UIKit
 extension Utils.UI {
     open class View: UIView {
         open override var intrinsicContentSize: CGSize {
-          return bounds.size
+            return bounds.size
         }
         
         /**

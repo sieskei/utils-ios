@@ -140,8 +140,10 @@ fileprivate extension UIScrollView {
                 $0.rightAnchor.constraint(equalTo: rightAnchor),
                 $0.topAnchor.constraint(equalTo: topAnchor),
                 $0.bottomAnchor.constraint(equalTo: bottomAnchor),
-                direction == .vertical ? $0.widthAnchor.constraint(equalTo: widthAnchor) : $0.heightAnchor.constraint(equalTo: heightAnchor)
+                (direction == .vertical ? $0.widthAnchor.constraint(equalTo: widthAnchor) : $0.heightAnchor.constraint(equalTo: heightAnchor)) ~> { $0.priority = .init(rawValue: 995) }
             ])
+            
+            
             
             Utils.AssociatedObject.set(base: self, key: &containerViewKey, value: $0)
         }

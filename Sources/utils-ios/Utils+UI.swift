@@ -95,8 +95,8 @@ extension Utils.UI {
         transaction(withDuration: 0, animations: animations)
     }
     
-    public static func animate<T: AnyObject>(with obj: T?, duration: TimeInterval, animations: @escaping (T) -> Void, completion: ((T, Bool) -> Void)? = nil) {
-        UIView.animate(withDuration: duration, animations: { [weak obj] in
+    public static func animate<T: AnyObject>(with obj: T?, delay: TimeInterval = .zero, duration: TimeInterval, options: UIView.AnimationOptions = [], animations: @escaping (T) -> Void, completion: ((T, Bool) -> Void)? = nil) {
+        UIView.animate(withDuration: duration, delay: delay, options: options, animations: { [weak obj] in
             if let obj = obj {
                 animations(obj)
             }

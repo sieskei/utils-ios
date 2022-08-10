@@ -21,6 +21,7 @@ extension UtilsUICornerSetter {
 extension CALayer: UtilsUICornerSetter {
     public func set(cornerRadius radius: CGFloat) {
         self.cornerRadius = radius
+        self.masksToBounds = true
     }
 }
 

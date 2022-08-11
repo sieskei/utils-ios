@@ -35,7 +35,7 @@ extension Utils.UI {
         open override func prepare() {
             super.prepare()
             bounces = false
-            
+            isScrollEnabled = false
             let _ = heightConstraint
         }
     }

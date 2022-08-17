@@ -9,10 +9,26 @@ import UIKit
 
 extension Utils.UI {
     open class ViewController: UIViewController {
+        public convenience init() {
+            self.init(nibName: nil, bundle: nil)
+        }
+        
+        public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+            super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+            initialize()
+        }
+        
+        required public init?(coder: NSCoder) {
+            super.init(coder: coder)
+            initialize()
+        }
+        
         open override func viewDidLoad() {
             super.viewDidLoad()
             prepare()
         }
+        
+        open func initialize() { }
       
         /**
          Prepares the view instance when intialized. When subclassing,

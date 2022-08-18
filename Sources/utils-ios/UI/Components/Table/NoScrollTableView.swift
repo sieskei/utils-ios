@@ -9,9 +9,17 @@ import UIKit
 
 extension Utils.UI {
     open class NoScrollTableView: Utils.UI.TableView {
+        open var heightConstraintPriority: UILayoutPriority {
+            .init(rawValue: 995)
+        }
+        
+        open var isScrollable: Bool {
+            false
+        }
+        
         private lazy var heightConstraint: NSLayoutConstraint = {
             let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: contentSize.height + contentInset.vertical)
-            c.priority = .init(995)
+            c.priority = heightConstraintPriority
             c.isActive = true
             return c
         }()
@@ -34,8 +42,8 @@ extension Utils.UI {
         
         open override func prepare() {
             super.prepare()
-            bounces = false
-            isScrollEnabled = false
+            bounces = isScrollable
+            isScrollEnabled = isScrollable
             let _ = heightConstraint
         }
     }

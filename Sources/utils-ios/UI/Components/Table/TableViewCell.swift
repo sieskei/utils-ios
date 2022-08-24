@@ -28,6 +28,12 @@ extension Utils.UI {
             return layer
         }()
         
+        open override var backgroundColor: UIColor? {
+            didSet {
+                contentView.backgroundColor = backgroundColor
+            }
+        }
+        
         /**
          An initializer that initializes the object with a NSCoder object.
          - Parameter aDecoder: A NSCoder instance.

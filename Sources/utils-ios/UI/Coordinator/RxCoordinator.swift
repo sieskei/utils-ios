@@ -211,6 +211,15 @@ public extension RxCoordinator.LifeCycle {
             return false
         }
     }
+    
+    func onPresent(_ `do`: (UIViewController) -> Void) {
+        switch self {
+        case .present(let vc):
+            `do`(vc)
+        default:
+            break
+        }
+    }
 }
 
 public extension Reactive where Base: UIViewController {

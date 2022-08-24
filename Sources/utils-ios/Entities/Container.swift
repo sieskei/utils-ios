@@ -93,3 +93,9 @@ extension Container {
 
 // MARK: Default equal implementation by identity.
 extension Container: IdentityEquatable { }
+
+extension Container where Element: Equatable {
+    public func index(of element: Element) -> Int? {
+        elements.firstIndex(where: { $0 == element })
+    }
+}

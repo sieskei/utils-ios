@@ -29,7 +29,11 @@ extension Utils.UI {
             set { (rootViewController ?? self).view.isUserInteractionEnabled = newValue  }
         }
         
-        open private(set) var rootViewController: UIViewController? = nil
+        open private(set) var rootViewController: UIViewController? = nil {
+            didSet {
+               setNeedsStatusBarAppearanceUpdate()
+            }
+        }
         
         public let container = UIView()
         

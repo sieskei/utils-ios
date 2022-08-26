@@ -252,7 +252,7 @@ extension Utils.UI {
                     return
                 }
 
-                clearIconButton = Utils.UI.Button.icon( Utils.UI.Icon.clear, tintColor: placeholderNormalColor)
+                clearIconButton = Utils.UI.Button.icon(Utils.UI.Icon.clear, tintColor: placeholderNormalColor)
                 clearIconButton!.contentEdgeInsetsPreset = .none
                 clearIconButton!.pulseType = .none
                 
@@ -751,32 +751,3 @@ private extension Utils.UI.TextField {
         text = t
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

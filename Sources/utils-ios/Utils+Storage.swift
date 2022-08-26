@@ -29,36 +29,57 @@ public extension Utils.Storage {
         }
         return UserDefaults(suiteName: Configuration.group) ?? .standard
     }()
+    
+    static func remove(key: String) {
+        defaults.removeObject(forKey: Configuration.gen(key))
+    }
 }
 
+// MARK: - PrimitiveType
 public extension Utils.Storage {
-    static func get<T: PrimitiveType>(for key: String, default: () -> T) -> T {
-        if let value = defaults.object(forKey: Configuration.gen(key)) as? T {
+    static func getPrimitive<T: PrimitiveType>(for key: String, default: () -> T) -> T {
+        let fkey = Configuration.gen(key)
+        if let value = defaults.object(forKey: fkey) as? T {
             return value
         } else {
             let v = `default`()
-            set(key: key, value: v)
+            defaults.set(v, forKey: fkey)
             return v
         }
     }
     
-    static func get<T: PrimitiveType>(for key: String, default: T) -> T {
-        get(for: key) { `default` }
+    static func getPrimitive<T: PrimitiveType>(for key: String, default: T) -> T {
+        getPrimitive(for: key) { `default` }
     }
     
-    static func set(key: String, value: PrimitiveType) {
+    static func get<T: PrimitiveType>(for key: String, default: T) -> T {
+        getPrimitive(for: key) { `default` }
+    }
+    
+    static func setPrimitive<T: PrimitiveType>(key: String, value: T) {
         defaults.set(value, forKey: Configuration.gen(key))
     }
     
+    static func set<T: PrimitiveType>(key: String, value: T) {
+        setPrimitive(key: key, value: value)
+    }
+}
+
+// MARK: - RawRepresentable
+public extension Utils.Storage {
     static func get<T: RawRepresentable>(for key: String, default: T) -> T where T.RawValue: PrimitiveType {
-        let raw: T.RawValue = get(for: key) { `default`.rawValue }
+        let raw: T.RawValue = getPrimitive(for: key) { `default`.rawValue }
         return T(rawValue: raw) ?? `default`
     }
     
     static func set<T: RawRepresentable>(key: String, value: T) where T.RawValue: PrimitiveType {
-        defaults.set(value.rawValue, forKey: Configuration.gen(key))
+        setPrimitive(key: key, value: value.rawValue)
     }
-    
+}
+
+
+// MARK: - Codable
+public extension Utils.Storage {
     static func get<T: Codable>(for key: String, default: T) -> T {
         guard let data = defaults.data(forKey: Configuration.gen(key)),
               let value = try? JSONDecoder().decode(T.self, from: data) else {
@@ -74,12 +95,9 @@ public extension Utils.Storage {
             defaults.set(data, forKey: Configuration.gen(key))
         }
     }
-    
-    static func remove(key: String) {
-        defaults.removeObject(forKey: Configuration.gen(key))
-    }
 }
 
+// MARK: - Codable + Control
 public extension Utils.Storage {
     typealias ControlType = PrimitiveType & Equatable & Codable
     typealias ValueType = PrimitiveType & Codable

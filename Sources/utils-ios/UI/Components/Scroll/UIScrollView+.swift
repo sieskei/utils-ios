@@ -85,3 +85,20 @@ public extension UIScrollView {
         return contentFillsHorizontalScrollEdges && bounceRightOffset > 0
     }
 }
+
+
+public extension UIScrollView {
+    func transition(toContentOffset point: CGPoint, duration: TimeInterval = 0.25, completion: ((Bool) -> Void)? = nil) {
+        contentOffset = point
+        
+        guard window != nil else {
+            return // not added to view hierarchy yet
+        }
+        
+        UIView.transition(with: self, duration: duration, options: [.transitionCrossDissolve, .beginFromCurrentState], animations: { [weak self] in
+            if let this = self {
+                this.layoutIfNeeded()
+            }
+        }, completion: completion)
+    }
+}

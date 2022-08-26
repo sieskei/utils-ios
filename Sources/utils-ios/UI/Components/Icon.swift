@@ -13,8 +13,8 @@ extension Utils.UI {
             .init(named: name)?.withRenderingMode(mode)
         }
         
-        public static let visibility = Icon.icon(named: "ic_visibility_white")
-        public static let visibilityOff = Icon.icon(named: "ic_visibility_off_white")
-        public static let clear = Icon.icon(named: "ic_close_white")
+        public static let visibility = Icon.icon(named: "ic_visibility_white", renderingMode: .alwaysTemplate)
+        public static let visibilityOff = Icon.icon(named: "ic_visibility_off_white", renderingMode: .alwaysTemplate)
+        public static let clear = Icon.icon(named: "ic_close_white", renderingMode: .alwaysTemplate)
     }
 }

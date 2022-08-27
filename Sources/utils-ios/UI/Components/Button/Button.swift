@@ -149,6 +149,36 @@ extension Utils.UI {
             return .init(width: size.width, height: height + spacing)
         }
         
+        private lazy var tintColors: (selected: UIColor, normal: UIColor) = (tintColor, tintColor)
+        
+        open var tintColorSelected: UIColor {
+            get { tintColors.selected }
+            set { tintColors.selected = newValue }
+        }
+        
+        open override var tintColor: UIColor! {
+            get { super.tintColor }
+            set {
+                tintColors.normal = newValue
+                if !isSelected {
+                    super.tintColor = newValue
+                }
+            }
+        }
+        
+        open override var isSelected: Bool {
+            get { super.isSelected }
+            set { // must call super.tintColor not overriden property
+                super.isSelected = newValue
+                if newValue {
+                    tintColors.normal = tintColor
+                    super.tintColor = tintColors.selected
+                } else {
+                    super.tintColor = tintColors.normal
+                }
+            }
+        }
+        
         /**
          An initializer that initializes the object with a NSCoder object.
          - Parameter aDecoder: A NSCoder instance.

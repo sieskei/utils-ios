@@ -39,7 +39,11 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     private var connection: Connection = .none()
     
     public final var input: Binder<InputType> {
-        .init(self, scheduler: CurrentThreadScheduler.instance) {
+        input()
+    }
+    
+    public final func input(scheduler: ImmediateSchedulerType = CurrentThreadScheduler.instance) -> Binder<InputType> {
+        .init(self, scheduler: scheduler) {
             $0.connection.transmit($1)
         }
     }

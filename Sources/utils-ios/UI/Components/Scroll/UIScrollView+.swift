@@ -12,21 +12,23 @@ public extension UIScrollView {
         .init(origin: contentOffset, size: bounds.size)
     }
     
-    var maxContentOffset: CGPoint {
-        return .init(x: contentSize.width - bounds.width + contentInset.right,
-                     y: contentSize.height - bounds.height + contentInset.bottom)
+    var minContentOffset: CGPoint {
+        .init(x: -contentInset.left, y: -contentInset.top)
     }
     
-    var minContentOffset: CGPoint {
-        return .init(x: -contentInset.left, y: -contentInset.top)
+    var maxContentOffset: CGPoint {
+        var point = minContentOffset
+        point.x += max(0, (contentInset.left + contentSize.width + contentInset.right) - bounds.width)
+        point.y += max(0, (contentInset.top + contentSize.height + contentInset.bottom) - bounds.height)
+        return point
     }
     
     var contentFillsVerticalScrollEdges: Bool {
-        return contentSize.height + contentInset.top + contentInset.bottom >= bounds.height
+        contentSize.height + contentInset.top + contentInset.bottom >= bounds.height
     }
     
     var contentFillsHorizontalScrollEdges: Bool {
-        return contentSize.width + contentInset.left + contentInset.right >= bounds.width
+        contentSize.width + contentInset.left + contentInset.right >= bounds.width
     }
 }
 

@@ -21,13 +21,13 @@ extension Utils.UI {
 
         internal override var containerFrame: CGRect {
             var f = view.bounds
-            f.size.width *= 0.4
+            f.size.width *= 0.45
             return f
         }
 
         internal var detailsFrame: CGRect {
             var f = view.bounds
-            f.size.width *= 0.6
+            f.size.width *= 0.55
             f.origin.x = view.bounds.width - f.size.width
             return f
         }

@@ -13,6 +13,7 @@ public class Fault: Error, CustomStringConvertible {
         case info = 0
         case warning = 1
         case error = 2
+        case confirmation = 3
     }
     
     public enum Languages: String {

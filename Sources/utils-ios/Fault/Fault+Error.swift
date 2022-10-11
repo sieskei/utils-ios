@@ -57,6 +57,10 @@ public protocol ErrorWrapper: Error {
 // MARK: Convert `Error` to `Fault`.
 public extension Error {
     var fault: Fault {
+        fault(or: .error(self))
+    }
+    
+    func fault(or unknown: Fault) -> Fault {
         if let fault = self as? Fault {
             return fault
         } else if let wrapper = self as? ErrorWrapper, let error = wrapper.underlyingError {
@@ -67,7 +71,7 @@ public extension Error {
             } else if isCancelledURLRequest {
                 return .cancelled
             } else {
-                return .error(self)
+                return unknown
             }
         }
     }

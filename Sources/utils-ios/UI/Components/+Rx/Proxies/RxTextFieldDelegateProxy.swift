@@ -24,7 +24,7 @@ open class RxTextFieldDelegateProxy
     /// Typed parent object.
     public weak private(set) var field: UITextField?
 
-    /// - parameter tabBar: Parent object for delegate proxy.
+    /// - parameter field: Parent object for delegate proxy.
     public init(field: ParentObject) {
         self.field = field
         super.init(parentObject: field, delegateProxy: RxTextFieldDelegateProxy.self)

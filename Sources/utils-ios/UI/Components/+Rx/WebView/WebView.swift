@@ -7,6 +7,7 @@
 
 import UIKit
 import WebKit
+import RxSwift
 
 extension Utils.UI {
     open class WebView: WKWebView {
@@ -22,6 +23,8 @@ extension Utils.UI {
             }
         }
         
+        fileprivate var navigationDisposeBag: DisposeBag = .init()
+        
         @RxProperty
         public private (set) var isReady: Bool = false
         
@@ -36,6 +39,14 @@ extension Utils.UI {
         public private (set) dynamic lazy var bodySizeValue: CGSize = bodySize.value
         
         public let resizeSensor: Bool
+        
+        open var viewport: String {
+            .init()
+        }
+        
+        open var style: String {
+            .init()
+        }
         
         public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration(), resizeSensor flag: Bool = true) {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
@@ -75,32 +86,68 @@ extension Utils.UI {
         // ---------------
         
         @discardableResult
+        private func prepare(navigation: WKNavigation?) -> WKNavigation? {
+            navigation ~> { navi in
+                rx.didFinishLoad
+                    .filter { $0 == navi }
+                    .do(with: self, onNext: { this, _ in
+                        this.isReady = true
+                    })
+                    .withUnretained(self)
+                    .flatMapLatest { this, _ -> Observable<CGSize> in
+                        this.rx.evaluateJavaScript(
+                        """
+                            (function () {
+                                var rect = document.body.getBoundingClientRect();
+                                return {
+                                    width: Math.round(rect.width),
+                                    height: Math.round(rect.height)
+                                }
+                            })();
+                        """
+                        )
+                        .map { (m: Dictionary<String, CGFloat>) -> CGSize in
+                            var size: CGSize = .zero
+                            size.height = m["height"] ?? .zero
+                            size.width = m["width"] ?? .zero
+                            return size
+                        }
+                        .asObservable()
+                    }
+                    .map { .ready($0) }
+                    .bind(to: $bodySize.value)
+                    .disposed(by: navigationDisposeBag)
+            }
+        }
+        
+        @discardableResult
         open override func load(_ request: URLRequest) -> WKNavigation? {
             reset()
-            return super.load(request)
+            return prepare(navigation: super.load(request))
         }
         
         @discardableResult
         open override func loadFileURL(_ URL: URL, allowingReadAccessTo readAccessURL: URL) -> WKNavigation? {
             reset()
-            return super.loadFileURL(URL, allowingReadAccessTo: readAccessURL)
+            return prepare(navigation: super.loadFileURL(URL, allowingReadAccessTo: readAccessURL))
         }
         
         @discardableResult
         open override func load(_ data: Data, mimeType MIMEType: String, characterEncodingName: String, baseURL: URL) -> WKNavigation? {
             reset()
-            return super.load(data, mimeType: MIMEType, characterEncodingName: characterEncodingName, baseURL: baseURL)
+            return prepare(navigation: super.load(data, mimeType: MIMEType, characterEncodingName: characterEncodingName, baseURL: baseURL))
         }
         
         @discardableResult
         open override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
             reset()
-            return super.loadHTMLString(string, baseURL: baseURL)
+            return prepare(navigation: super.loadHTMLString(string, baseURL: baseURL))
         }
         
         open func reset() {
             isReady = false
             bodySize = .ready(.zero)
+            navigationDisposeBag = .init()
         }
         
         deinit {
@@ -113,7 +160,6 @@ extension Utils.UI.WebView {
     @objc
     open dynamic func prepareConfiguration() {
         let ucc = configuration.userContentController
-        
         
         // MARK: Logging
         ucc.addScriptMessageHandler(name: "logging") {
@@ -129,26 +175,38 @@ extension Utils.UI.WebView {
             """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
         
-        // MARK: Document ready state
-        ucc.addScriptMessageHandler(name: "ready") { [weak self] message in
-            guard let this = self else {
-                return
-            }
-            
-            this.bodySize = .ready(message.size ?? .zero)
-            this.isReady = true
-        }
-        ucc.addUserScript(.init(source:
+        // MARK: Viewport meta tag (if provided)
+        if !viewport.isEmpty {
+            let script =
             """
-                document.onreadystatechange = function () {
-                    if (document.readyState === 'complete') {
-                        var rect = document.body.getBoundingClientRect();
-                        webkit.messageHandlers.ready.postMessage({ width: Math.round(rect.width), height: Math.round(rect.height) });
-                    }
+                var meta = document.getElementsByTagName('meta')['viewport']
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.name = 'viewport'
+                    document.head.appendChild(meta);
                 }
-                
-            """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+                meta.content = '\(viewport)';
+            """
+
+            configuration
+                .userContentController
+                .addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
         
+        
+        // MARK: CSS Style tag (if provided)
+        if !style.isEmpty {
+            let script =
+            """
+                var style = document.createElement('style')
+                style.innerText = `\(style)`
+                document.head.appendChild(style)
+            """
+
+            configuration
+                .userContentController
+                .addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
         
         // MARK: Body resize sensor
         if resizeSensor {

@@ -30,12 +30,13 @@ public extension UIScrollView {
         set(elements: views.map { ($0, insets) }, direction: direction)
     }
     
-    func set(elements: [Element], direction: UIScrollView.Direction = .vertical) {
+    @discardableResult
+    func set(elements: [Element], direction: UIScrollView.Direction = .vertical) -> UIView {
         // allways create new one
         let container: UIView = container(direction: direction)
         
         guard !elements.isEmpty else {
-            return
+            return container
         }
         
         elements.forEach { e in
@@ -118,6 +119,8 @@ public extension UIScrollView {
                 ])
             }
         }
+        
+        return container
     }
 }
 
@@ -145,5 +148,11 @@ fileprivate extension UIScrollView {
             
             Utils.AssociatedObject.set(base: self, key: &containerViewKey, value: $0)
         }
+    }
+}
+
+extension UIScrollView {
+    public var container: UIView? {
+        Utils.AssociatedObject.get(base: self, key: &containerViewKey)
     }
 }

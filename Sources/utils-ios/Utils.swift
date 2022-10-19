@@ -24,15 +24,20 @@ public extension Fault {
 public extension Fault.Codes.Utils {
     static var unwrap = "utils.unwrap"
     static var casting = "utils.casting"
+    static var resultOf = "utils.resultOf"
 }
 
 public extension Fault.Utils {
     static func unwrap(targetType: Any.Type) -> Fault {
-        return Fault(code: Fault.Codes.Utils.unwrap, enMessage: "Failure unwrap to `\(targetType.self)`")
+        .init(code: Fault.Codes.Utils.unwrap, enMessage: "Failure unwrap to `\(targetType.self)`")
     }
     
     static func casting(object: Any, targetType: Any.Type) -> Fault {
-        return Fault(code: Fault.Codes.Utils.casting, enMessage: "Error casting `\(object)` to `\(targetType)`")
+        .init(code: Fault.Codes.Utils.casting, enMessage: "Error casting `\(object)` to `\(targetType)`")
+    }
+    
+    static var resultOf: Fault {
+        .init(code: Fault.Codes.Utils.resultOf, enMessage: "Missing result and error.")
     }
 }
 
@@ -79,6 +84,20 @@ public struct Utils {
         
         method_exchangeImplementations(originalMethod, swizzledMethod)
         return true
+    }
+    
+    public static func resultOf<T>(value: Any?, error: Error?) -> Result<T, Error> {
+        if let v = value {
+            do {
+                return .success(try castOrThrow(v))
+            } catch {
+                return .failure(error)
+            }
+        } else if let e = error {
+            return .failure(e)
+        } else {
+            return .failure(Fault.Utils.resultOf) // must be missing result and error
+        }
     }
 }
 

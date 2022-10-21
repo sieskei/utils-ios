@@ -70,7 +70,7 @@ extension Utils.UI {
         }
         
         public override var layer: CAGradientLayer {
-            super.layer as! CAGradientLayer
+            Utils.castOrFatalError(super.layer)
         }
         
         public init(frame: CGRect, colours: [UIColor], orientation: Orientation, location: Location) {

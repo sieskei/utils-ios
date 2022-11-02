@@ -23,41 +23,60 @@ public extension UIScrollView {
     
     convenience init(elements: [Element], direction: UIScrollView.Direction = .vertical) {
         self.init(frame: .zero)
-        set(elements: elements, direction: direction)
+        set1(elements: elements, direction: direction)
     }
     
-    func set(views: [UIView], insets: UIEdgeInsets = .zero, direction: UIScrollView.Direction = .vertical) {
-        set(elements: views.map { ($0, insets) }, direction: direction)
+    func set1(views: [UIView], insets: UIEdgeInsets = .zero, direction: UIScrollView.Direction = .vertical) {
+        set1(elements: views.map { ($0, insets) }, direction: direction)
     }
     
-    @discardableResult
-    func set(elements: [Element], direction: UIScrollView.Direction = .vertical) -> UIView {
-        // allways create new one
-        let container: UIView = container(direction: direction)
+    func set1(elements: [Element], direction: UIScrollView.Direction = .vertical) {
+        let frameAnchors: UtilsUIAnchorsCompatible
+        let contentAnchros: UtilsUIAnchorsCompatible
+        let parent: UIView
+        
+//        if #available(iOS 11, *) {
+//            parent = self
+//            frameAnchors = frameLayoutGuide
+//            contentAnchros = contentLayoutGuide
+//        } else {
+            // allways create new one
+            let container: UIView = container(direction: direction)
+            parent = container
+            frameAnchors = self
+            contentAnchros = container
+//        }
+        
+        /*
+        parent.subviews.forEach {
+            $0.removeFromSuperview()
+        }
+        */
+        
         
         guard !elements.isEmpty else {
-            return container
+            return
         }
         
         elements.forEach { e in
             e.view.translatesAutoresizingMaskIntoConstraints = false
-            container.addSubview(e.view)
+            parent.addSubview(e.view)
             
             switch direction {
             case .vertical:
-                NSLayoutConstraint.activate([e.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: e.insets.left),
-                                             e.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -e.insets.right)])
+                e.view.leftAnchor == contentAnchros.leftAnchor + e.insets.left
+                e.view.rightAnchor == contentAnchros.rightAnchor - e.insets.right
+                e.view.widthAnchor == frameAnchors.widthAnchor - e.insets.horizontal
             case .horizontal:
-                NSLayoutConstraint.activate([e.view.topAnchor.constraint(equalTo: container.topAnchor, constant: e.insets.top),
-                                             e.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -e.insets.bottom)])
+                e.view.topAnchor == contentAnchros.topAnchor + e.insets.top
+                e.view.bottomAnchor == contentAnchros.bottomAnchor - e.insets.bottom
+                e.view.heightAnchor == frameAnchors.heightAnchor - e.insets.vertical
             }
         }
         
         if direction == .horizontal, isPagingEnabled {
             elements.forEach { e in
-                NSLayoutConstraint.activate([
-                    e.view.widthAnchor.constraint(equalTo: widthAnchor, constant: -e.insets.horizontal)
-                ])
+                e.view.widthAnchor == frameAnchors.widthAnchor - e.insets.horizontal
             }
         }
         
@@ -66,11 +85,11 @@ public extension UIScrollView {
             let e = elements[0]
             switch direction {
             case .vertical:
-                NSLayoutConstraint.activate([e.view.topAnchor.constraint(equalTo: container.topAnchor, constant: e.insets.top),
-                                             e.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -e.insets.bottom)])
+                e.view.topAnchor == contentAnchros.topAnchor + e.insets.top
+                e.view.bottomAnchor == contentAnchros.bottomAnchor - e.insets.bottom
             case .horizontal:
-                NSLayoutConstraint.activate([e.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: e.insets.left),
-                                             e.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -e.insets.right)])
+                e.view.leftAnchor == contentAnchros.leftAnchor + e.insets.left
+                e.view.rightAnchor == contentAnchros.rightAnchor - e.insets.right
             }
         default:
             let f = elements[0] // first
@@ -78,49 +97,35 @@ public extension UIScrollView {
             
             switch direction {
             case .vertical:
-                NSLayoutConstraint.activate([
-                    f.view.topAnchor.constraint(equalTo: container.topAnchor, constant: f.insets.top)
-                ])
+                f.view.topAnchor == contentAnchros.topAnchor + f.insets.top
                 
                 // middle
                 if elements.count > 2 {
                     for i in 1...elements.count - 2 {
                         let s = elements[i].insets.top + elements[i - 1].insets.bottom // spacing
-                        NSLayoutConstraint.activate([
-                            elements[i].view.topAnchor.constraint(equalTo: elements[i - 1].view.bottomAnchor, constant: s)
-                        ])
+                        elements[i].view.topAnchor == elements[i - 1].view.bottomAnchor + s
                     }
                 }
                 
                 let ls = l.insets.top + elements[elements.count - 2].insets.bottom // spacing
-                NSLayoutConstraint.activate([
-                    l.view.topAnchor.constraint(equalTo: elements[elements.count - 2].view.bottomAnchor, constant: ls),
-                    l.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -l.insets.bottom)
-                ])
+                l.view.topAnchor == elements[elements.count - 2].view.bottomAnchor + ls
+                l.view.bottomAnchor == contentAnchros.bottomAnchor - l.insets.bottom
             case .horizontal:
-                NSLayoutConstraint.activate([
-                    f.view.leftAnchor.constraint(equalTo: container.leftAnchor, constant: f.insets.left)
-                ])
+                f.view.leftAnchor == contentAnchros.leftAnchor + f.insets.left
                 
                 // middle
                 if elements.count > 2 {
                     for i in 1...elements.count - 2 {
                         let s = elements[i].insets.left + elements[i - 1].insets.right // spacing
-                        NSLayoutConstraint.activate([
-                            elements[i].view.leftAnchor.constraint(equalTo: elements[i - 1].view.rightAnchor, constant: s)
-                        ])
+                        elements[i].view.leftAnchor == elements[i - 1].view.rightAnchor + s
                     }
                 }
                 
                 let ls = l.insets.left + elements[elements.count - 2].insets.right // spacing
-                NSLayoutConstraint.activate([
-                    l.view.leftAnchor.constraint(equalTo: elements[elements.count - 2].view.rightAnchor, constant: ls),
-                    l.view.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -l.insets.bottom)
-                ])
+                l.view.leftAnchor == elements[elements.count - 2].view.rightAnchor + ls
+                l.view.rightAnchor == contentAnchros.rightAnchor - l.insets.right
             }
         }
-        
-        return container
     }
 }
 
@@ -137,15 +142,7 @@ fileprivate extension UIScrollView {
             $0.backgroundColor = .clear
             $0.translatesAutoresizingMaskIntoConstraints = false
             addSubview($0)
-            
-            NSLayoutConstraint.activate([
-                $0.leftAnchor.constraint(equalTo: leftAnchor),
-                $0.rightAnchor.constraint(equalTo: rightAnchor),
-                $0.topAnchor.constraint(equalTo: topAnchor),
-                $0.bottomAnchor.constraint(equalTo: bottomAnchor),
-                (direction == .vertical ? $0.widthAnchor.constraint(equalTo: widthAnchor) : $0.heightAnchor.constraint(equalTo: heightAnchor)) ~> { $0.priority = .init(rawValue: 995) }
-            ])
-            
+            $0.edgeAnchors == edgeAnchors
             Utils.AssociatedObject.set(base: self, key: &containerViewKey, value: $0)
         }
     }

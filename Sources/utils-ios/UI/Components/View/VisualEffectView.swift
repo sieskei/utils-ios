@@ -10,6 +10,10 @@ import UIKit
 extension Utils.UI {
     /// VisualEffectView is a dynamic background blur view.
     open class VisualEffectView: UIVisualEffectView {
+        /**
+         А flag indicating whether the view is passthrough.
+         */
+        open var passthrough: Bool = false
         
         /// Returns the instance of UIBlurEffect.
         private lazy var blurEffect: UIBlurEffect = {
@@ -89,16 +93,24 @@ extension Utils.UI {
         
         public override init(effect: UIVisualEffect?) {
             super.init(effect: effect)
-            commonInit()
+            prepare()
         }
         
         required public init?(coder aDecoder: NSCoder) {
             super.init(coder: aDecoder)
-            commonInit()
+            prepare()
         }
         
-        public func commonInit() {
+        open func prepare() {
             scale = 1
+        }
+        
+        override public func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+            let view = super.hitTest(point, with: event)
+            guard passthrough else {
+                return view
+            }
+            return view == self ? nil : view
         }
     }
 }

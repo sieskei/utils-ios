@@ -37,6 +37,10 @@ extension Utils.UI {
         
         public let container = UIView()
         
+        public var rootViewIfLoaded: UIView? {
+            rootViewController?.viewIfLoaded
+        }
+        
         internal var containerFrame: CGRect {
             view.bounds
         }

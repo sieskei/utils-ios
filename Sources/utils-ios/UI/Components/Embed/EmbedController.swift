@@ -2,10 +2,11 @@
 //  EmbedController.swift
 //  
 //
-//  Created by Miroslav Yozov on 5.04.22.
+//  Created by Miroslav Yozov on 5.11.22.
 //
 
 import UIKit
+
 extension Utils.UI {
     open class EmbedController: Utils.UI.ViewController {
         open override var childForStatusBarStyle: UIViewController? {
@@ -35,14 +36,10 @@ extension Utils.UI {
             }
         }
         
-        public let container = UIView()
+        public let container: UILayoutGuide = .init()
         
         public var rootViewIfLoaded: UIView? {
             rootViewController?.viewIfLoaded
-        }
-        
-        internal var containerFrame: CGRect {
-            view.bounds
         }
         
         public init(rootViewController controller: UIViewController? = nil) {
@@ -61,12 +58,15 @@ extension Utils.UI {
         open override func prepare() {
             super.prepare()
             
-            prepareContainer()
+            view.layout(container)
+            layoutContainer()
+            
             if let controller = rootViewController {
                 prepare(viewController: controller, in: container)
             }
         }
         
+        // TODO: animated not implemented yet
         open func embed(controller: UIViewController, animated: Bool = true) {
             guard isViewLoaded else {
                 rootViewController = controller
@@ -83,7 +83,7 @@ extension Utils.UI {
             }
             
             if let controller = rootViewController {
-                removeViewController(viewController: controller)
+                remove(viewController: controller)
             }
             
             prepare(viewController: controller, in: container)
@@ -94,21 +94,16 @@ extension Utils.UI {
 
 
 internal extension Utils.UI.EmbedController {
-    /// Prepares the container view.
-    @objc dynamic func prepareContainer() {
-        container.backgroundColor = .clear
-        container.clipsToBounds = true
-        container.contentScaleFactor = Utils.UI.Screen.scale
-        container.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        container.frame = containerFrame
-        view.addSubview(container)
+    /// layout the container guide.
+    @objc dynamic func layoutContainer() {
+        container.layout
+            .edges()
     }
     
     /// Prepares the view controller before transition.
     func prepare(viewController: UIViewController) {
         viewController.view.clipsToBounds = true
         viewController.view.contentScaleFactor = Utils.UI.Screen.scale
-        viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     }
     
     /**
@@ -119,13 +114,13 @@ internal extension Utils.UI.EmbedController {
      - Parameter in container: A UIView that is the parent of the
      passed in controller view within the view hierarchy.
      */
-    func prepare(viewController: UIViewController, in container: UIView) {
+    func prepare(viewController: UIViewController, in guide: UILayoutGuide) {
       guard viewController.parent != self else {
           return
       }
       
       prepare(viewController: viewController)
-      addViewController(viewController: viewController, in: container)
+      add(viewController: viewController, in: guide)
     }
 }
 
@@ -134,11 +129,13 @@ internal extension Utils.UI.EmbedController {
     Add a given view controller from the childViewControllers array.
     - Parameter viewController: A UIViewController to add as a child.
     */
-    func addViewController(viewController: UIViewController, in container: UIView) {
+    func add(viewController: UIViewController, in guide: UILayoutGuide) {
         viewController.willMove(toParent: self)
         addChild(viewController)
-        viewController.view.frame = container.bounds
-        container.addSubview(viewController.view)
+        
+        view.layout(viewController.view)
+            .edges(guide)
+        
         viewController.didMove(toParent: self)
     }
   
@@ -146,7 +143,7 @@ internal extension Utils.UI.EmbedController {
     Removes a given view controller from the childViewControllers array.
     - Parameter viewController: A UIViewController to remove.
     */
-    func removeViewController(viewController: UIViewController) {
+    func remove(viewController: UIViewController) {
         guard viewController.parent == self else {
             return
         }

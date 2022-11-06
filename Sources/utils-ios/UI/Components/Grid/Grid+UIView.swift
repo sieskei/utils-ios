@@ -16,9 +16,19 @@ extension UIView {
             .init(context: self)
         }
     }
+    
+    /// A reference to grid's interimSpace.
+    public var gridUnterimSpace: CGFloat {
+        get {
+            grid.interimSpace
+        }
+        set {
+            grid.interimSpace = newValue
+        }
+    }
   
     /// A reference to grid's layoutEdgeInsets.
-    open var gridLayoutEdgeInsets: UIEdgeInsets {
+    public var gridLayoutEdgeInsets: UIEdgeInsets {
         get {
             grid.layoutEdgeInsets
         }
@@ -28,7 +38,7 @@ extension UIView {
     }
     
     /// A reference to grid's contentEdgeInsets.
-    open var gridContentEdgeInsets: UIEdgeInsets {
+    public var gridContentEdgeInsets: UIEdgeInsets {
         get {
             grid.contentEdgeInsets
         }

@@ -24,10 +24,8 @@ extension Utils.UI {
             guard let x: Utils.UI.DrawerController = traverseViewControllerHierarchyForClassType() else {
                 return
             }
-
-            if let l = x.leftPanGesture {
-                l.require(toFail: v)
-            }
+            
+            x.edgePanGesture.require(toFail: v)
         }
 
         open override func viewWillLayoutSubviews() {

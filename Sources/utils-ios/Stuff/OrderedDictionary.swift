@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol OrderedDictionaryDelegate: class {
+public protocol OrderedDictionaryDelegate: AnyObject {
     associatedtype K: Hashable
     associatedtype V
     

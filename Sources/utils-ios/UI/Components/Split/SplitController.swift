@@ -7,6 +7,16 @@
 
 import UIKit
 
+extension Utils.UI.SplitController {
+    /**
+     Type of spiltter width.
+     */
+    public enum Dimensions {
+        case constant(CGFloat)
+        case aspect(CGFloat)
+    }
+}
+
 extension Utils.UI {
     open class SplitController: Utils.UI.EmbedController {
         /**
@@ -16,30 +26,21 @@ extension Utils.UI {
         open fileprivate(set) var detailsViewController: UIViewController?
 
         /// A reference to the details view.
-        @IBInspectable
-        public let details = UIView()
-
-        internal override var containerFrame: CGRect {
-            var f = view.bounds
-            f.size.width *= 0.45
-            return f
-        }
-
-        internal var detailsFrame: CGRect {
-            var f = view.bounds
-            f.size.width *= 0.55
-            f.origin.x = view.bounds.width - f.size.width
-            return f
-        }
+        public let details: UILayoutGuide = .init()
+        
+        public let dimensions: Dimensions
 
         /**
          An initializer for the NavigationDrawerController.
          - Parameter rootViewController: The main UIViewController.
-         - Parameter leftViewController: Тhe details UIViewController.
+         - Parameter detailsViewController: Тhe details UIViewController.
         */
-        public init(rootViewController: UIViewController, detailsViewController: UIViewController) {
-            self.detailsViewController = detailsViewController
-            super.init(rootViewController: rootViewController)
+        public init(rootViewController rootController: UIViewController? = nil,
+                    detailsViewController detailsController: UIViewController? = nil,
+                    containerDimensions dimensions: Dimensions = .aspect(0.45)) {
+            self.detailsViewController = detailsController
+            self.dimensions = dimensions
+            super.init(rootViewController: rootController)
         }
 
         /**
@@ -47,24 +48,18 @@ extension Utils.UI {
         - Parameter aDecoder: A NSCoder instance.
         */
         public required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        }
-
-        /**
-         An initializer that initializes the object with an Optional nib and bundle.
-         - Parameter nibNameOrNil: An Optional String for the nib.
-         - Parameter bundle: An Optional NSBundle where the nib is located.
-        */
-        public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-            super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+            self.dimensions = .aspect(0.45)
+            super.init(coder: aDecoder)
         }
         
         open override func prepare() {
             super.prepare()
           
-            prepareDetails()
-            if let controller = detailsViewController {
-                prepare(viewController: controller, in: details)
+            view.layout(details)
+            layoutDetails()
+            
+            if let detailsViewController {
+                prepare(viewController: detailsViewController, in: details)
             }
         }
         
@@ -74,8 +69,8 @@ extension Utils.UI {
                 return
             }
             
-            if let controller = detailsViewController {
-                removeViewController(viewController: controller)
+            if let detailsViewController {
+                remove(viewController: detailsViewController)
             }
             
             detailsViewController = controller
@@ -85,18 +80,28 @@ extension Utils.UI {
 }
 
 internal extension Utils.UI.SplitController {
-    override func prepareContainer() {
-        super.prepareContainer()
-        container.autoresizingMask = [container.autoresizingMask, .flexibleRightMargin]
+    override func layoutContainer() {
+        let layout: Utils.UI.Layout.Methods = container.layout
+        
+        layout
+            .top()
+            .bottom()
+            .left()
+        
+        switch dimensions {
+        case .constant(let value):
+            layout.width(value)
+        case .aspect(let value):
+            layout.widthSuper(multiplier: value)
+        }
     }
-
-    /// Prepares the details view.
-    @objc dynamic func prepareDetails() {
-        details.backgroundColor = .clear
-        details.clipsToBounds = true
-        details.contentScaleFactor = Utils.UI.Screen.scale
-        details.frame = detailsFrame
-        details.autoresizingMask = [.flexibleWidth, .flexibleHeight, .flexibleLeftMargin]
-        view.addSubview(details)
+    
+    /// Layout the details guide.
+    @objc dynamic func layoutDetails() {
+        details.layout
+            .top()
+            .bottom()
+            .right()
+            .after(container)
     }
 }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Offset.swift
 //  
 //
 //  Created by Miroslav Yozov on 27.07.22.
@@ -19,18 +19,18 @@ extension CGSize {
 }
 
 extension Utils.UI.Offset {
-  /**
-   Initializer that accepts a CGSize value.
-   - Parameter size: A CGSize value.
-   */
-  public init(size: CGSize) {
-    self.init(horizontal: size.width, vertical: size.height)
-  }
+    /**
+    Initializer that accepts a CGSize value.
+    - Parameter size: A CGSize value.
+    */
+    public init(size: CGSize) {
+        self.init(horizontal: size.width, vertical: size.height)
+    }
 }
 
 extension Utils.UI.Offset {
-  /// Returns a CGSize version of the Offset.
-  public var asSize: CGSize {
-    return CGSize(width: horizontal, height: vertical)
-  }
+    /// Returns a CGSize version of the Offset.
+    public var asSize: CGSize {
+        .init(width: horizontal, height: vertical)
+    }
 }

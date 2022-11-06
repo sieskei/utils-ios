@@ -19,7 +19,7 @@ extension UIView {
     }
 
     /// Separator insets.
-    open var separatorContentEdgeInsets: UIEdgeInsets {
+    public var separatorContentEdgeInsets: UIEdgeInsets {
         get {
             separator.contentEdgeInsets
         }
@@ -29,7 +29,7 @@ extension UIView {
     }
 
     /// Separator color.
-    open var separatorColor: UIColor? {
+    public var separatorColor: UIColor? {
         get {
             separator.color
         }
@@ -39,7 +39,7 @@ extension UIView {
     }
 
     /// Separator visibility.
-    open var isSeparatorHidden: Bool {
+    public var isSeparatorHidden: Bool {
         get {
             return separator.isHidden
         }
@@ -49,7 +49,7 @@ extension UIView {
     }
 
     /// Separator alignment.
-    open var separatorAlignment: Utils.UI.Separator.Alignment {
+    public var separatorAlignment: Utils.UI.Separator.Alignment {
         get {
             separator.alignment
         }
@@ -59,7 +59,7 @@ extension UIView {
     }
 
     /// Separator thickness.
-    open var separatorThickness: CGFloat {
+    public var separatorThickness: CGFloat {
         get {
             separator.thickness
         }
@@ -69,7 +69,7 @@ extension UIView {
     }
 
     /// Sets the separator frame.
-    open func layoutSeparator() {
+    public func layoutSeparator() {
         separator.layout()
     }
 }

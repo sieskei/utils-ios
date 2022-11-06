@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  CALayer+Depth.swift
 //  
 //
 //  Created by Miroslav Yozov on 27.07.22.
@@ -29,7 +29,7 @@ extension CALayer {
     }
     
     /// Sets the shadow path.
-    open func layoutDepthPath() {
+    public func layoutDepthPath() {
         if depth.isZero {
             shadowPath = nil
         } else {

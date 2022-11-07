@@ -141,7 +141,7 @@ extension Utils.UI {
          */
         public init(rootViewController rootController: UIViewController? = nil,
                     drawerViewController drawerController: UIViewController? = nil,
-                    drawerDimensions dimensions: Dimensions = (.constant(320), 54)) {
+                    drawerDimensions dimensions: Dimensions = (.constant(300), 56)) {
             self.drawerController = drawerController
             self.dimensions = dimensions
             super.init(rootViewController: rootController)
@@ -277,11 +277,11 @@ extension Utils.UI.DrawerController: UIGestureRecognizerDelegate {
             let halfWidth = drawer.layoutFrame.width / 2
             switch state {
             case .closed:
-                if panConstraint.constant >= halfWidth || (velocity.x > 0 && abs(velocity.x) >= 1500) {
+                if panConstraint.constant >= halfWidth || (velocity.x > 0 && abs(velocity.x) >= 1000) {
                     value = .opened
                 }
             case .opened:
-                if panConstraint.constant <= halfWidth || (velocity.x < 0 && abs(velocity.x) >= 1500) {
+                if panConstraint.constant <= halfWidth || (velocity.x < 0 && abs(velocity.x) >= 1000) {
                     value = .closed
                 }
             }

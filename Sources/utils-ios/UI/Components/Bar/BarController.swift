@@ -117,7 +117,6 @@ internal extension Utils.UI.BarController {
 internal extension Utils.UI.BarController {
     /// Prepares the view before transition.
     func prepare(barView: UIView) {
-        barView.clipsToBounds = true
         barView.contentScaleFactor = Utils.UI.Screen.scale
     }
     

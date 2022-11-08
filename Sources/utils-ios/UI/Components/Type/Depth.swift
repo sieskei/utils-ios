@@ -48,6 +48,10 @@ extension Utils.UI {
 
 extension Utils.UI.Depth {
     public enum Preset {
+        public static func square(_ v: Preset) -> Preset {
+            .above(.below(.left(.right(v))))
+        }
+        
         case none
         case depth1
         case depth2
@@ -63,13 +67,13 @@ extension Utils.UI.Depth {
         /// Checks if the preset is the root value (has no direction).
         private var isRoot: Bool {
             switch self {
-            case .above(_):
+            case .above:
                 return false
-            case .below(_):
+            case .below:
                 return false
-            case .left(_):
+            case .left:
                 return false
-            case .right(_):
+            case .right:
                 return false
             default:
                 return true

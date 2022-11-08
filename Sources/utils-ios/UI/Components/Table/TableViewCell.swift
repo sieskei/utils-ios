@@ -20,11 +20,10 @@ extension Utils.UI {
         
         private lazy var pulseContainer: CAShapeLayer = {
             let layer: CAShapeLayer = .init()
-            layer.frame = contentView.bounds
-            layer.cornerRadius = contentView.layer.cornerRadius
             layer.zPosition = CGFloat(Float.greatestFiniteMagnitude)
             layer.backgroundColor = UIColor.clear.cgColor
             layer.masksToBounds = true
+            layout(pulseContainer: layer)
             return layer
         }()
         
@@ -67,19 +66,15 @@ extension Utils.UI {
             
             backgroundColor = .white
             
-            contentView.layer
-                .addSublayer(pulseContainer)
+            insert(pulseContainer: pulseContainer)
         }
         
         open override func layoutSublayers(of layer: CALayer) {
             super.layoutSublayers(of: layer)
             
-            guard layer == self.layer else {
-                return
+            if layer == self.layer {
+                layout(pulseContainer: pulseContainer)
             }
-            
-            pulseContainer.frame = contentView.layer.bounds
-            pulseContainer.cornerRadius = contentView.layer.cornerRadius
         }
         
         open override func prepareForReuse() {
@@ -107,5 +102,19 @@ extension Utils.UI.TableViewCell {
     open override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
         touchPulse.collapse()
+    }
+}
+
+extension Utils.UI.TableViewCell {
+    @objc
+    internal func insert(pulseContainer layer: CALayer) {
+        contentView.layer
+            .addSublayer(layer)
+    }
+    
+    @objc
+    internal func layout(pulseContainer layer: CALayer) {
+        layer.frame = contentView.bounds
+        layer.cornerRadius = contentView.layer.cornerRadius
     }
 }

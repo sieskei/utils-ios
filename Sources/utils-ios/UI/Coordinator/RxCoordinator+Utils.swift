@@ -38,7 +38,11 @@ extension RxCoordinator {
             .`do`(with: self, onNext: { this, lifecycle in
                 switch lifecycle {
                 case .present(let vc):
-                    controller.pushViewController(vc, animated: animated)
+                    if controller.viewControllers.isEmpty {
+                        controller.setViewControllers([vc], animated: false)
+                    } else {
+                        controller.pushViewController(vc, animated: animated)
+                    }
                 case .dismiss(let vc, let trigger):
                     if !trigger.isDisappear {
                         controller.popToViewController(vc, behavior: .exclusive, animated: animated)

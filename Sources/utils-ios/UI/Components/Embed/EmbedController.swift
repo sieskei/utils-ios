@@ -62,7 +62,8 @@ extension Utils.UI {
             layoutContainer()
             
             if let controller = rootViewController {
-                prepare(viewController: controller, in: container)
+                add(viewController: controller, in: container)
+                // prepare(viewController: controller, in: container)
             }
         }
         
@@ -86,7 +87,7 @@ extension Utils.UI {
                 remove(viewController: controller)
             }
             
-            prepare(viewController: controller, in: container)
+            add(viewController: controller, in: container)
             rootViewController = controller
         }
     }
@@ -100,56 +101,26 @@ internal extension Utils.UI.EmbedController {
             .edges()
     }
     
-    /// Prepares the view controller before transition.
-    func prepare(viewController: UIViewController) {
-        viewController.view.clipsToBounds = true
-        viewController.view.contentScaleFactor = Utils.UI.Screen.scale
-    }
-    
-    /**
-     A method that adds the passed in controller as a child of
-     the BarController within the passed in
-     container view.
-     - Parameter viewController: A UIViewController to add as a child.
-     - Parameter in container: A UIView that is the parent of the
-     passed in controller view within the view hierarchy.
-     */
-    func prepare(viewController: UIViewController, in guide: UILayoutGuide) {
-      guard viewController.parent != self else {
-          return
-      }
-      
-      prepare(viewController: viewController)
-      add(viewController: viewController, in: guide)
-    }
-}
-
-internal extension Utils.UI.EmbedController {
-    /**
-    Add a given view controller from the childViewControllers array.
-    - Parameter viewController: A UIViewController to add as a child.
-    */
-    func add(viewController: UIViewController, in guide: UILayoutGuide) {
-        viewController.willMove(toParent: self)
-        addChild(viewController)
-        
-        view.layout(viewController.view)
-            .edges(guide)
-        
-        viewController.didMove(toParent: self)
-    }
-  
-    /**
-    Removes a given view controller from the childViewControllers array.
-    - Parameter viewController: A UIViewController to remove.
-    */
-    func remove(viewController: UIViewController) {
-        guard viewController.parent == self else {
-            return
-        }
-        viewController.willMove(toParent: nil)
-        viewController.view.removeFromSuperview()
-        viewController.removeFromParent()
-        viewController.didMove(toParent: nil)
-    }
+//    /// Prepares the view controller before transition.
+//    func prepare(viewController: UIViewController) {
+//        viewController.view.clipsToBounds = true
+//        viewController.view.contentScaleFactor = Utils.UI.Screen.scale
+//    }
+//
+//    /**
+//     A method that adds the passed in controller as a child of
+//     the BarController within the passed in
+//     container view.
+//     - Parameter viewController: A UIViewController to add as a child.
+//     - Parameter in container: A UIView that is the parent of the
+//     passed in controller view within the view hierarchy.
+//     */
+//    func prepare(viewController: UIViewController, in guide: UILayoutGuide) {
+//      guard viewController.parent != self else {
+//          return
+//      }
+//
+//      prepare(viewController: viewController)
+//      add(viewController: viewController, in: guide)
+//    }
 }

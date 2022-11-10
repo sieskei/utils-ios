@@ -164,7 +164,7 @@ extension Utils.UI {
             let _ = tapGesture
             
             if let drawerController {
-                prepare(viewController: drawerController, in: drawer)
+                add(viewController: drawerController, in: drawer)
             }
         }
         
@@ -178,8 +178,8 @@ extension Utils.UI {
                 remove(viewController: drawerController)
             }
             
+            add(viewController: controller, in: drawer)
             drawerController = controller
-            prepare(viewController: controller, in: drawer)
         }
     }
 }

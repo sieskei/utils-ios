@@ -59,7 +59,7 @@ extension Utils.UI {
             layoutDetails()
             
             if let detailsViewController {
-                prepare(viewController: detailsViewController, in: details)
+                add(viewController: detailsViewController, in: details)
             }
         }
         
@@ -74,7 +74,7 @@ extension Utils.UI {
             }
             
             detailsViewController = controller
-            prepare(viewController: controller, in: details)
+            add(viewController: controller, in: details)
         }
     }
 }

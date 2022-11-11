@@ -22,61 +22,77 @@ extension Utils.UI.BarController {
 
 extension Utils.UI {
     open class BarController: Utils.UI.EmbedController {
-        /**
-         A UIView property that references the
-         active bar view.
-        */
-        open fileprivate(set) var barView: UIView?
+        /// A reference to the top bar layout guide.
+        public let topBarGuide: UILayoutGuide = .init()
         
-        /// A reference to the bar layout guide.
-        public let bar: UILayoutGuide = .init()
-
-        /// Position of bar guide container.
-        public let position: Position
+        /// A reference to the bottom bar layout guide.
+        public let bottomBarGuide: UILayoutGuide = .init()
         
-        /// Height of bar guide container
-        public let dimensions: Dimensions
+        /// A reference to the top bar view.
+        public fileprivate(set) var topBar: UIView?
+        
+        /// A reference to the bottom bar view.
+        public fileprivate(set) var bottomBar: UIView?
+        
+        /// Top bar dimensions type.
+        public let topBarDimensions: Dimensions
+        
+        /// Top bar dimensions type.
+        public let bottomBarDimensions: Dimensions
         
         public init(rootViewController controller: UIViewController? = nil,
-                    barView view: UIView? = nil,
-                    barPosition position: Position = .bottom,
-                    barDimension dimension: Dimensions = .sizeToFit) {
-            self.barView = view
-            self.position = position
-            self.dimensions = dimension
+                    topBar: UIView? = nil,
+                    bottomBar: UIView? = nil,
+                    topBarDimension: Dimensions = .sizeToFit,
+                    bottomBarDimension: Dimensions = .sizeToFit) {
+            self.topBar = topBar
+            self.bottomBar = bottomBar
+            self.topBarDimensions = topBarDimension
+            self.bottomBarDimensions = bottomBarDimension
             super.init(rootViewController: controller)
         }
         
         required public init?(coder: NSCoder) {
-            self.position = .top
-            self.dimensions = .sizeToFit
+            self.topBarDimensions = .sizeToFit
+            self.bottomBarDimensions = .sizeToFit
             super.init(coder: coder)
         }
         
         open override func prepare() {
-            super.prepare()
+            view.layout(topBarGuide)
+            layoutTopBarGuide()
             
-            view.layout(bar)
-            layoutBar()
+            view.layout(bottomBarGuide)
+            layoutBottomBarGuide()
             
-            if let barView {
-                prepare(barView: barView, in: bar)
-            }
+            super.prepare() // must layout bars first!
+            
+            topBar ~> { add(bar: $0, in: topBarGuide) }
+            bottomBar ~> { add(bar: $0, in: bottomBarGuide) }
         }
         
         // TODO: animated not implemented yet
-        open func embed(bar view: UIView, animated: Bool = true) {
+        open func embed(topBar view: UIView, animated: Bool = true) {
             guard isViewLoaded else {
-                barView = view
+                topBar = view
                 return
             }
             
-            if let barView {
-                remove(barView: barView)
+            topBar ~> { remove(bar: $0) }
+            topBar = view
+            add(bar: view, in: topBarGuide)
+        }
+        
+        // TODO: animated not implemented yet
+        open func embed(bottomBar view: UIView, animated: Bool = true) {
+            guard isViewLoaded else {
+                bottomBar = view
+                return
             }
             
-            barView = view
-            prepare(barView: view, in: bar)
+            bottomBar ~> { remove(bar: $0) }
+            bottomBar = view
+            add(bar: view, in: bottomBarGuide)
         }
     }
 }
@@ -85,74 +101,67 @@ internal extension Utils.UI.BarController {
     override func layoutContainer() {
         let layout: Utils.UI.Layout.Methods = container.layout
         layout
+            .below(topBarGuide)
             .left()
             .right()
-        
-        switch position {
-        case .top:
-            layout.bottom()
-        case .bottom:
-            layout.top()
+            .above(bottomBarGuide)
+    }
+    
+    /// Layout the top bar guide.
+    @objc dynamic func layoutTopBarGuide() {
+        let layout: Utils.UI.Layout.Methods = topBarGuide.layout
+        layout
+            .top()
+            .left()
+            .right()
+            .height(.zero, priority: .low)
+
+        switch topBarDimensions {
+        case .constant(let value):
+            layout.height(value)
+        case .sizeToFit:
+            break
         }
     }
     
-    /// Layout the details guide.
-    @objc dynamic func layoutBar() {
-        let layout: Utils.UI.Layout.Methods = bar.layout
+    /// Layout the top bar guide.
+    @objc dynamic func layoutBottomBarGuide() {
+        let layout: Utils.UI.Layout.Methods = bottomBarGuide.layout
         layout
             .left()
             .right()
-        
-        switch position {
-        case .top:
-            layout.above(container)
-            layout.top()
-        case .bottom:
-            layout.below(container)
-            layout.bottom()
+            .bottom()
+            .height(.zero, priority: .low)
+
+        switch topBarDimensions {
+        case .constant(let value):
+            layout.height(value)
+        case .sizeToFit:
+            break
         }
     }
 }
 
-internal extension Utils.UI.BarController {
-    /// Prepares the view before transition.
-    func prepare(barView: UIView) {
-        barView.contentScaleFactor = Utils.UI.Screen.scale
-    }
-    
-    /**
-     Add a given view to the controller's view subviews.
-     - Parameter view: A UIView to add as a child.
-     - Parameter in guide: A layout guide in which will be layouted.
-     */
-    func prepare(barView: UIView, in guide: UILayoutGuide) {
-        guard barView.superview != view else {
-            return
-        }
-      
-        prepare(barView: barView)
-        add(barView: barView, in: guide)
-    }
-}
-
-internal extension Utils.UI.BarController {
+fileprivate extension Utils.UI.BarController {
     /**
     Add a given view to the controller's view subviews.
     - Parameter viewController: A UIView to add as a child.
     - Parameter in guide: A layout guide in which will be layouted.
     */
-    func add(barView: UIView, in guide: UILayoutGuide) {
-        view.layout(barView).edges(guide)
+    func add(bar: UIView, in guide: UILayoutGuide) {
+        view.layout(bar)
+            .edges(guide)
+        view.bringSubviewToFront(bar)
     }
-  
+
     /**
     Removes a given view from the controller's view subviews.
     - Parameter viewController: A UIView to remove.
     */
-    func remove(barView: UIView) {
-        guard barView.superview == view else {
+    func remove(bar: UIView) {
+        guard bar.superview == view else {
             return
         }
-        barView.removeFromSuperview()
+        bar.removeFromSuperview()
     }
 }

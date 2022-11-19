@@ -10,7 +10,7 @@ import WebKit
 import RxSwift
 
 extension Utils.UI {
-    open class WebView: WKWebView {
+    open class WebView: Utils.UI.SimpleWebView {
         public enum BodySize: Equatable {
             case ready(CGSize)
             case sensor(CGSize)
@@ -40,14 +40,6 @@ extension Utils.UI {
         
         public let resizeSensor: Bool
         
-        open var viewport: String {
-            .init()
-        }
-        
-        open var style: String {
-            .init()
-        }
-        
         public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration(), resizeSensor flag: Bool = true) {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
             self.init(frame: .zero, configuration: configuration, resizeSensor: flag)
@@ -62,23 +54,16 @@ extension Utils.UI {
         public init(frame: CGRect, configuration: WKWebViewConfiguration, resizeSensor flag: Bool = true) {
             resizeSensor = flag
             super.init(frame: frame, configuration: configuration)
-            prepare()
         }
         
         public override init(frame: CGRect, configuration: WKWebViewConfiguration) {
             resizeSensor = true
             super.init(frame: frame, configuration: configuration)
-            prepare()
         }
         
         public required init?(coder: NSCoder) {
             resizeSensor = true
             super.init(coder: coder)
-            prepare()
-        }
-        
-        open func prepare() {
-            prepareConfiguration()
         }
         
         // ---------------
@@ -158,55 +143,10 @@ extension Utils.UI {
 
 extension Utils.UI.WebView {
     @objc
-    open dynamic func prepareConfiguration() {
+    open dynamic override func prepareConfiguration() {
+        super.prepareConfiguration()
+        
         let ucc = configuration.userContentController
-        
-        // MARK: Logging
-        ucc.addScriptMessageHandler(name: "logging") {
-            Utils.Log.debug("[NIWebView.console.log]:", $0.body)
-        }
-        ucc.addUserScript(.init(source:
-            """
-                var console = {
-                    log: function(msg) {
-                            window.webkit.messageHandlers.logging.postMessage(msg)
-                         }
-                };
-            """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
-        
-        
-        // MARK: Viewport meta tag (if provided)
-        if !viewport.isEmpty {
-            let script =
-            """
-                var meta = document.getElementsByTagName('meta')['viewport']
-                if (!meta) {
-                    meta = document.createElement('meta');
-                    meta.name = 'viewport'
-                    document.head.appendChild(meta);
-                }
-                meta.content = '\(viewport)';
-            """
-
-            configuration
-                .userContentController
-                .addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-        }
-        
-        
-        // MARK: CSS Style tag (if provided)
-        if !style.isEmpty {
-            let script =
-            """
-                var style = document.createElement('style')
-                style.innerText = `\(style)`
-                document.head.appendChild(style)
-            """
-
-            configuration
-                .userContentController
-                .addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-        }
         
         // MARK: Body resize sensor
         if resizeSensor {

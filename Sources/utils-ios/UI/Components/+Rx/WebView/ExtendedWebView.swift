@@ -36,15 +36,6 @@ extension Utils.UI {
             }
         }
         
-        private lazy var zoomScale: Observable<CGFloat> = {
-            scrollView.rx.didZoom
-                .withUnretained(self)
-                .map { this, _ in this.scrollView.zoomScale }
-                .startWith(scrollView.zoomScale)
-                .map { round($0 * 1000) / 1000.0 }
-                .distinctUntilChanged()
-        }()
-        
         @RxProperty
         public var freezeHeaderBounds: Bool = false
         
@@ -75,7 +66,7 @@ extension Utils.UI {
             /*
              Follow body size + scale (see top constraint).
             */
-            Observable.combineLatest($bodySize.height, zoomScale).map { $0 * $1 }
+            Observable.combineLatest($bodySize.height, scrollView.rx.zoomScale).map { $0 * $1 }
         }
         
         @RxProperty
@@ -320,7 +311,7 @@ extension Utils.UI.ExtendedWebView {
         
         [hh, hf].forEach {
             // combine with zoom scalee
-            Observable.combineLatest(zoomScale, $0)
+            Observable.combineLatest(scrollView.rx.zoomScale, $0)
                 .pausableBuffered($isReady.value, limit: 1)
                 .subscribe(with: self, onNext: {
                     $0.evaluateJavaScript($1.1.script(for: $1.0))

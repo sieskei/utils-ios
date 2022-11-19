@@ -59,4 +59,12 @@ extension Reactive where Base: UIScrollView {
         source(keyPath: \CGPoint.x)
             .map { $0.last > $0.current ? .left : .right }
     }
+    
+    public var bounceTopOffset: Observable<CGFloat> {
+        contentOffset
+            .asObservable()
+            .withUnretained(base)
+            .map { $0.0.bounceTopOffset }
+            .distinctUntilChanged()
+    }
 }

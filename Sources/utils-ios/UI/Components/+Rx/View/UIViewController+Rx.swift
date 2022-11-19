@@ -79,6 +79,31 @@ public extension Reactive where Base: UIViewController {
         return ControlEvent(events: source)
     }
     
+    var presented: Observable<UIViewController> {
+        base.rx
+            .methodInvoked(#selector(Base.viewDidAppear(_:)))
+            .withUnretained(base)
+            .map { $0.0 }
+            .filter { $0.isMovingToParent || $0.isBeingPresented }
+    }
+    
+    var dismissed: Observable<UIViewController> {
+        base.rx
+            .methodInvoked(#selector(Base.viewDidDisappear(_:)))
+            .withUnretained(base)
+            .map { $0.0 }
+            .filter {
+                var vc: UIViewController? = $0
+                while let v = vc {
+                    if v.isMovingFromParent || v.isBeingDismissed {
+                        return true
+                    }
+                    vc = v.parent
+                }
+                return false
+            }
+    }
+    
     func present<T: UIViewController>(_ viewControllerToPresent: T, animated flag: Bool) -> Observable<T> {
         .create({ [weak base] observer in
             if let base = base {

@@ -222,20 +222,4 @@ public extension RxCoordinator.LifeCycle {
     }
 }
 
-public extension Reactive where Base: UIViewController {
-    var presented: Observable<UIViewController> {
-        base.rx
-            .methodInvoked(#selector(Base.viewDidAppear(_:)))
-            .withUnretained(base)
-            .map { $0.0 }
-            .filter { $0.isMovingToParent || $0.isBeingPresented }
-    }
-    
-    var dismissed: Observable<UIViewController> {
-        base.rx
-            .methodInvoked(#selector(Base.viewDidDisappear(_:)))
-            .withUnretained(base)
-            .map { $0.0 }
-            .filter { $0.isMovingFromParent || $0.isBeingDismissed }
-    }
-}
+

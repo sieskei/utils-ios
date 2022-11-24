@@ -12,7 +12,7 @@ import RxSwift
 import RxSwiftExt
 import RxCocoa
 
-extension Utils.UI.ExtendedWebView2 {
+extension Utils.UI.ExtendedWebView {
     private enum Margin: Equatable {
         case top(CGFloat)
         case bottom(CGFloat)
@@ -29,18 +29,18 @@ extension Utils.UI.ExtendedWebView2 {
 }
 
 extension Utils.UI {
-    open class ExtendedWebView2: Utils.UI.WebView {
+    open class ExtendedWebView: Utils.UI.WebView {
         private let disposeBag = DisposeBag()
         
         @RxProperty
         public var freezeHeaderBounds: Bool = false
         
         public private (set) lazy var headerContainerView: UIView = {
-            headerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
+            headerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: .zero)))
         }()
         
         public private (set) lazy var footerContainerView: UIView = {
-            footerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: 0)))
+            footerContainerViewClass.init(frame: .init(origin: .zero, size: .init(width: bounds.width, height: .zero)))
         }()
         
         open var headerContainerViewClass: UIView.Type {
@@ -112,7 +112,7 @@ extension Utils.UI {
 }
 
 
-fileprivate extension Utils.UI.ExtendedWebView2 {
+fileprivate extension Utils.UI.ExtendedWebView {
     func prepareHeaderContainerView() {
         let view = headerContainerView
         
@@ -157,7 +157,7 @@ fileprivate extension Utils.UI.ExtendedWebView2 {
 }
 
 
-extension Utils.UI.ExtendedWebView2 {
+extension Utils.UI.ExtendedWebView {
     @objc
     open override dynamic func prepareConfiguration() {
         super.prepareConfiguration()

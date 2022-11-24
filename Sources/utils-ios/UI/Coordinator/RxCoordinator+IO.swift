@@ -12,7 +12,7 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     /// Typealias which will allows to access a InputType of the Coordainator by `CoordinatorName.CoordinationInput`.
     public typealias CoordinationInput = InputType
     
-    private enum Connection {
+    private enum Buffer {
         case none(buffer: [InputType] = [])
         case established(PublishSubject<InputType>)
         
@@ -36,7 +36,7 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
         }
     }
     
-    private var connection: Connection = .none()
+    private var buffer: Buffer = .none()
     
     public final var input: Binder<InputType> {
         input()
@@ -44,14 +44,14 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     
     public final func input(scheduler: ImmediateSchedulerType = CurrentThreadScheduler.instance) -> Binder<InputType> {
         .init(self, scheduler: scheduler) {
-            $0.connection.transmit($1)
+            $0.buffer.transmit($1)
         }
     }
     
     public final override func start(output: AnyObserver<OutputType>) -> UIViewController {
         let input: PublishSubject<InputType> = .init()
         let controller = start(input: input, output: output)
-        connection.establish(to: input)
+        buffer.establish(to: input)
         return controller
     }
     

@@ -198,6 +198,10 @@ public extension Reactive where Base: RxRemoteCompatible {
         return base.valueRemoteState.asObservable()
     }
     
+    var decoding: Observable<Bool> {
+        remoteState.map { $0.ongoing }
+    }
+    
     func reinit() -> Single<Base> {
         return base.serializeReinit()
     }

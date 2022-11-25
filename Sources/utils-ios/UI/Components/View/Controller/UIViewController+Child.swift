@@ -13,7 +13,8 @@ public extension UIViewController {
     - Parameter viewController: A UIViewController to add as a child.
     - Parameter guide: A UILayoutGuide in which to be layouted.
     */
-    func add(viewController: UIViewController, in guide: UILayoutGuide) {
+    @objc
+    dynamic func add(viewController: UIViewController, in guide: UILayoutGuide) {
         if let parent = viewController.parent {
             parent.remove(viewController: viewController)
         }
@@ -31,7 +32,8 @@ public extension UIViewController {
     Removes a given view controller from the childViewControllers array.
     - Parameter viewController: A UIViewController to remove.
     */
-    func remove(viewController: UIViewController) {
+    @objc
+    dynamic func remove(viewController: UIViewController) {
         guard viewController.parent == self else {
             return
         }

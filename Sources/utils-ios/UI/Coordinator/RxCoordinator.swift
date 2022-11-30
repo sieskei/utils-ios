@@ -178,6 +178,10 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
     }
     
     public final func suspend() {
+        guard let connection, connection.isEstablished else {
+            return
+        }
+        
         let all: [Utils.UI.Coordinators.Connection] = .init(flatConnections.reversed())
         switch all.count {
         case 0:
@@ -191,6 +195,10 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
     }
     
     public final func resume() {
+        guard let connection, connection.isSuspended else {
+            return
+        }
+        
         let all: [Utils.UI.Coordinators.Connection] = flatConnections
         switch all.count {
         case 0:

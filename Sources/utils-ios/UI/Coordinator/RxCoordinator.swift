@@ -226,10 +226,10 @@ fileprivate extension RxCoordinator {
         private let io: PublishSubject<Event> = .init()
         
         var i: AnyObserver<OutputType> {
-            .init { [weak io] in
-                guard let io = io else {
-                    return
-                }
+            .init { [io = io] in
+//                guard let io = io else {
+//                    return
+//                }
                 
                 switch $0 {
                 case .next(let e):

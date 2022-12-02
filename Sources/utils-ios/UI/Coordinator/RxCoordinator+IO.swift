@@ -25,7 +25,7 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
             }
         }
         
-        mutating func establish(to observer: PublishSubject<InputType>) {
+        mutating func flush(to observer: PublishSubject<InputType>) {
             switch self {
             case .none(let buffer):
                 buffer.forEach { observer.onNext($0) }
@@ -51,7 +51,7 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     public final override func start(output: AnyObserver<OutputType>) -> UIViewController {
         let input: PublishSubject<InputType> = .init()
         let controller = start(input: input, output: output)
-        buffer.establish(to: input)
+        buffer.flush(to: input)
         return controller
     }
     

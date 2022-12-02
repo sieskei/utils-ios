@@ -58,6 +58,7 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
     private var childCoordinators = [UUID: UtilsUICoordinatorsConnectable]()
     
     /// Connection to parent.
+    @RxProperty
     internal var connection: Utils.UI.Coordinators.Connection? = nil
 
     internal var flatConnections: [Utils.UI.Coordinators.Connection] {
@@ -134,10 +135,13 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
                         }
                     }
             }())
-            .merge(with: { // convert connection deallocation to dismiss
-                c.rx.deallocated
+            .merge(with: { // convert disconnect method to dismiss
+                $connection.value
+                    .filter { $0 == nil }
                     .withUnretained(controller)
-                    .map { .dismiss($0.0, trigger: .disconnect) }
+                    .map {
+                        .dismiss($0.0, trigger: .disconnect)
+                    }
             }())
             .merge(with: { // convert connection state to present or dismiss
                 c.state.asObservable()
@@ -226,10 +230,10 @@ fileprivate extension RxCoordinator {
         private let io: PublishSubject<Event> = .init()
         
         var i: AnyObserver<OutputType> {
-            .init { [io = io] in
-//                guard let io = io else {
-//                    return
-//                }
+            .init { [weak io = io] in
+                guard let io = io else {
+                    return
+                }
                 
                 switch $0 {
                 case .next(let e):

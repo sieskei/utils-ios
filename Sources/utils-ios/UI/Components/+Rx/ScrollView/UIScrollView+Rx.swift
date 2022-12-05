@@ -34,6 +34,14 @@ extension Reactive where Base: UIScrollView {
             .map { round($0 * 1000) / 1000.0 }
             .distinctUntilChanged()
     }
+    
+    public var bounceTopOffset: Observable<CGFloat> {
+        contentOffset
+            .asObservable()
+            .withUnretained(base)
+            .map { $0.0.bounceTopOffset }
+            .distinctUntilChanged()
+    }
 }
 
 extension Reactive where Base: UIScrollView {
@@ -58,13 +66,5 @@ extension Reactive where Base: UIScrollView {
     public var didScrollHorizontally: Observable<UIScrollView.HorizontalDirection> {
         source(keyPath: \CGPoint.x)
             .map { $0.last > $0.current ? .left : .right }
-    }
-    
-    public var bounceTopOffset: Observable<CGFloat> {
-        contentOffset
-            .asObservable()
-            .withUnretained(base)
-            .map { $0.0.bounceTopOffset }
-            .distinctUntilChanged()
     }
 }

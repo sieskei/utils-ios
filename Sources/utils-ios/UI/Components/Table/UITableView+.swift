@@ -11,9 +11,13 @@ public extension UITableView {
     func register<T: UITableViewCell>(_ cellClass: T.Type) {
         register(cellClass, forCellReuseIdentifier: cellClass.className)
     }
+    
+    func register<T: UITableViewHeaderFooterView>(_ cellClass: T.Type) {
+        register(cellClass, forHeaderFooterViewReuseIdentifier: cellClass.className)
+    }
 
     func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for indexPath: IndexPath, addToSubviews flag: Bool = false) -> T {
-        let cell: T = dequeueReusableCell(withIdentifier: cellClass.className, for: indexPath) as! T
+        let cell: T =  Utils.castOrFatalError(dequeueReusableCell(withIdentifier: cellClass.className, for: indexPath))
         if flag, !cell.is(childOf: self) {
             addSubview(cell)
         }
@@ -21,7 +25,12 @@ public extension UITableView {
     }
     
     func dequeueReusableCell<T: UITableViewCell>(_ cellClass: T.Type = T.self, for row: Int, addToSubviews flag: Bool = false) -> T {
-        return dequeueReusableCell(for: .init(row: row, section: 0), addToSubviews: flag)
+        dequeueReusableCell(for: .init(row: row, section: 0), addToSubviews: flag)
+    }
+    
+    func dequeueReusableHeaderFooter<T: UITableViewHeaderFooterView>(_ cellClass: T.Type = T.self) -> T {
+        let view: T =  Utils.castOrFatalError(dequeueReusableHeaderFooterView(withIdentifier: cellClass.className))
+        return view
     }
     
     func reloadDataAndKeepOffset() {

@@ -165,3 +165,14 @@ fileprivate extension Utils.UI.BarController {
         bar.removeFromSuperview()
     }
 }
+
+public extension Utils.UI.BarController {
+    override func add(viewController: UIViewController, in guide: UILayoutGuide) {
+        defer {
+            topBar ~> { view.bringSubviewToFront($0) }
+            bottomBar ~> { view.bringSubviewToFront($0) }
+        }
+        
+        super.add(viewController: viewController, in: guide)
+    }
+}

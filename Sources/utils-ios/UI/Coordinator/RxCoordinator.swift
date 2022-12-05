@@ -10,7 +10,7 @@ import RxSwift
 import RxSwiftExt
 
 /// Base abstract coordinator generic over the return type of the `start` method.
-open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
+open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCompatible, Interruptible {
     /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
     
@@ -27,6 +27,9 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
             /// When the parent-child reference is gone without an outgoing event.
             /// Method disconnect is called.
             case disconnect
+            
+            /// Method suspend is called.
+            case suspended
             
             /// When an error occurs in the output.
             case error(Error)
@@ -49,13 +52,23 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
     /// Unique identifier.
     private let identifier = UUID()
     
-    /// Connection to parent.
-    private var connection: Connection? = nil
-
     /// Dictionary of the child coordinators. Every child coordinator should be added
     /// to that dictionary in order to keep it in memory.
     /// Key is an `identifier` of the child coordinator and value is the coordinator itself.
-    private var childCoordinators = [UUID: Any]()
+    private var childCoordinators = [UUID: UtilsUICoordinatorsConnectable]()
+    
+    /// Connection to parent.
+    @RxProperty
+    internal var connection: Utils.UI.Coordinators.Connection? = nil
+
+    internal var flatConnections: [Utils.UI.Coordinators.Connection] {
+        var all: [Utils.UI.Coordinators.Connection?] = []
+        all.append(connection)
+        childCoordinators.values.forEach {
+            all.append(contentsOf: $0.flatConnections)
+        }
+        return all.compactMap { $0 }
+    }
     
     public init() { }
 
@@ -85,8 +98,8 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
     ///
     /// - Parameter coordinator: Coordinator to start.
     /// - Returns: Result of `start()` method.
-    public final func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss flag: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
-        coordinator.connect(untilDismiss: flag)
+    public final func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true, startImmediately: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
+        coordinator.connect(untilDismiss: untilDismiss, startImmediately: startImmediately)
             .`do`(with: self, onCompleted: { this in
                 this.free(coordinator: coordinator)
             }, onSubscribe: { this in
@@ -94,9 +107,9 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
             })
     }
     
-    public final func connect(untilDismiss: Bool = true) -> Observable<LifeCycle> {
-        let conn: Connection = .init()
-        connection = conn
+    public final func connect(untilDismiss: Bool = true, startImmediately: Bool = true) -> Observable<LifeCycle> {
+        let c: Utils.UI.Coordinators.Connection = .init(startImmediately: startImmediately, untilDismiss: untilDismiss)
+        connection = c
         
         let queue: IO = .init()
         let controller = start(output: queue.i)
@@ -112,19 +125,93 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
                 }
             }
             .merge(with: { // convert disappear to dismiss
-                controller.rx.dismissed
-                    .map { .dismiss($0, trigger: .disappear) }
+                controller.rx.dismissed // skip if previously was suspended
+                    .filterMap {
+                        switch c.state.value {
+                        case .established:
+                            return .map(.dismiss($0, trigger: .disappear))
+                        case .suspended: // ignore, already produced dismiss by link state, see bellow
+                            return .ignore
+                        }
+                    }
             }())
-            .merge(with: { // convert connection deallocation to dismiss
-                conn.rx.deallocated
+            .merge(with: { // convert disconnect method to dismiss
+                $connection.value
+                    .filter { $0 == nil }
                     .withUnretained(controller)
-                    .map { .dismiss($0.0, trigger: .disconnect) }
+                    .map {
+                        .dismiss($0.0, trigger: .disconnect)
+                    }
+            }())
+            .merge(with: { // convert connection state to present or dismiss
+                c.state.asObservable()
+                    .scan((c.state.value, c.state.value), accumulator: { ($0.1, $1) })
+                    .skip(1) // skip initial velue
+                    .filterMap { pair in
+                        switch pair.1 {
+                        // produce present only when previously was own suspend
+                        case .established where pair.0 == .suspended(trigger: .`self`):
+                            return .map(.present(controller))
+                        // produce dismiss only when own suspend
+                        case .suspended(.`self`):
+                            return .map(.dismiss(controller, trigger: .suspended))
+                        default:
+                            return .ignore
+                        }
+                    }
             }())
             .catch { // convert error to dismiss
                 .just(.dismiss(controller, trigger: .error($0)))
             }
-            .take(until: { $0.isDismiss && untilDismiss }, behavior: .inclusive)
-            .startWith(.present(controller))
+            .`if`(startImmediately) {
+                $0.startWith(.present(controller))
+            }
+            .distinctUntilChanged { lhs, rhs in
+                // protection from repeated present/dismiss
+                if rhs.isPresent {
+                    return lhs.isPresent
+                } else if rhs.isDismiss {
+                    return lhs.isDismiss
+                } else {
+                    return false
+                }
+            }
+            .take(until: {
+                $0.isDismiss && c.untilDismiss
+            }, behavior: .inclusive)
+    }
+    
+    public final func suspend() {
+        guard let connection, connection.isEstablished else {
+            return
+        }
+        
+        let all: [Utils.UI.Coordinators.Connection] = .init(flatConnections.reversed())
+        switch all.count {
+        case 0:
+            return
+        case 1:
+            all[0].state.value = .suspended(trigger: .`self`)
+        default:
+            all[0...all.count - 2].forEach { $0.state.value = .suspended(trigger: .parent) }
+            all[all.count - 1].state.value = .suspended(trigger: .`self`)
+        }
+    }
+    
+    public final func resume() {
+        guard let connection, connection.isSuspended else {
+            return
+        }
+        
+        let all: [Utils.UI.Coordinators.Connection] = flatConnections
+        switch all.count {
+        case 0:
+            return
+        case 1:
+            all[0].state.value = .established
+        default:
+            all[0...all.count - 1].forEach { $0.state.value = .established }
+        }
     }
     
     public final func disconnect() {
@@ -137,19 +224,13 @@ open class RxCoordinator<OutputType>: ReactiveCompatible, Interruptible {
 }
 
 fileprivate extension RxCoordinator {
-    /// Object represent connection between parent-child.
-    /// Used for internal purposes.
-    class Connection: ReactiveCompatible { }
-}
-
-fileprivate extension RxCoordinator {
     /// IO events queue.
     /// Used for internal purposes.
     class IO {
         private let io: PublishSubject<Event> = .init()
         
         var i: AnyObserver<OutputType> {
-            .init { [weak io] in
+            .init { [weak io = io] in
                 guard let io = io else {
                     return
                 }

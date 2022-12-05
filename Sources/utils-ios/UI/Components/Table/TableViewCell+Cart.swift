@@ -16,7 +16,7 @@ extension Utils.UI.TableViewCell {
             super.prepare()
             
             contentView.layout(cartView)
-                .edgesSafe(insets: .init(repeating: 16))
+                .edgesSafe(insets: .init(top: 16, left: 16, bottom: .zero, right: 16))
         }
     }
 }

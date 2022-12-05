@@ -53,6 +53,13 @@ public extension ObservableType {
     }
 }
 
+// MARK: ObservableType - if utils.
+public extension ObservableType {
+    func `if`(_ flag: Bool, _ apply: (Self) -> Self) -> Self {
+        flag ? apply(self) : self
+    }
+}
+
 // MARK: ObservableType - subscribe/do utils.
 public extension ObservableType {
     func subscribeNext(_ onNext: @escaping (Element) -> Void) -> Disposable {

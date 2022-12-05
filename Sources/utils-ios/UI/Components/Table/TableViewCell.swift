@@ -107,13 +107,13 @@ extension Utils.UI.TableViewCell {
 
 extension Utils.UI.TableViewCell {
     @objc
-    internal func insert(pulseContainer layer: CALayer) {
+    internal dynamic func insert(pulseContainer layer: CALayer) {
         contentView.layer
             .addSublayer(layer)
     }
     
     @objc
-    internal func layout(pulseContainer layer: CALayer) {
+    internal dynamic func layout(pulseContainer layer: CALayer) {
         layer.frame = contentView.bounds
         layer.cornerRadius = contentView.layer.cornerRadius
     }

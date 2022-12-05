@@ -19,6 +19,10 @@ extension Utils.UI {
             .init()
         }
         
+        open var stylePath: String {
+            .init()
+        }
+        
         public convenience init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
             self.init(frame: .zero, configuration: configuration)
@@ -91,6 +95,22 @@ extension Utils.UI.SimpleWebView {
                 var style = document.createElement('style')
                 style.innerText = `\(style)`
                 document.head.appendChild(style)
+            """
+
+            configuration
+                .userContentController
+                .addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
+        
+        // MARK: CSS Style link (if provided)
+        if !stylePath.isEmpty {
+            let script =
+            """
+                var link  = document.createElement('link');
+                link.rel  = 'stylesheet';
+                link.type = 'text/css';
+                link.href = '\(stylePath)';
+                document.head.appendChild(link)
             """
 
             configuration

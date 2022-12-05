@@ -96,7 +96,7 @@ extension Utils.UI.Depth {
             }
         }
         
-        var value: Utils.UI.Depth {
+        public var value: Utils.UI.Depth {
             switch self {
             case .none:
               return .zero

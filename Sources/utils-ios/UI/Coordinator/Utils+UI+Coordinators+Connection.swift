@@ -40,6 +40,14 @@ extension Utils.UI.Coordinators {
             self.state = .init(startImmediately ? .established : .suspended())
             self.untilDismiss = untilDismiss
         }
+        
+        func resume() {
+            state.value = .established
+        }
+        
+        func suspend(by trigger: State.SuspendTrigger = .`self`) {
+            state.value = .suspended(trigger: trigger)
+        }
     }
 }
 

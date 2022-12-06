@@ -9,5 +9,7 @@ import Foundation
 
 internal protocol UtilsUICoordinatorsConnectable: AnyObject {
     var connection: Utils.UI.Coordinators.Connection? { get }
-    var flatConnections: [Utils.UI.Coordinators.Connection] { get }
+    
+    var connectionsToSuspend: [Utils.UI.Coordinators.Connection] { get }
+    var connectionsToBeResume: [Utils.UI.Coordinators.Connection] { get }
 }

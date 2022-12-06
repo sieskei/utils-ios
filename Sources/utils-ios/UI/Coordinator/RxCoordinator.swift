@@ -9,8 +9,7 @@ import UIKit
 import RxSwift
 import RxSwiftExt
 
-/// Base abstract coordinator generic over the return type of the `start` method.
-open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCompatible, Interruptible {
+extension RxCoordinator {
     /// Typealias which will allows to access a OutputType of the Coordainator by `CoordinatorName.CoordinationOutput`.
     public typealias CoordinationOutput = OutputType
     
@@ -45,7 +44,10 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
         case event(OutputType)
         case dismiss
     }
-    
+}
+
+/// Base abstract coordinator generic over the return type of the `start` method.
+open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCompatible, Interruptible {
     /// Utility `DisposeBag` used by the subclasses.
     public let disposeBag = DisposeBag()
 
@@ -57,15 +59,32 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
     /// Key is an `identifier` of the child coordinator and value is the coordinator itself.
     private var childCoordinators = [UUID: UtilsUICoordinatorsConnectable]()
     
+    
+    // MARK: - UtilsUICoordinatorsConnectable
+    
     /// Connection to parent.
     @RxProperty
     internal var connection: Utils.UI.Coordinators.Connection? = nil
-
-    internal var flatConnections: [Utils.UI.Coordinators.Connection] {
+    
+    internal var connectionsToBeResume: [Utils.UI.Coordinators.Connection] {
         var all: [Utils.UI.Coordinators.Connection?] = []
         all.append(connection)
         childCoordinators.values.forEach {
-            all.append(contentsOf: $0.flatConnections)
+            if let c = $0.connection, case .suspended(.parent) = c.state.value {
+                all.append(contentsOf: $0.connectionsToSuspend)
+            }
+        }
+        return all.compactMap { $0 }
+    }
+    
+    internal var connectionsToSuspend: [Utils.UI.Coordinators.Connection] {
+        var all: [Utils.UI.Coordinators.Connection?] = []
+        all.append(connection)
+        childCoordinators.values.forEach {
+            if let c = $0.connection, case .established = c.state.value {
+                all.append(contentsOf: $0.connectionsToSuspend)
+            }
+
         }
         return all.compactMap { $0 }
     }
@@ -186,15 +205,15 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
             return
         }
         
-        let all: [Utils.UI.Coordinators.Connection] = .init(flatConnections.reversed())
+        let all: [Utils.UI.Coordinators.Connection] = .init(connectionsToSuspend.reversed())
         switch all.count {
         case 0:
             return
         case 1:
-            all[0].state.value = .suspended(trigger: .`self`)
+            all[0].suspend()
         default:
-            all[0...all.count - 2].forEach { $0.state.value = .suspended(trigger: .parent) }
-            all[all.count - 1].state.value = .suspended(trigger: .`self`)
+            all[0...all.count - 2].forEach { $0.suspend(by: .parent) }
+            all[all.count - 1].suspend()
         }
     }
     
@@ -203,15 +222,7 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
             return
         }
         
-        let all: [Utils.UI.Coordinators.Connection] = flatConnections
-        switch all.count {
-        case 0:
-            return
-        case 1:
-            all[0].state.value = .established
-        default:
-            all[0...all.count - 1].forEach { $0.state.value = .established }
-        }
+        connectionsToBeResume.forEach { $0.resume() }
     }
     
     public final func disconnect() {

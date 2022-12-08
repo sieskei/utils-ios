@@ -47,7 +47,7 @@ extension RxCoordinator {
 }
 
 /// Base abstract coordinator generic over the return type of the `start` method.
-open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCompatible, Interruptible {
+open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, Interruptible, ReactiveCompatible {
     /// Utility `DisposeBag` used by the subclasses.
     public let disposeBag = DisposeBag()
 
@@ -228,6 +228,8 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, ReactiveCo
     public final func disconnect() {
         connection = nil
     }
+    
+    // MARK: - Interruptible
     
     public final func interrupt() {
         disconnect()

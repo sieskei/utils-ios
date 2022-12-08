@@ -11,12 +11,11 @@ import RxSwiftExt
 
 extension Utils.UI {
     open class ScrollWrapper<T: UtilsUIScrollCompatible>: Utils.UI.View {
-        private var outerDisposeBag: DisposeBag = .init()
-        private var innerDisposeBag: DisposeBag = .init()
+        private var bags: (outer: DisposeBag, inner: DisposeBag) = (.init(), .init())
         
         private weak var outerScrollView: UIScrollView? {
             didSet {
-                outerDisposeBag = .init()
+                bags.outer = .init()
                 guard let sv = outerScrollView else {
                     return
                 }
@@ -33,25 +32,21 @@ extension Utils.UI {
                         this.innerTopConstraint.constant = m.isInfinite ? 0 : m
                         this.scrollCompatible.scrollView.contentOffset.y = this.innerTopConstraint.constant
                     }
-                    .disposed(by: outerDisposeBag)
+                    .disposed(by: bags.outer)
             }
         }
         
         private let scrollCompatible: T
         
-        private lazy var innerTopConstraint: NSLayoutConstraint = {
-            let c: NSLayoutConstraint = scrollCompatible.view.topAnchor.constraint(equalTo: topAnchor, constant: 0)
-            c.priority = .init(999)
-            c.isActive = true
-            return c
-        }()
+        private lazy var innerTopConstraint: NSLayoutConstraint = (scrollCompatible.view.topAnchor == topAnchor) ~> {
+            $0.priority = .init(999)
+            $0.isActive = true
+        }
         
-        private lazy var innerHeightConstraint: NSLayoutConstraint = {
-            let c: NSLayoutConstraint = scrollCompatible.view.heightAnchor.constraint(equalToConstant: 0)
-            c.priority = .init(999)
-            c.isActive = true
-            return c
-        }()
+        private lazy var innerHeightConstraint: NSLayoutConstraint = (scrollCompatible.view.heightAnchor == 0) ~> {
+            $0.priority = .init(999)
+            $0.isActive = true
+        }
         
         public init(_ s: T, dualView: Bool = false) {
             scrollCompatible = s
@@ -62,50 +57,40 @@ extension Utils.UI {
             
             super.init(frame: .zero)
             
-            v.translatesAutoresizingMaskIntoConstraints = false
-            
             if dualView {
-                let view = View()
-                view.backgroundColor = .clear
-                view.clipsToBounds = true
-                view.translatesAutoresizingMaskIntoConstraints = false
-                addSubview(view)
-                NSLayoutConstraint.activate([
-                    view.topAnchor.constraint(equalTo: topAnchor),
-                    view.bottomAnchor.constraint(equalTo: bottomAnchor),
-                    view.leftAnchor.constraint(equalTo: leftAnchor),
-                    view.rightAnchor.constraint(equalTo: rightAnchor)
-                ])
-                view.addSubview(v)
+                Utils.UI.View() ~> {
+                    $0.backgroundColor = .clear
+                    $0.clipsToBounds = true
+                    
+                    layout($0).edges()
+                    $0.layout(v)
+                }
             } else {
                 clipsToBounds = true
-                addSubview(v)
+                layout(v)
             }
             
-            NSLayoutConstraint.activate([
-                v.leftAnchor.constraint(equalTo: leftAnchor),
-                v.rightAnchor.constraint(equalTo: rightAnchor),
-                
-                // betweeen top and bottom
-                v.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
-                v.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
-            ])
+            v.layout
+                .left()
+                .right()
+                .top(.zero, >=)
+                .bottom(.zero, <=)
             
             let _ = innerTopConstraint
             let _ = innerHeightConstraint
             
-            let c: NSLayoutConstraint = heightAnchor.constraint(equalToConstant: s.scrollSize.height)
-            c.isActive = true
-            
-            s.rx.scrollSize
-                .map { $0.height }
-                .`do`(with: self, afterNext: { this, _ in
-                    if let sv = this.outerScrollView {
-                        sv.setNeedsLayout()
-                    }
-                })
-                .bind(to: c.rx.constant)
-                .disposed(by: innerDisposeBag)
+            // observe content size
+            (heightAnchor == s.scrollSize.height) ~> {
+                s.rx.scrollSize
+                    .map { $0.height }
+                    .`do`(with: self, afterNext: { this, _ in
+                        if let sv = this.outerScrollView {
+                            sv.setNeedsLayout()
+                        }
+                    })
+                    .bind(to: $0.rx.constant)
+                    .disposed(by: bags.inner)
+            }
         }
         
         public required init?(coder aDecoder: NSCoder) {
@@ -114,7 +99,7 @@ extension Utils.UI {
         
         public override func didMoveToSuperview() {
             super.didMoveToSuperview()
-            outerScrollView = superview?.traverseViewHierarchyForClassType()
+            outerScrollView = traverseViewHierarchyForClassType()
         }
     }
 }

@@ -119,10 +119,10 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, Interrupti
     /// - Returns: Result of `start()` method.
     public final func connect<T>(to coordinator: RxCoordinator<T>, untilDismiss: Bool = true, startImmediately: Bool = true) -> Observable<RxCoordinator<T>.LifeCycle> {
         coordinator.connect(untilDismiss: untilDismiss, startImmediately: startImmediately)
-            .`do`(with: self, onCompleted: { this in
-                this.free(coordinator: coordinator)
-            }, onSubscribe: { this in
+            .do(with: self, onSubscribe: { this in
                 this.store(coordinator: coordinator)
+            }, onDispose: { this in
+                this.free(coordinator: coordinator)
             })
     }
     
@@ -158,9 +158,7 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, Interrupti
                 $connection.value
                     .filter { $0 == nil }
                     .withUnretained(controller)
-                    .map {
-                        .dismiss($0.0, trigger: .disconnect)
-                    }
+                    .map { .dismiss($0.0, trigger: .disconnect) }
             }())
             .merge(with: { // convert connection state to present or dismiss
                 c.state.asObservable()
@@ -198,6 +196,9 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, Interrupti
             .take(until: {
                 $0.isDismiss && c.untilDismiss
             }, behavior: .inclusive)
+            .do(with: self, onDispose: { this in
+                Utils.Log.debug(this)
+            })
     }
     
     public final func suspend() {

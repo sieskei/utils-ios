@@ -196,9 +196,6 @@ open class RxCoordinator<OutputType>: UtilsUICoordinatorsConnectable, Interrupti
             .take(until: {
                 $0.isDismiss && c.untilDismiss
             }, behavior: .inclusive)
-            .do(with: self, onDispose: { this in
-                Utils.Log.debug(this)
-            })
     }
     
     public final func suspend() {

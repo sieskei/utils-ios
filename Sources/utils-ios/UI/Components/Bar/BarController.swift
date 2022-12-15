@@ -114,7 +114,7 @@ internal extension Utils.UI.BarController {
             .top()
             .left()
             .right()
-            .height(.zero, priority: .low)
+            .height(.zero, priority: 550)
 
         switch topBarDimensions {
         case .constant(let value):
@@ -131,7 +131,7 @@ internal extension Utils.UI.BarController {
             .left()
             .right()
             .bottom()
-            .height(.zero, priority: .low)
+            .height(.zero, priority: 550)
 
         switch topBarDimensions {
         case .constant(let value):

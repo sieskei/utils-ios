@@ -38,16 +38,43 @@ public indirect enum RemoteState {
         }
     }
     
+    public var not: Bool {
+        switch self {
+        case .not:
+            return true
+        case .done:
+            return false
+        case .ongoing(_, let last):
+            return last.not
+        case .error(_, let last):
+            return last.not
+        }
+    }
+    
     public var done: Bool {
         switch self {
         case .not:
             return false
-        case .ongoing(_, last: let last):
+        case .ongoing(_, let last):
             return last.done
         case .done:
             return true
-        case .error(_, last: let last):
+        case .error(_, let last):
             return last.done
+        }
+    }
+    
+    public var responseOnError: HTTPURLResponse? {
+        switch self {
+        case .error(let error, _):
+            let fault = error.fault
+            if fault.is(code: Fault.Codes.Utils.Network.responseFail),
+               let response: HTTPURLResponse = fault.get(key: Fault.Keys.Utils.Network.response) {
+                return response
+            }
+            return nil
+        default:
+            return nil
         }
     }
 }

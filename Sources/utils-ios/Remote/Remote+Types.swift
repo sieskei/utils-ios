@@ -33,5 +33,5 @@ public protocol Initable {
 }
 
 public protocol Pageable {
-    func next()
+    func next(forceReinit: Bool)
 }

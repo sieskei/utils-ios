@@ -43,8 +43,8 @@ public protocol RxRemotePageCompatible: RxRemoteCompatible, RemotePageCompatible
 
 // MARK: Default implementation.
 public extension RxRemotePageCompatible {
-    func next() {
-        runNext()
+    func next(forceReinit: Bool = true) {
+        runNext(forceReinit: forceReinit)
     }
 }
 
@@ -135,7 +135,9 @@ internal extension RxRemotePageCompatible {
     
     private func permission(for state: RemoteState) -> RemotePermission {
         switch state {
-        case .not, .done:
+        case .not:
+            return .notAllowed
+        case .done:
             return .allowed
         case .ongoing(let type, _):
             switch type {
@@ -149,8 +151,8 @@ internal extension RxRemotePageCompatible {
         }
     }
     
-    func serializeNext() -> Single<Self> {
-        guard !isNeedReinit(for: remoteState) else {
+    func serializeNext(forceReinit: Bool) -> Single<Self> {
+        if isNeedReinit(for: remoteState), forceReinit {
             return serializeReinit()
         }
         
@@ -185,8 +187,8 @@ internal extension RxRemotePageCompatible {
             .flatMap { $0.serialize(endpoint: $0.remoteEndpoint.next(for: $0)) }
     }
     
-    func runNext() {
-        serializeNext()
+    func runNext(forceReinit: Bool) {
+        serializeNext(forceReinit: forceReinit)
             .subscribe()
             .disposed(by: self)
     }
@@ -209,7 +211,7 @@ public extension Reactive where Base: RxRemoteCompatible {
 
 // MARK: RxRemoteCompatible - reactive compatible.
 public extension Reactive where Base: RxRemotePageCompatible {
-    func next() -> Single<Base> {
-        return base.serializeNext()
+    func next(forceReinit: Bool = true) -> Single<Base> {
+        return base.serializeNext(forceReinit: forceReinit)
     }
 }

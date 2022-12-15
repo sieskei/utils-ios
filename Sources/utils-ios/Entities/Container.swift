@@ -9,17 +9,17 @@ import Foundation
 
 open class Container<Element: Decodable>: Decodable, RxRedecodable {
     open class var factory: Factory.Type {
-        return Factory.self
+        Factory.self
     }
     
     public var factory: Factory {
-        type(of: self).factory.init(self)
+        Self.factory.init(self)
     }
     
     open private (set) var elements: [Element] = []
     
     public var count: Int {
-        return elements.count
+        elements.count
     }
     
     public subscript(index: Int) -> Element? {
@@ -67,11 +67,11 @@ extension Container {
         }
         
         open func unkeyedContainer(from decoder: Decoder) throws -> UnkeyedDecodingContainer {
-            return try decoder.unkeyedContainer()
+            try decoder.unkeyedContainer()
         }
         
         open func element(from container: inout UnkeyedDecodingContainer) throws -> Element {
-            return try container.decode(Element.self)
+            try container.decode(Element.self)
         }
         
         open func elements(from decoder: Decoder, current: [Element]) throws -> [Element] {

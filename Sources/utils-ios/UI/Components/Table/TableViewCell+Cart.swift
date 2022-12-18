@@ -14,9 +14,7 @@ extension Utils.UI.TableViewCell {
         
         open override func prepare() {
             super.prepare()
-            
-            contentView.layout(cartView)
-                .edgesSafe(insets: .init(top: 16, left: 16, bottom: .zero, right: 16))
+            prepareCartView()
         }
     }
 }
@@ -30,5 +28,13 @@ extension Utils.UI.TableViewCell.Cart {
     override func layout(pulseContainer layer: CALayer) {
         layer.frame = cartView.bounds
         layer.cornerRadius = cartView.layer.cornerRadius
+    }
+}
+
+extension Utils.UI.TableViewCell.Cart {
+    @objc
+    open dynamic func prepareCartView() {
+        contentView.layout(cartView)
+            .edgesSafe(insets: .init(top: 16, left: 16, bottom: .zero, right: 16))
     }
 }

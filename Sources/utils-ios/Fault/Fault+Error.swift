@@ -64,7 +64,7 @@ public extension Error {
         if let fault = self as? Fault {
             return fault
         } else if let wrapper = self as? ErrorWrapper, let error = wrapper.underlyingError {
-            return error.fault
+            return error.fault(or: unknown)
         } else {
             if isNotConnectedToInternet {
                  return .notConnectedToInternet

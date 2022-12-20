@@ -142,7 +142,7 @@ internal extension Utils.UI.BarController {
     }
 }
 
-fileprivate extension Utils.UI.BarController {
+public extension Utils.UI.BarController {
     /**
     Add a given view to the controller's view subviews.
     - Parameter viewController: A UIView to add as a child.

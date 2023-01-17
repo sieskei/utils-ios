@@ -152,6 +152,7 @@ extension Utils.UI.VisualEffectView {
         }
         set {
             prepareForChanges(); defer { applyChanges() }
+            overlayView?.backgroundColor = newValue
             sourceOver?.setValue(newValue, forKeyPath: "color")
             sourceOver?.perform(Selector(("applyRequestedEffectToView:")), with: overlayView)
         }

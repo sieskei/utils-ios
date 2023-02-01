@@ -57,7 +57,7 @@ extension Utils.UI.SimpleWebView {
         
         // MARK: Logging
         ucc.addScriptMessageHandler(name: "logging") {
-            Utils.Log.debug("[NIWebView.console.log]:", $0.body)
+            Utils.Log.debug("[Utils.UI.SimpleWebView]:", $0.body)
         }
         ucc.addUserScript(.init(source:
             """

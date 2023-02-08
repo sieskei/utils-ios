@@ -95,7 +95,7 @@ public extension Reactive where Base: UIViewController {
             .filter {
                 var vc: UIViewController? = $0
                 while let v = vc {
-                    if v.isMovingFromParent || v.isBeingDismissed {
+                    if v.isBeingDismissed || (v.isMovingFromParent && v.parent == nil) {
                         return true
                     }
                     vc = v.parent

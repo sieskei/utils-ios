@@ -12,31 +12,7 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     /// Typealias which will allows to access a InputType of the Coordainator by `CoordinatorName.CoordinationInput`.
     public typealias CoordinationInput = InputType
     
-    private enum Buffer {
-        case none(buffer: [InputType] = [])
-        case established(PublishSubject<InputType>)
-        
-        mutating func transmit(_ input: InputType) {
-            switch self {
-            case .none(let buffer):
-                self = .none(buffer: buffer + [input])
-            case .established(let obsever):
-                obsever.onNext(input)
-            }
-        }
-        
-        mutating func flush(to observer: PublishSubject<InputType>) {
-            switch self {
-            case .none(let buffer):
-                buffer.forEach { observer.onNext($0) }
-                fallthrough
-            case .established:
-                self = .established(observer)
-            }
-        }
-    }
-    
-    private var buffer: Buffer = .none()
+    private let notifier: BufferedNotifier<InputType> = .init()
     
     public final var input: Binder<InputType> {
         input()
@@ -44,14 +20,13 @@ open class RxIOCoordinator<InputType, OutputType>: RxCoordinator<OutputType> {
     
     public final func input(scheduler: ImmediateSchedulerType = CurrentThreadScheduler.instance) -> Binder<InputType> {
         .init(self, scheduler: scheduler) {
-            $0.buffer.transmit($1)
+            $0.notifier.onNext($1)
         }
     }
     
     public final override func start(output: AnyObserver<OutputType>) -> UIViewController {
-        let input: PublishSubject<InputType> = .init()
-        let controller = start(input: input, output: output)
-        buffer.flush(to: input)
+        let controller = start(input: notifier.asObservable(), output: output)
+        notifier.set(state: .passthrough)
         return controller
     }
     

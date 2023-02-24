@@ -9,6 +9,13 @@ import UIKit
 import RxSwift
 
 extension Fault {
+    fileprivate static let thrower: BufferedNotifier<Fault.Throw> = .init(state: .passthrough)
+    
+    public static func wait() { thrower.set(state: .buffer) }
+    public static func signal() { thrower.set(state: .passthrough) }
+}
+
+extension Fault {
     public struct Throw {
         fileprivate let subject: PublishSubject<Action> = .init()
         
@@ -32,7 +39,6 @@ extension Fault {
 
 extension Fault.Throw {
     public struct Action {
-        
         public static let dismissKey = -Int.randomIdentifier
         public static let closeKey = -Int.randomIdentifier
         
@@ -69,11 +75,10 @@ extension Reactive where Base == Fault.Throw {
 }
 
 extension Fault: ReactiveCompatible { }
+
 extension Reactive where Base == Fault {
-    fileprivate static let thrower: Notifier<Fault.Throw> = .init()
-    
     public static var `throw`: Observable<Base.Throw> {
-        thrower.asObservable()
+        Base.thrower.asObservable()
     }
 }
 
@@ -85,7 +90,7 @@ extension Error {
         animated: Bool = true
     ) -> Fault.Throw {
         let t: Fault.Throw = .init(fault: fault, actions: actions, animated: animated, autodismiss: autodismiss)
-        Fault.rx.thrower.notify(t)
+        Fault.thrower.onNext(t)
         return t
     }
 }

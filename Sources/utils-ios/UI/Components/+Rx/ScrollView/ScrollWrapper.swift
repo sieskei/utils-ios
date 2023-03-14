@@ -22,9 +22,10 @@ extension Utils.UI {
                 
                 sv.rx.methodInvoked(#selector(UIScrollView.layoutSubviews))
                     .observe(on: MainScheduler.asyncInstance)
-                    .subscribeNext(with: self) { this, _ in
-                        let i = this.frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size))
-                        
+                    .withUnretained(self)
+                    .map { this, _ in this.frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size)) }
+                    .distinctUntilChanged()
+                    .subscribeNext(with: self) { this, i in
                         let h = i.height
                         let m = i.origin.y - this.frame.origin.y
                         
@@ -38,20 +39,12 @@ extension Utils.UI {
         
         private let scrollCompatible: T
         
-        private lazy var innerTopConstraint: NSLayoutConstraint = (scrollCompatible.view.topAnchor == topAnchor) ~> {
-            $0.priority = .init(999)
-            $0.isActive = true
-        }
-        
-        private lazy var innerHeightConstraint: NSLayoutConstraint = (scrollCompatible.view.heightAnchor == 0) ~> {
-            $0.priority = .init(999)
-            $0.isActive = true
-        }
+        private lazy var innerTopConstraint: NSLayoutConstraint = scrollCompatible.topAnchor == topAnchor ~ .init(999)
+        private lazy var innerHeightConstraint: NSLayoutConstraint = scrollCompatible.heightAnchor == 0 ~ .init(999)
         
         public init(_ s: T, dualView: Bool = false) {
             scrollCompatible = s
             
-            let v = s.view
             let sv = s.scrollView
             sv.isScrollEnabled = false
             
@@ -63,14 +56,14 @@ extension Utils.UI {
                     $0.clipsToBounds = true
                     
                     layout($0).edges()
-                    $0.layout(v)
+                    $0.layout(s)
                 }
             } else {
                 clipsToBounds = true
-                layout(v)
+                layout(s)
             }
             
-            v.layout
+            s.layout
                 .left()
                 .right()
                 .top(.zero, >=)
@@ -84,9 +77,7 @@ extension Utils.UI {
                 s.rx.scrollSize
                     .map { $0.height }
                     .`do`(with: self, afterNext: { this, _ in
-                        if let sv = this.outerScrollView {
-                            sv.setNeedsLayout()
-                        }
+                        this.outerScrollView ~> { $0.setNeedsLayout() }
                     })
                     .bind(to: $0.rx.constant)
                     .disposed(by: bags.inner)

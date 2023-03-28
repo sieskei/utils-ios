@@ -53,7 +53,7 @@ open class Container<Element: Decodable>: Decodable, RxRedecodable {
     }
     
     deinit {
-        print(self, "deinit ...")
+        Utils.Log.debug("deinit ...", self)
     }
 }
 

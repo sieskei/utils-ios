@@ -108,7 +108,7 @@ fileprivate extension NSManagedObjectContext {
             try save()
         } catch (let error) {
             let nserror = error as NSError
-            print("Unresolved error during save \(nserror), \(nserror.userInfo).")
+            Utils.Log.error("Unresolved error during save.", nserror, nserror.userInfo)
         }
     }
     
@@ -119,7 +119,7 @@ fileprivate extension NSManagedObjectContext {
             try result = fetch(request)
         } catch (let error) {
             let nserror = error as NSError
-            print("Unresolved error during fetch \(nserror), \(nserror.userInfo).")
+            Utils.Log.error("Unresolved error during fetch.", nserror, nserror.userInfo)
         }
         
         return result ?? []

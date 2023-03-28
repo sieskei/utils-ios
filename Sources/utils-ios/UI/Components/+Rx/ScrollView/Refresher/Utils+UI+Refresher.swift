@@ -255,7 +255,7 @@ extension Utils.UI.ScrollRefresher {
         }
         
         deinit {
-            print(self, "deinit ...")
+            Utils.Log.debug("deinit ...", self)
             
             if let view = scrollView {
                 view.removeObserver(self, forKeyPath: #keyPath(UIScrollView.contentOffset))

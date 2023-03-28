@@ -152,7 +152,7 @@ extension Utils.UI.ScrollRefresher.FastArrowLayer: CALayerDelegate {
             line.isHidden = true
             completion?()
         default:
-            print("Unknown animation: \(anim).")
+            Utils.Log.warning("Unknown animation:", anim)
         }
     }
 }

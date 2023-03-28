@@ -45,3 +45,16 @@ extension Utils.UI {
         open func prepare() { }
     }
 }
+
+extension Utils.UI.Label {
+    open class Clickable: Utils.UI.Label {
+        public private (set) var action: Utils.UI.Button = .init()
+        
+        open override func prepare() {
+            super.prepare()
+            isUserInteractionEnabled = true
+            layout(action)
+                .edges()
+        }
+    }
+}

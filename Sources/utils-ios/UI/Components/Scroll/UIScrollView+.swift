@@ -91,7 +91,7 @@ public extension UIScrollView {
 
 public extension UIScrollView {
     func transition(toContentOffset point: CGPoint, duration: TimeInterval = 0.25, completion: ((Bool) -> Void)? = nil) {
-        contentOffset = point
+        setContentOffset(point, animated: false) // will stop decelerating
         
         guard window != nil else {
             return // not added to view hierarchy yet

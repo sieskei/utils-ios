@@ -46,7 +46,10 @@ extension Utils.UI {
             scrollCompatible = s
             
             let sv = s.scrollView
+            sv.bounces = false
             sv.isScrollEnabled = false
+            sv.showsVerticalScrollIndicator = false
+            sv.showsHorizontalScrollIndicator = false
             
             super.init(frame: .zero)
             

@@ -22,8 +22,10 @@ extension Utils.UI {
                 
                 sv.rx.methodInvoked(#selector(UIScrollView.layoutSubviews))
                     .observe(on: MainScheduler.asyncInstance)
+                    .withUnretained(sv)
+                    .map { s, _ in (s.contentOffset, s.bounds.size)}
                     .withUnretained(self)
-                    .map { this, _ in this.frame.intersection(.init(origin: sv.contentOffset, size: sv.bounds.size)) }
+                    .map { $0.frame.intersection(.init(origin: $1.0, size: $1.1)) }
                     .distinctUntilChanged()
                     .subscribeNext(with: self) { this, i in
                         let h = i.height
@@ -94,6 +96,10 @@ extension Utils.UI {
         public override func didMoveToSuperview() {
             super.didMoveToSuperview()
             outerScrollView = traverseViewHierarchyForClassType()
+        }
+        
+        deinit {
+            Utils.Log.debug("deinit ...", self)
         }
     }
 }

@@ -79,7 +79,7 @@ extension Utils.UI {
             
             // observe content size
             (heightAnchor == s.scrollSize.height) ~> {
-                s.rx.scrollSize
+                s.rx.scrollDimensions
                     .map { $0.height }
                     .`do`(with: self, afterNext: { this, _ in
                         this.outerScrollView ~> { $0.setNeedsLayout() }

@@ -11,12 +11,25 @@ import RxSwiftExt
 
 public protocol UtilsUIScrollCompatible: NSObject where Self: UIView {
     var scrollView: UIScrollView { get }
-    var scrollSizeKeyPath: String { get } // must return keyPath to CGSize value
+    
+    /// Must return keyPath to CGSize value
+    var scrollSizeKeyPath: String { get }
+    
+    /// Must return keyPath to UIEdgeInsets value
+    var scrollInsetKeyPath: String { get }
 }
 
 extension UtilsUIScrollCompatible {
     public var scrollSize: CGSize {
         Utils.castOrFatalError(value(forKeyPath: scrollSizeKeyPath))
+    }
+    
+    public var scrollInset: UIEdgeInsets {
+        Utils.castOrFatalError(value(forKeyPath: scrollInsetKeyPath))
+    }
+    
+    public var scrollDimensions: CGSize {
+        .init(width: scrollSize.width + scrollInset.horizontal, height: scrollSize.height + scrollInset.vertical)
     }
 }
 
@@ -26,12 +39,20 @@ extension UIScrollView: UtilsUIScrollCompatible {
     public var scrollView: UIScrollView { self }
     
     public var scrollSizeKeyPath: String {
-        return "contentSize"
+        "contentSize"
+    }
+    
+    public var scrollInsetKeyPath: String {
+        "contentInset"
     }
 }
 
 extension Utils.UI.WebView: UtilsUIScrollCompatible {
     public var scrollSizeKeyPath: String {
-        return "bodySizeValue"
+        "bodySizeValue"
+    }
+    
+    public var scrollInsetKeyPath: String {
+        "scrollView.contentInset"
     }
 }

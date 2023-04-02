@@ -30,6 +30,11 @@ public extension UIScrollView {
     var contentFillsHorizontalScrollEdges: Bool {
         contentSize.width + contentInset.left + contentInset.right >= bounds.width
     }
+    
+    func set(showsScrollIndicators value: Bool) {
+        showsVerticalScrollIndicator = value
+        showsHorizontalScrollIndicator = value
+    }
 }
 
 public extension UIScrollView {

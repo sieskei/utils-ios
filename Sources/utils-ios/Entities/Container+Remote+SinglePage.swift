@@ -28,7 +28,7 @@ open class SinglePageRemoteContainer<Element: Decodable, EndpointType: Endpoint>
     }
     
     deinit {
-        print(self, "deinit ...")
+        Utils.Log.debug("deinit ...", self)
     }
     
 }

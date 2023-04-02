@@ -39,6 +39,6 @@ open class RemoteContainer<Element: Decodable, EndpointType: EndpointPageble>: C
     }
     
     deinit {
-        print(self, "deinit ...")
+        Utils.Log.debug("deinit ...", self)
     }
 }

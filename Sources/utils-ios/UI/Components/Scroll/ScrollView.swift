@@ -237,7 +237,7 @@ fileprivate extension Utils.UI.ScrollView {
         
         deinit {
             observation = nil
-            print(self, "deinit ...")
+            Utils.Log.debug("deinit ...", self)
         }
     }
 }

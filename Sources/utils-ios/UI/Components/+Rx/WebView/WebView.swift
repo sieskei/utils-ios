@@ -136,7 +136,7 @@ extension Utils.UI {
         }
         
         deinit {
-            print(self, "deinit ...")
+            Utils.Log.debug("deinit ...", self)
         }
     }
 }

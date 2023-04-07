@@ -37,8 +37,8 @@ extension Utils {
         
         @RxProperty
         fileprivate static var isRequestedProperty: Bool = {
-            guard #available(iOS 14, *) else {
-                return true
+            guard #available(iOS 14, *), requestTrackingAuthorization else {
+                return false
             }
             
             switch ATTrackingManager.trackingAuthorizationStatus {
@@ -72,6 +72,8 @@ extension Utils {
         
         private static var platforms: [TrackingPlatform] = []
         
+        public static var requestTrackingAuthorization: Bool = false
+        
         public static var isRequested: Bool {
             isRequestedProperty
         }
@@ -87,13 +89,20 @@ extension Utils {
             }
         }
         
-        public static func initialize() {
+        public static func initialize(requestTrackingAuthorization flag: Bool = false) {
+            Self.requestTrackingAuthorization = flag
+            
             guard !initialized.asBool else {
                 Utils.Log.warning("Already initialized.")
                 return
             }
             
             guard !initialized.isRunning else {
+                return
+            }
+            
+            guard flag else {
+                initialized = .true
                 return
             }
             

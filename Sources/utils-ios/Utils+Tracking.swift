@@ -33,7 +33,15 @@ extension Utils {
         private static let disposeBag: DisposeBag = .init()
         
         @RxProperty
-        private static var initialized: Initialized = .false
+        private static var initialized: Initialized = .false {
+            didSet {
+                if initialized.asBool {
+                    platforms.forEach {
+                        $0.initialize()
+                    }
+                }
+            }
+        }
         
         @RxProperty
         fileprivate static var isRequestedProperty: Bool = {
@@ -101,22 +109,18 @@ extension Utils {
                 return
             }
             
-            guard flag else {
+            if flag {
+                rx.isRequested
+                    .do(onCompleted: {
+                        initialized = .true
+                    }, onSubscribe: {
+                        initialized = .running
+                    })
+                    .subscribe()
+                    .disposed(by: disposeBag)
+            } else {
                 initialized = .true
-                return
             }
-            
-            rx.isRequested
-                .do(onCompleted: {
-                    platforms.forEach {
-                        $0.initialize()
-                    }
-                    initialized = .true
-                }, onSubscribe: {
-                    initialized = .running
-                })
-                .subscribe()
-                .disposed(by: disposeBag)
         }
         
         public static func track(item: TrackingItem) {

@@ -58,6 +58,10 @@ extension Utils {
             })
         }
         
+        public static func initialize() {
+            let _ = shared
+        }
+        
         public static func instance<T: NSManagedObject>(forEntity name: String, save: Bool = true, init: ((NSManagedObjectContext) -> T) ) -> T {
             let MOC = shared.MOC
             let object = `init`(MOC)

@@ -17,14 +17,14 @@ extension Utils.UI {
             Utils.castOrFatalError(super.layer)
         }
         
-        open var barColor: UIColor = .init(hue: (29.0/360.0), saturation: 1.0, brightness: 1.0, alpha: 1.0) {
+        open var barColor: UIColor = .gray {
             didSet {
                 prepareColors()
             }
         }
         
-        private let serialIncrementQueue: DispatchQueue = .init(label: "ios.utils.UI.GradientProgress.serialIncrementQueue")
-        private var numberOfOperations: Int = 0
+        private let accessQueue: DispatchQueue = .init(label: "ios.utils.UI.GradientProgress.serialIncrementQueue")
+        private var waiters: Int = 0
         
         open override func prepare() {
             super.prepare()
@@ -35,6 +35,8 @@ extension Utils.UI {
             // Use a horizontal gradient
             layer.startPoint = CGPoint(x: 0.0, y: 0.5)
             layer.endPoint = CGPoint(x: 1.0, y: 0.5)
+            
+            layer.backgroundColor = UIColor.clear.cgColor
             
             var colors: [CGColor] = []
             
@@ -61,6 +63,17 @@ extension Utils.UI {
             
             layer.colors = colors
         }
+        
+        open override func didMoveToSuperview() {
+            super.didMoveToSuperview()
+            
+            if superview == nil {
+                accessQueue.sync {
+                    waiters = .zero
+                    layer.removeAllAnimations()
+                }
+            }
+        }
     }
 }
 
@@ -69,7 +82,7 @@ extension Utils.UI.GradientProgress {
         // Move the last color in the array to the front
         // shifting all the other colors.
         guard let color = layer.colors?.popLast() else {
-            print("FATAL ERR: GradientProgress : Layer should contain colors!")
+            Utils.Log.error("Utils.UI.GradientProgress: Layer should contain colors!")
             return
         }
         
@@ -78,31 +91,27 @@ extension Utils.UI.GradientProgress {
         
         let animation = CABasicAnimation(keyPath: "colors")
         animation.toValue = shiftedColors
-        animation.duration = 0.03
+        animation.duration = 0.025
         animation.isRemovedOnCompletion = true
         animation.fillMode = CAMediaTimingFillMode.forwards
         animation.delegate = self
         layer.add(animation, forKey: "animateGradient")
     }
     
-    public func wait() {
-        serialIncrementQueue.sync {
-            numberOfOperations += 1
-            
-            if numberOfOperations == 1 { // rest will be called from animationDidStop
+    public final func wait() {
+        accessQueue.sync {
+            waiters += 1
+            if waiters > .zero {
+                // rest will be called from animationDidStop
                 performAnimation()
             }
         }
     }
 
-    public func signal() {
-        serialIncrementQueue.sync {
-            if numberOfOperations == 0 {
-                return
-            }
-
-            serialIncrementQueue.sync {
-                numberOfOperations -= 1
+    public final func signal() {
+        accessQueue.sync {
+            if waiters > .zero {
+                waiters -= 1
             }
         }
     }
@@ -110,8 +119,8 @@ extension Utils.UI.GradientProgress {
 
 extension Utils.UI.GradientProgress: CAAnimationDelegate {
     public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        serialIncrementQueue.sync {
-            if flag && numberOfOperations > 0 {
+        accessQueue.sync {
+            if waiters > .zero {
                 performAnimation()
             }
         }

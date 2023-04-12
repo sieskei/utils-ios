@@ -66,7 +66,7 @@ extension Utils {
             let MOC = shared.MOC
             let object = `init`(MOC)
             if save {
-                MOC.perform {
+                MOC.performAndWait {
                     MOC.saveQuite()
                 }
             }
@@ -88,7 +88,7 @@ extension Utils {
             var result = [T]()
             
             let MOC = shared.MOC
-            shared.MOC.performAndWait {
+            MOC.performAndWait {
                result.append(contentsOf: MOC.fetchQuite(request))
             }
             
@@ -97,7 +97,7 @@ extension Utils {
         
         public static func save() {
             let MOC = shared.MOC
-            MOC.perform {
+            MOC.performAndWait {
                 MOC.saveQuite()
             }
         }

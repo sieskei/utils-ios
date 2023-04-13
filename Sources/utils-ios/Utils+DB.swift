@@ -104,7 +104,7 @@ extension Utils {
     }
 }
 
-fileprivate extension NSManagedObjectContext {
+public extension NSManagedObjectContext {
     func saveQuite() {
         guard hasChanges else { return }
         

@@ -7,6 +7,18 @@
 
 import UIKit
 
+extension Utils.UI.GradientProgress {
+    public enum Status: Int {
+        case idle
+        case processing
+        case stopping
+        
+        var isHidden: Bool {
+            self == .idle
+        }
+    }
+}
+
 extension Utils.UI {
     open class GradientProgress: Utils.UI.View {
         open override class var layerClass: AnyClass {
@@ -24,11 +36,18 @@ extension Utils.UI {
         }
         
         private let accessQueue: DispatchQueue = .init(label: "ios.utils.UI.GradientProgress.serialIncrementQueue")
-        private var waiters: Int = 0
+        
+        public private (set) var status: Status = .idle {
+            didSet {
+                isHidden = status.isHidden
+            }
+        }
         
         open override func prepare() {
             super.prepare()
+            
             prepareColors()
+            isHidden = status.isHidden
         }
         
         open func prepareColors() {
@@ -69,7 +88,7 @@ extension Utils.UI {
             
             if superview == nil {
                 accessQueue.sync {
-                    waiters = .zero
+                    status = .idle
                     layer.removeAllAnimations()
                 }
             }
@@ -78,7 +97,7 @@ extension Utils.UI {
 }
 
 extension Utils.UI.GradientProgress {
-    private func performAnimation() {
+    private func commit() {
         // Move the last color in the array to the front
         // shifting all the other colors.
         guard let color = layer.colors?.popLast() else {
@@ -93,25 +112,32 @@ extension Utils.UI.GradientProgress {
         animation.toValue = shiftedColors
         animation.duration = 0.025
         animation.isRemovedOnCompletion = true
-        animation.fillMode = CAMediaTimingFillMode.forwards
+        animation.fillMode = .forwards
         animation.delegate = self
         layer.add(animation, forKey: "animateGradient")
     }
     
     public final func wait() {
         accessQueue.sync {
-            waiters += 1
-            if waiters > .zero {
-                // rest will be called from animationDidStop
-                performAnimation()
+            switch status {
+            case .idle:
+                status = .processing
+                commit()
+            case .stopping:
+                status = .processing
+            default:
+                break
             }
         }
     }
 
     public final func signal() {
         accessQueue.sync {
-            if waiters > .zero {
-                waiters -= 1
+            switch status {
+            case .idle, .stopping:
+                break
+            case .processing:
+                status = .stopping
             }
         }
     }
@@ -120,8 +146,14 @@ extension Utils.UI.GradientProgress {
 extension Utils.UI.GradientProgress: CAAnimationDelegate {
     public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         accessQueue.sync {
-            if waiters > .zero {
-                performAnimation()
+            switch status {
+            case .processing:
+                commit()
+            case .stopping:
+                status = .idle
+                fallthrough
+            default:
+                break
             }
         }
     }

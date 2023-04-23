@@ -39,7 +39,7 @@ extension DispatchQueue {
 
 // MARK: public functionality
 
-extension DispatchQueue {
+public extension DispatchQueue {
     static func registerDetection(of queue: DispatchQueue) {
         registerDetection(of: [queue], key: key)
     }

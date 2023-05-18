@@ -23,4 +23,32 @@ extension UIEdgeInsets {
     public init(repeating value: CGFloat) {
         self.init(top: value, left: value, bottom: value, right: value)
     }
+    
+    public init(_ value: UIEdgeInsets, top: CGFloat? = nil, left: CGFloat? = nil, bottom: CGFloat? = nil, right: CGFloat? = nil) {
+        self.init(top: top ?? value.top, left: left ?? value.left, bottom: bottom ?? value.bottom, right: right ?? value.right)
+    }
+    
+    @discardableResult
+    public mutating func set(top value: CGFloat) -> Self {
+        top = value
+        return self
+    }
+    
+    @discardableResult
+    public mutating func set(bottom value: CGFloat) -> Self {
+        bottom = value
+        return self
+    }
+    
+    @discardableResult
+    public mutating func set(left value: CGFloat) -> Self {
+        left = value
+        return self
+    }
+    
+    @discardableResult
+    public mutating func set(right value: CGFloat) -> Self {
+        right = value
+        return self
+    }
 }

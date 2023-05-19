@@ -14,7 +14,7 @@ public extension Utils {
 
 public extension Utils.Storage {
     struct Configuration {
-        public static var group = "group.bg.netinfo"
+        public static var group = "group.bg.netinfo" // maybe need to be removed
         public static var prefix = ""
         
         fileprivate static func gen(_ key: String) -> String {

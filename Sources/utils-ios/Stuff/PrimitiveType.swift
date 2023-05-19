@@ -21,5 +21,6 @@ extension UInt8  : PrimitiveType { }
 extension Float  : PrimitiveType { }
 extension Double : PrimitiveType { }
 extension String : PrimitiveType { }
+extension Bool   : PrimitiveType { }
 
 extension Array: PrimitiveType where Element: PrimitiveType { }

@@ -9,7 +9,7 @@ import UIKit
 
 public extension NSAttributedString {
     static func ul(from strings: [String],
-                   bulletCharacter: String = "⦿",
+                   bulletCharacter: String = "•",
                    bulletAttributes: [NSAttributedString.Key: Any] = [:],
                    textAttributes: [NSAttributedString.Key: Any] = [:],
                    indentation: CGFloat = 16,

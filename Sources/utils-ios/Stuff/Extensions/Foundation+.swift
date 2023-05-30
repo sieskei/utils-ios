@@ -130,3 +130,11 @@ public extension Date {
         .init(timeIntervalSinceReferenceDate: floor(timeIntervalSinceReferenceDate / 60.0) * 60)
     }
 }
+
+public extension Float {
+    /// Rounds the float to decimal places value
+    func rounded(toPlaces places: Int) -> Float {
+        let divisor = pow(10.0, Float(places))
+        return (self * divisor).rounded() / divisor
+    }
+}

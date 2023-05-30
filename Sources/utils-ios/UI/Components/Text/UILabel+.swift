@@ -7,6 +7,27 @@
 
 import UIKit
 
+fileprivate extension String {
+    var HTML: NSAttributedString? {
+        guard let data = data(using: String.Encoding.utf16, allowLossyConversion: true),
+              let string = try? NSMutableAttributedString(data: data,
+                                                          options: [.documentType: NSAttributedString.DocumentType.html],
+                                                          documentAttributes: nil) else {
+            Utils.Log.warning("Unable to convert HTML to AttributedString.", self)
+            return nil
+        }
+        return string.trimmed
+    }
+}
+
+
+internal extension UILabel {
+    @objc
+    dynamic func set(HTML source: NSAttributedString?) {
+        attributedText = source
+    }
+}
+
 public extension UILabel {
     /// Convenience way to change font size.
     var fontSize: CGFloat {
@@ -35,13 +56,9 @@ public extension UILabel {
             source = text
         }
         
-        if let data = source.data(using: String.Encoding.utf16),
-           let at = try? NSMutableAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) {
-            attributedText = at
-        } else {
-            attributedText = NSAttributedString(string: source)
-        }
+        set(HTML: source.HTML)
     }
+    
     
     func setHTMLFromString(txt: String, font: UIFont, color: UIColor = .black, textAlignment: NSTextAlignment = .natural) {
         text = txt
@@ -64,13 +81,31 @@ public extension UILabel {
         """
         
         let source = style + txt.trimmingCharacters(in: .whitespacesAndNewlines)
+        set(HTML: source.HTML)
+    }
+    
+    func setHTMLFromString(source: String, style: String = "") {
+        text = source
         
-        let opts = [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html]
-        if let data = source.data(using: String.Encoding.utf16, allowLossyConversion: true),
-            let string = try? NSMutableAttributedString(data: data, options: opts, documentAttributes: nil) {
-            attributedText = string.trimmed
-        } else {
-            attributedText = NSAttributedString(string: txt)
+        guard !source.isEmpty else {
+            attributedText = nil
+            return
         }
+        
+        let style =
+        """
+            <style>
+                html {
+                    font-family: \(font.fontName);
+                    font-size: \(font.pointSize);
+                    color: \(textColor.hexString(.RRGGBB));
+                    text-align: \(textAlignment.description);
+                }
+        
+                \(style)
+            </style>
+        """
+        
+        set(HTML: (style + source.trimmingCharacters(in: .whitespacesAndNewlines)).HTML)
     }
 }

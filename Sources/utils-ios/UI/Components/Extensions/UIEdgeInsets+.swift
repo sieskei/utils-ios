@@ -28,27 +28,19 @@ extension UIEdgeInsets {
         self.init(top: top ?? value.top, left: left ?? value.left, bottom: bottom ?? value.bottom, right: right ?? value.right)
     }
     
-    @discardableResult
-    public mutating func set(top value: CGFloat) -> Self {
-        top = value
-        return self
+    public func set(top value: CGFloat) -> Self {
+        .init(self, top: value)
     }
     
-    @discardableResult
-    public mutating func set(bottom value: CGFloat) -> Self {
-        bottom = value
-        return self
+    public func set(bottom value: CGFloat) -> Self {
+        .init(self, bottom: value)
     }
     
-    @discardableResult
-    public mutating func set(left value: CGFloat) -> Self {
-        left = value
-        return self
+    public func set(left value: CGFloat) -> Self {
+        .init(self, left: value)
     }
     
-    @discardableResult
-    public mutating func set(right value: CGFloat) -> Self {
-        right = value
-        return self
+    public func set(right value: CGFloat) -> Self {
+        .init(self, right: value)
     }
 }

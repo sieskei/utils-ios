@@ -135,6 +135,14 @@ public extension Utils {
             concurrentOperationQueue.addOperation(block)
         }
         
+        public static func async<T>(with obj: T, block: @escaping (T) -> Void) where T: AnyObject {
+            concurrentOperationQueue.addOperation { [weak obj] in
+                if let obj {
+                    block(obj)
+                }
+            }
+        }
+        
         public static func async(operation: Operation) {
             concurrentOperationQueue.addOperation(operation)
         }

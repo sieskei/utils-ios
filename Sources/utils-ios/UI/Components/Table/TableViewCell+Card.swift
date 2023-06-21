@@ -8,7 +8,7 @@
 import UIKit
 
 extension Utils.UI.TableViewCell {
-    open class Cart: Utils.UI.TableViewCell {
+    open class Card: Utils.UI.TableViewCell {
         // TODO: Insets
         public private (set) lazy var cartView: Utils.UI.View.Cart = .init()
         
@@ -19,7 +19,7 @@ extension Utils.UI.TableViewCell {
     }
 }
 
-extension Utils.UI.TableViewCell.Cart {
+extension Utils.UI.TableViewCell.Card {
     override func insert(pulseContainer layer: CALayer) {
         cartView.layer
             .addSublayer(layer)
@@ -31,7 +31,7 @@ extension Utils.UI.TableViewCell.Cart {
     }
 }
 
-extension Utils.UI.TableViewCell.Cart {
+extension Utils.UI.TableViewCell.Card {
     @objc
     open dynamic func prepareCartView() {
         contentView.layout(cartView)

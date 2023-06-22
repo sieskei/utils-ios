@@ -12,10 +12,15 @@ public enum DecodingProperty<Value> {
     case fail(Error)
     
     public func or(_ default: Value) -> Value {
-        guard case .success(let value) = self else {
+        switch self {
+        case .success(let value):
+            return value
+        case .fail(let error):
+            #if DEBUG
+            Utils.Log.error(error)
+            #endif
             return `default`
         }
-        return value
     }
     
     public func `throw`() throws -> Value {
@@ -23,6 +28,9 @@ public enum DecodingProperty<Value> {
         case .success(let value):
             return value
         case .fail(let error):
+            #if DEBUG
+            Utils.Log.error(error)
+            #endif
             throw error
         }
     }

@@ -1,5 +1,5 @@
 //
-//  Scroller.swift
+//  Scroll.swift
 //  
 //
 //  Created by Miroslav Yozov on 2.04.23.
@@ -8,7 +8,7 @@
 import UIKit
 
 extension Utils.UI {
-    open class Scroller: UIScrollView {
+    open class Scroll: UIScrollView {
         public override init(frame: CGRect) {
             super.init(frame: frame)
             prepare()
@@ -25,3 +25,5 @@ extension Utils.UI {
         }
     }
 }
+
+extension Utils.UI.Scroll: UtilsUIStackCompatible { }

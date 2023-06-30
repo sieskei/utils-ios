@@ -28,19 +28,19 @@ extension UIEdgeInsets {
         self.init(top: top ?? value.top, left: left ?? value.left, bottom: bottom ?? value.bottom, right: right ?? value.right)
     }
     
-    public func set(top value: CGFloat) -> Self {
+    public func top(_ value: CGFloat) -> Self {
         .init(self, top: value)
     }
     
-    public func set(bottom value: CGFloat) -> Self {
+    public func bottom(_ value: CGFloat) -> Self {
         .init(self, bottom: value)
     }
     
-    public func set(left value: CGFloat) -> Self {
+    public func left(_ value: CGFloat) -> Self {
         .init(self, left: value)
     }
     
-    public func set(right value: CGFloat) -> Self {
+    public func right(_ value: CGFloat) -> Self {
         .init(self, right: value)
     }
 }

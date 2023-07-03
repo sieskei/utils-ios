@@ -8,7 +8,7 @@
 import UIKit
 
 public protocol UtilsUILabelLinkableDelegate: AnyObject {
-    func label(_ label: Utils.UI.Label.Linkable, didPressLink: URL)
+    func label(_ label: Utils.UI.Label.Linkable, didPressLink link: URL)
 }
 
 extension Utils.UI.Label {

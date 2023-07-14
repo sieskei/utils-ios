@@ -56,8 +56,8 @@ public extension String {
         self = trimmed
     }
     
-    func start(with string: String) -> Bool {
-        range(of: string, options: .anchored) != nil
+    func start(with string: String, options mask: String.CompareOptions = []) -> Bool {
+        range(of: string, options: [.anchored, mask]) != nil
     }
 }
 

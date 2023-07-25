@@ -9,20 +9,35 @@ import Foundation
 
 // MARK: NSError help properties.
 public extension NSError {
+    fileprivate var urlError: NSError? {
+        var error: NSError? = self
+        while error != nil {
+            if error!.domain == NSURLErrorDomain {
+                return error
+            }
+            
+            if let wrapper = error as? ErrorWrapper, let v = wrapper.underlyingError {
+                error = v.nsError
+            }
+        }
+        
+        return nil
+    }
+    
     var isNetwork: Bool {
-        domain == NSURLErrorDomain
+        urlError?.domain == NSURLErrorDomain
     }
     
     var isCancelledURLRequest: Bool {
-        isNetwork && code == NSURLErrorCancelled
+        urlError?.code == NSURLErrorCancelled
     }
     
     var isNotConnectedToInternet: Bool {
-        isNetwork && code == NSURLErrorNotConnectedToInternet
+        urlError?.code == NSURLErrorNotConnectedToInternet
     }
     
     var isTimeOutURLRequest: Bool {
-        isNetwork && code == NSURLErrorTimedOut
+        urlError?.code == NSURLErrorTimedOut
     }
 }
 

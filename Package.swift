@@ -11,7 +11,7 @@ let package = Package(
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
-            name: "utils-ios", type: .static,
+            name: "utils-ios",
             targets: ["utils-ios"]),
     ],
     dependencies: [
@@ -19,7 +19,7 @@ let package = Package(
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
         .package(url: "https://github.com/RxSwiftCommunity/RxDataSources.git", from: "5.0.0"),
         .package(url: "https://github.com/RxSwiftCommunity/RxSwiftExt.git", from: "6.0.0"),
-        .package(url: "https://github.com/RxSwiftCommunity/RxGesture.git", from: "4.0.0"),
+        .package(url: "https://github.com/RxSwiftCommunity/RxGesture.git", .branch("main")),
         .package(url: "https://github.com/RxSwiftCommunity/RxKeyboard.git", from: "2.0.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.2.0"),
         .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "4.1.0"),
@@ -30,7 +30,8 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "utils-ios",
-            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", "AlamofireImage", "HeliumLogger"]),
+            dependencies: ["Alamofire", "RxSwift", .product(name: "RxCocoa", package: "RxSwift"), "RxDataSources", "RxSwiftExt", "RxGesture", "RxKeyboard", "AlamofireImage", "HeliumLogger"],
+            path: "Sources"),
         .testTarget(
             name: "utils-iosTests",
             dependencies: ["utils-ios"]),
